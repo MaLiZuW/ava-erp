@@ -15,6 +15,11 @@ insert into public.number_series (doc_type, year, prefix) values ('DOP', 2998, '
 insert into public.status_transitions (entity_table, from_status, to_status, label_sk)
   values ('zz_rls_probe', 'a', 'b', 'Test') on conflict do nothing;
 insert into public.activity_logs (table_name, action) values ('rls_probe', 'insert');
+insert into public.notification_recipients (email) values ('rls-probe@test.invalid');
+insert into public.documents (entity_table, entity_id, category, storage_path, file_name, mime_type, size_bytes)
+  values ('companies', gen_random_uuid(), 'logo',
+          '2026/companies/00000000-0000-0000-0000-000000000001/00000000-0000-0000-0000-000000000002-probe.png',
+          'probe.png', 'image/png', 1);
 
 -- meta: no table without RLS and without the restrictive aal2 policy ----------------------
 select is_empty(
@@ -34,7 +39,8 @@ select is_empty(
 set local role anon;
 select throws_ok(format('select 1 from public.%I limit 1', t), '42501', null, t || ': anon is denied')
 from unnest(array['companies','divisions','profiles','user_roles','feature_flags','system_settings',
-                  'number_series','status_transitions','activity_logs']) as t;
+                  'number_series','status_transitions','activity_logs',
+                  'notification_recipients','documents']) as t;
 reset role;
 
 -- authenticated with aal1 (even an admin): sees nothing -----------------------------------
@@ -43,7 +49,8 @@ select set_config('request.jwt.claims',
 set local role authenticated;
 select is_empty(format('select 1 from public.%I', t), t || ': admin with aal1 sees nothing')
 from unnest(array['companies','divisions','profiles','user_roles','feature_flags','system_settings',
-                  'number_series','status_transitions','activity_logs']) as t;
+                  'number_series','status_transitions','activity_logs',
+                  'notification_recipients','documents']) as t;
 select throws_ok($$insert into public.system_settings (key, value) values ('x', '1')$$,
   '42501', null, 'admin with aal1 cannot write');
 reset role;
@@ -54,7 +61,8 @@ select set_config('request.jwt.claims',
 set local role authenticated;
 select isnt_empty(format('select 1 from public.%I', t), t || ': admin with aal2 can read')
 from unnest(array['companies','divisions','profiles','user_roles','feature_flags','system_settings',
-                  'number_series','status_transitions','activity_logs']) as t;
+                  'number_series','status_transitions','activity_logs',
+                  'notification_recipients','documents']) as t;
 select lives_ok($$insert into public.system_settings (key, value) values ('inactivity_minutes', '30')$$,
   'admin can insert a setting');
 select lives_ok($$update public.system_settings set value = '45' where key = 'inactivity_minutes'$$,
@@ -81,7 +89,8 @@ select set_config('request.jwt.claims',
   '{"sub":"b0000000-0000-0000-0000-00000000000b","role":"authenticated","aal":"aal2"}', true);
 set local role authenticated;
 select is_empty(format('select 1 from public.%I', t), t || ': user without role sees nothing')
-from unnest(array['companies','system_settings','number_series','activity_logs']) as t;
+from unnest(array['companies','system_settings','number_series','activity_logs',
+                  'notification_recipients','documents']) as t;
 select isnt_empty(format('select 1 from public.%I', t), t || ': readable by every aal2 user')
 from unnest(array['divisions','feature_flags','status_transitions']) as t;
 select is((select count(*) from public.profiles), 1::bigint, 'user sees only their own profile');
@@ -95,5 +104,22 @@ select throws_ok($$insert into public.user_roles (user_id, role)
 reset role;
 select is_empty($$select 1 from public.companies where legal_name = 'Hacked'$$,
   'update by a user without role changed 0 company rows');
+
+-- v_open_items: zeros for aal2, nothing for aal1, anon denied -------------------------------
+set local role anon;
+select throws_ok('select 1 from public.v_open_items', '42501', null, 'v_open_items: anon is denied');
+reset role;
+select set_config('request.jwt.claims',
+  '{"sub":"a0000000-0000-0000-0000-00000000000a","role":"authenticated","aal":"aal1"}', true);
+set local role authenticated;
+select is_empty('select 1 from public.v_open_items', 'v_open_items: aal1 sees nothing');
+reset role;
+select set_config('request.jwt.claims',
+  '{"sub":"a0000000-0000-0000-0000-00000000000a","role":"authenticated","aal":"aal2"}', true);
+set local role authenticated;
+select is((select new_inquiries + quotes_to_approve + visuals_waiting + overdue_tasks
+                  + delivered_not_invoiced + invoices_overdue from public.v_open_items),
+  0, 'v_open_items: aal2 gets one row of zeros');
+reset role;
 
 select * from finish();
