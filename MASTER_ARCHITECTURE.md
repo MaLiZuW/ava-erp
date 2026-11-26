@@ -25,6 +25,9 @@ Pravidlá biznisu žijú v databáze (constrainty, triggery, `transition()`), fr
 | Komponenty | shadcn/ui štýl (cva, clsx, tailwind-merge), lucide-react, cmdk | – / 1.81.0 / 1.1.1                 |
 | Písmo      | Inter (`@fontsource-variable/inter`, lokálne)                  | 5.3.0                              |
 | Dáta       | `@supabase/supabase-js`, zod                                   | 2.119.2 / 4.6.7                    |
+| Dáta v UI  | TanStack Query (fáza 2)                                        | 5.108.4                            |
+| Formuláre  | react-hook-form + @hookform/resolvers (fáza 2)                 | 7.92.0 / 7.0.9                     |
+| Testy TOTP | otpauth (len dev, výpočet kódov v testoch)                     | 9.6.0                              |
 | Testy      | Vitest, Testing Library, Playwright                            | 5.1.2 / 16.3.3 / 1.65.1            |
 | DB testy   | pgTAP; lokálny sandbox PGlite                                  | 0.6.0 (+ pglite-pgtap 0.1.0)       |
 | Nástroje   | ESLint 9, Prettier 3, tsx, pg                                  | 9.39.5 / 3.10.1 / 4.23.15 / 8.23.1 |
@@ -41,3 +44,13 @@ TypeScript 5.9 a ESLint 9 sú zámerne nižšie než najnovšie (TS 7, ESLint 10
 - **Audit:** `private.log_change()` + `public.activity_logs` (append-only, aj pre vlastníka tabuľky).
 - **Supabase CLI v3:** cieľ sa volí prepínačom `--remote` (nie `--linked`); konfigurácia je `supabase/config.jsonc`.
 - **Navigácia:** jediný zdroj pravdy `src/core/navigation.ts` (14 položiek) – menu, nadpis stránky aj paleta príkazov.
+
+## Rozhodnutia fázy 2 (prihlásenie, 2FA, roly, audit)
+
+- **Prihlásenie v prehliadači:** jeden klient `src/core/supabase/client.ts` (anon kľúč, session v `localStorage`, implicitný tok kvôli pozvánkovým odkazom). Stav relácie drží `AuthProvider` (`src/core/auth`): `signed-out → needs-password → needs-enroll → needs-verify → ready`. Čistá logika je v `status.ts` (testovaná bez siete).
+- **Brána aplikácie:** `src/app/app-gate.tsx` – stránky `/prihlasenie/*` bez rozloženia, všetko ostatné len cez `RequireAal2` + `IdleLogout` + `AppShell`. Statický export ostáva (žiadny middleware) – ochranu dát robí RLS.
+- **Roly v UI:** `NavItem.requiredRole`, `visibleNavItems()`, `RequireRole`; databáza to vynucuje politikami.
+- **Moduly:** prvé `src/features/*` – `settings` (api.ts s TanStack Query, schema.ts so zod, components/) a `dashboard`. Spoločné validátory v `src/core/validation.ts`, chyby DB → slovenské hlásenia v `src/core/supabase/errors.ts`.
+- **Dokumenty a súbory:** tabuľka `documents` + súkromný bucket `documents` (jadro príloh pre ďalšie fázy). Prepis objektu je zakázaný vždy; zamknutý dokument sa nedá zmeniť ani zmazať (DB aj storage politika).
+- **Edge Function `admin-mfa-reset`:** logika v `handler.ts` so vstrekovanými závislosťami (testovaná vo Vitest), `index.ts` ju napája na Deno a Supabase. Prvý kód so `service_role` – výhradne na serveri.
+- **`v_open_items`:** zmluva pre dashboard (zatiaľ nuly), `security_invoker`, s aal1 nevráti nič.
