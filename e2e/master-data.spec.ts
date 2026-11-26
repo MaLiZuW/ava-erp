@@ -156,5 +156,34 @@ test.describe.serial("master data", () => {
     await page.getByRole("button", { name: "Uložiť" }).click();
     const row = page.getByRole("row", { name: new RegExp(resource) });
     await expect(row).toContainText("4,83 €", { timeout: 15_000 });
+
+    // --- content library: slots are shown (writes are covered by pgTAP / API tests, the slots
+    //     hold the owner's real texts on dev) ----------------------------------------------------
+    await page.goto("/dokumenty/");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Dokumenty");
+    for (const title of ["O firme", "Inžinierske služby", "Reklamné predmety"]) {
+      await expect(page.getByRole("region", { name: title, exact: true })).toBeVisible({ timeout: 15_000 });
+    }
+    await expect(page.getByRole("region", { name: "Diely a servis CNC", exact: true })).toHaveCount(0);
+
+    // --- settings → reporting: overhead; a duplicate for the whole company is refused -----------
+    await page.goto("/nastavenia/");
+    const overhead = page.getByRole("region", { name: "Réžia – mesačné fixné náklady" });
+    const category = `${E2E_NAME_PREFIX}réžia ${stamp}`;
+    for (let i = 0; i < 2; i++) {
+      await overhead.getByRole("button", { name: "Pridať náklad" }).click();
+      await overhead.getByLabel("Kategória", { exact: true }).fill(category);
+      await overhead.getByLabel("Suma za mesiac", { exact: true }).fill("123,45");
+      await overhead.getByRole("button", { name: "Uložiť", exact: true }).click();
+      if (i === 0) {
+        await expect(overhead.getByRole("cell", { name: category, exact: true })).toBeVisible({
+          timeout: 15_000,
+        });
+      }
+    }
+    await expect(overhead.getByText(/už v danom mesiaci a divízii existuje/)).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page.getByTestId("tax-warning")).toContainText("overte ich s účtovníkom");
   });
 });

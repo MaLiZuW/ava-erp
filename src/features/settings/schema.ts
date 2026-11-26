@@ -12,6 +12,7 @@ import {
 } from "@/core/form-fields";
 import { compact, formatIban, isValidIban, isValidSwift } from "@/core/validation";
 import { IDLE_MAX_MINUTES, IDLE_MIN_MINUTES } from "@/core/auth/idle";
+import { REPORTING_FIELD_LABELS } from "./reporting";
 
 /** Company form (companies, 1 row). vat_payer / ic_dph: the company is NOT a VAT payer (D2). */
 export const companySchema = z.object({
@@ -119,6 +120,7 @@ export const FIELD_LABELS: Record<string, Record<string, string>> = {
   user_roles: { user_id: "Používateľ", role: "Rola" },
   profiles: { full_name: "Meno", email: "E-mail", phone: "Telefón", is_active: "Aktívny" },
   "auth.mfa_factors": { target_user: "Používateľ", factors_removed: "Odstránené faktory" },
+  ...REPORTING_FIELD_LABELS,
 };
 
 export const TABLE_LABELS: Record<string, string> = {
@@ -130,4 +132,8 @@ export const TABLE_LABELS: Record<string, string> = {
   user_roles: "Roly",
   profiles: "Profily",
   "auth.mfa_factors": "2FA",
+  overhead_costs: "Réžia",
+  income_tax_brackets: "Daň z príjmov",
+  capacity_plans: "Kapacity",
+  kpi_targets: "Ciele KPI",
 };

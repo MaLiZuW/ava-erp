@@ -66,6 +66,48 @@ export type Database = {
         };
         Relationships: [];
       };
+      capacity_plans: {
+        Row: {
+          available_hours: number;
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          month: string;
+          updated_at: string;
+          updated_by: string | null;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          available_hours: number;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          month: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          user_id: string;
+        };
+        Update: {
+          available_hours?: number;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          month?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "capacity_plans_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       catalog_items: {
         Row: {
           code: string | null;
@@ -229,6 +271,66 @@ export type Database = {
             columns: ["logo_document_id"];
             isOneToOne: false;
             referencedRelation: "documents";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      content_blocks: {
+        Row: {
+          body: string;
+          created_at: string;
+          created_by: string | null;
+          division_id: string | null;
+          id: string;
+          image_document_ids: string[];
+          is_active: boolean;
+          job_type: Database["public"]["Enums"]["job_type"] | null;
+          key: string;
+          language: string;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+          version: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          body?: string;
+          created_at?: string;
+          created_by?: string | null;
+          division_id?: string | null;
+          id?: string;
+          image_document_ids?: string[];
+          is_active?: boolean;
+          job_type?: Database["public"]["Enums"]["job_type"] | null;
+          key: string;
+          language?: string;
+          title: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          version?: number;
+        };
+        Update: {
+          body?: string;
+          created_at?: string;
+          created_by?: string | null;
+          division_id?: string | null;
+          id?: string;
+          image_document_ids?: string[];
+          is_active?: boolean;
+          job_type?: Database["public"]["Enums"]["job_type"] | null;
+          key?: string;
+          language?: string;
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          version?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "content_blocks_division_id_fkey";
+            columns: ["division_id"];
+            isOneToOne: false;
+            referencedRelation: "divisions";
             referencedColumns: ["id"];
           },
         ];
@@ -543,6 +645,100 @@ export type Database = {
         };
         Relationships: [];
       };
+      income_tax_brackets: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          rate_pct: number;
+          revenue_from_cents: number;
+          revenue_to_cents: number | null;
+          source_note: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          valid_from: string;
+          valid_to: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          rate_pct: number;
+          revenue_from_cents: number;
+          revenue_to_cents?: number | null;
+          source_note?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from: string;
+          valid_to?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          rate_pct?: number;
+          revenue_from_cents?: number;
+          revenue_to_cents?: number | null;
+          source_note?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from?: string;
+          valid_to?: string | null;
+        };
+        Relationships: [];
+      };
+      kpi_targets: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          direction: string;
+          division_id: string | null;
+          id: string;
+          kpi_key: string;
+          target_value: number;
+          updated_at: string;
+          updated_by: string | null;
+          valid_from: string;
+          warning_value: number | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          direction: string;
+          division_id?: string | null;
+          id?: string;
+          kpi_key: string;
+          target_value: number;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from?: string;
+          warning_value?: number | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          direction?: string;
+          division_id?: string | null;
+          id?: string;
+          kpi_key?: string;
+          target_value?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from?: string;
+          warning_value?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "kpi_targets_division_id_fkey";
+            columns: ["division_id"];
+            isOneToOne: false;
+            referencedRelation: "divisions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       labor_rates: {
         Row: {
           bill_rate_cents: number;
@@ -689,6 +885,54 @@ export type Database = {
           year?: number;
         };
         Relationships: [];
+      };
+      overhead_costs: {
+        Row: {
+          amount_cents: number;
+          category: string;
+          created_at: string;
+          created_by: string | null;
+          division_id: string | null;
+          id: string;
+          month: string;
+          note: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          amount_cents: number;
+          category: string;
+          created_at?: string;
+          created_by?: string | null;
+          division_id?: string | null;
+          id?: string;
+          month: string;
+          note?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          amount_cents?: number;
+          category?: string;
+          created_at?: string;
+          created_by?: string | null;
+          division_id?: string | null;
+          id?: string;
+          month?: string;
+          note?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "overhead_costs_division_id_fkey";
+            columns: ["division_id"];
+            isOneToOne: false;
+            referencedRelation: "divisions";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       package_components: {
         Row: {

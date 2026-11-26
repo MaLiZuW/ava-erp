@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { throwDb } from "@/core/supabase/errors";
 import { getSupabase } from "@/core/supabase/client";
 import type { Json, Tables } from "@/core/supabase/database.types";
-import { checkLogoFile, safeFileName } from "@/core/validation";
+import { uploadImageDocument } from "@/core/documents";
 import type { CompanyOutput, SystemSettingKey } from "./schema";
 
 export const keys = {
@@ -12,7 +12,6 @@ export const keys = {
   settings: ["system_settings"] as const,
   flags: ["feature_flags"] as const,
   recipients: ["notification_recipients"] as const,
-  logoUrl: (path: string | null) => ["logo_url", path] as const,
   users: ["admin_list_users"] as const,
 };
 
@@ -50,11 +49,8 @@ export function useSaveCompany() {
   });
 }
 
-// --- logo ---------------------------------------------------------------------------------------
-async function sha256Hex(file: Blob): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", await file.arrayBuffer());
-  return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
-}
+// --- logo (upload and signed URLs live in the documents core) --------------------------------------
+export { useSignedUrl } from "@/core/documents";
 
 export function useLogoDocument(documentId: string | null | undefined) {
   return useQuery({
@@ -72,67 +68,22 @@ export function useLogoDocument(documentId: string | null | undefined) {
   });
 }
 
-/** Short-lived signed URL (private bucket); created only after RLS allowed reading the object. */
-export function useSignedUrl(path: string | null | undefined) {
-  return useQuery({
-    queryKey: keys.logoUrl(path ?? null),
-    enabled: !!path,
-    staleTime: 4 * 60_000,
-    queryFn: async () => {
-      const { data, error } = await sb().storage.from("documents").createSignedUrl(path!, 300);
-      if (error) throw new Error("Náhľad loga sa nepodarilo načítať.");
-      return data.signedUrl;
-    },
-  });
-}
-
 export function useUploadLogo() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ companyId, file }: { companyId: string; file: File }) => {
-      const head = new Uint8Array(await file.slice(0, 16).arrayBuffer());
-      const problem = checkLogoFile(file, head);
-      if (problem) throw new Error(problem);
-
-      const year = new Date().getFullYear();
-      const objectId = crypto.randomUUID();
-      const path = `${year}/companies/${companyId}/${objectId}-${safeFileName(file.name)}`;
-      const sha256 = await sha256Hex(file);
-
-      // upsert: false – an existing object is never overwritten (also refused by storage RLS)
-      const up = await sb().storage.from("documents").upload(path, file, {
-        upsert: false,
-        contentType: file.type,
-        cacheControl: "300",
+      const doc = await uploadImageDocument({
+        entityTable: "companies",
+        entityId: companyId,
+        category: "logo",
+        file,
       });
-      if (up.error)
-        throw new Error("Nahranie súboru sa nepodarilo (povolené: PNG, JPEG, WebP do 2 MB).");
-
-      const doc = await sb()
-        .from("documents")
-        .insert({
-          entity_table: "companies",
-          entity_id: companyId,
-          category: "logo",
-          storage_bucket: "documents",
-          storage_path: path,
-          file_name: file.name.slice(0, 255),
-          mime_type: file.type,
-          size_bytes: file.size,
-          sha256,
-        })
-        .select()
-        .single();
-      if (doc.error) {
-        await sb().storage.from("documents").remove([path]); // do not leave an orphaned object
-        throwDb(doc.error);
-      }
       const upd = await sb()
         .from("companies")
-        .update({ logo_document_id: doc.data.id })
+        .update({ logo_document_id: doc.id })
         .eq("id", companyId);
       if (upd.error) throwDb(upd.error);
-      return doc.data;
+      return doc;
     },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: keys.company });

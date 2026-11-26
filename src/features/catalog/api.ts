@@ -37,20 +37,7 @@ function invalidateCatalog(qc: ReturnType<typeof useQueryClient>, ...tables: str
 }
 
 // --- lookups (read-only) ----------------------------------------------------------------------------------
-export function useDivisions() {
-  return useQuery({
-    queryKey: ["divisions"],
-    queryFn: async () => {
-      const { data, error } = await sb()
-        .from("divisions")
-        .select("id, code, name")
-        .eq("is_active", true)
-        .order("name");
-      if (error) throwDb(error);
-      return data ?? [];
-    },
-  });
-}
+export { useDivisions } from "@/core/shared-queries";
 
 /** Active suppliers for the "default supplier" select. */
 export function useSupplierOptions() {

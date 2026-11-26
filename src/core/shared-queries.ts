@@ -62,3 +62,19 @@ export function useFeatureFlagMap() {
 export function useFeatureFlag(key: string): boolean {
   return useFeatureFlagMap().data?.[key] === true;
 }
+
+/** Active divisions (AVENG, Agentúra) – readable by every aal2 user. */
+export function useDivisions() {
+  return useQuery({
+    queryKey: ["divisions"],
+    queryFn: async () => {
+      const { data, error } = await sb()
+        .from("divisions")
+        .select("id, code, name")
+        .eq("is_active", true)
+        .order("name");
+      if (error) throwDb(error);
+      return data ?? [];
+    },
+  });
+}

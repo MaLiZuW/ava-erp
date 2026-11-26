@@ -7,6 +7,7 @@ import { ChipGroup } from "@/ui/chips";
 import { Tile } from "@/ui/tile";
 import { useAuditLog, useProfiles } from "../api";
 import { FIELD_LABELS, TABLE_LABELS } from "../schema";
+import { REPORTING_TABLES } from "../reporting";
 
 const FILTERS: { label: string; tables: string[] }[] = [
   {
@@ -20,12 +21,14 @@ const FILTERS: { label: string; tables: string[] }[] = [
       "user_roles",
       "profiles",
       "auth.mfa_factors",
+      ...REPORTING_TABLES,
     ],
   },
   { label: "Firma", tables: ["companies", "documents"] },
   { label: "Systém a funkcie", tables: ["system_settings", "feature_flags"] },
   { label: "Notifikácie", tables: ["notification_recipients"] },
   { label: "Používatelia a 2FA", tables: ["user_roles", "profiles", "auth.mfa_factors"] },
+  { label: "Reporting", tables: [...REPORTING_TABLES] },
 ];
 
 function recordLabel(e: AuditEntry): string {

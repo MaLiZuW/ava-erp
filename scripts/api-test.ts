@@ -11,6 +11,7 @@
  * The test user is created through the Auth Admin API (secret key, .env.local only), with a random
  * password and TOTP secret, and is deleted in `finally`. Leftovers (*@test.invalid) are removed first.
  */
+import { randomUUID } from "node:crypto";
 import {
   anonClient,
   createTestUser,
@@ -46,6 +47,11 @@ const TABLES = [
   "labor_roles",
   "labor_rates",
   "resources",
+  "content_blocks",
+  "overhead_costs",
+  "income_tax_brackets",
+  "capacity_plans",
+  "kpi_targets",
 ];
 /** tables an aal2 admin must see rows in (seeded / always present) */
 const ADMIN_VISIBLE = [
@@ -160,6 +166,35 @@ async function main() {
     );
     const n = await api2.rpc("next_document_number", { p_doc_type: "CP" });
     report(!n.ok, `aal2 admin still cannot call next_document_number directly: HTTP ${n.status}`);
+
+    // 4. Storage – content images follow the image rule (PNG/JPEG/WebP ≤ 2 MB) -----------------------
+    console.log("\n-- Storage: content images (aal2 admin) --");
+    const folder = `${new Date().getFullYear()}/content_blocks/${randomUUID()}`;
+    const png = Buffer.from(
+      "89504e470d0a1a0a0000000d4948445200000001000000010806000000" +
+        "1f15c4890000000d49444154789c6300010000050001" +
+        "0d0a2db40000000049454e44ae426082",
+      "hex",
+    );
+    const store = client.storage.from("documents");
+    const okUp = await store.upload(`${folder}/${randomUUID()}-ok.png`, png, {
+      contentType: "image/png",
+      upsert: false,
+    });
+    report(!okUp.error, `PNG content image uploads${okUp.error ? `: ${okUp.error.message}` : ""}`);
+    const svg = await store.upload(
+      `${folder}/${randomUUID()}-x.svg`,
+      Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"/>'),
+      { contentType: "image/svg+xml", upsert: false },
+    );
+    report(!!svg.error, "SVG upload is refused by the bucket");
+    const big = await store.upload(
+      `${folder}/${randomUUID()}-big.png`,
+      Buffer.concat([png, Buffer.alloc(2 * 1024 * 1024)]),
+      { contentType: "image/png", upsert: false },
+    );
+    report(!!big.error, "upload over 2 MB is refused by the bucket");
+    if (okUp.data?.path) await store.remove([okUp.data.path]);
 
     // 5. Edge Function admin-mfa-reset ----------------------------------------------------------------
     console.log("\n-- Edge Function admin-mfa-reset --");

@@ -159,6 +159,7 @@ export async function purgeE2eMasterData(env: TestEnv): Promise<void> {
     );
     await db.query("delete from public.labor_roles where name like $1", [like]);
     await db.query("delete from public.resources where name like $1", [like]);
+    await db.query("delete from public.overhead_costs where category like $1", [like]);
     await db.query("delete from public.customers where name like $1", [like]);
     await db.query("delete from public.suppliers where name like $1", [like]);
   } finally {
