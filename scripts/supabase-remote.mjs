@@ -1,12 +1,12 @@
 /**
  * Runs the Supabase CLI against the DB in SUPABASE_DB_URL (.env.local) – no `supabase login`/`link` needed.
- *   node --env-file=.env.local scripts/supabase-remote.cjs db push [--dry-run] [--yes]
- *   node --env-file=.env.local scripts/supabase-remote.cjs gen types --lang typescript --out src/core/supabase/database.types.ts
+ *   node --env-file=.env.local scripts/supabase-remote.mjs db push [--dry-run] [--yes]
+ *   node --env-file=.env.local scripts/supabase-remote.mjs gen types --lang typescript --out src/core/supabase/database.types.ts
  * Windows only (cmd expands %SUPABASE_DB_URL%, so the secret never appears in our own output).
  */
-const { spawnSync } = require("node:child_process");
-const { writeFileSync, mkdirSync } = require("node:fs");
-const { dirname } = require("node:path");
+import { spawnSync } from "node:child_process";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { dirname } from "node:path";
 
 if (!process.env.SUPABASE_DB_URL) {
   console.error("SUPABASE_DB_URL is not set (.env.local).");
@@ -20,7 +20,11 @@ if (i >= 0) {
   args = args.filter((_, k) => k !== i && k !== i + 1);
 }
 const cmd = `npx supabase ${args.join(" ")} --remote "%SUPABASE_DB_URL%"`;
-const r = spawnSync(cmd, { shell: true, encoding: "utf8", stdio: out ? ["inherit", "pipe", "inherit"] : "inherit" });
+const r = spawnSync(cmd, {
+  shell: true,
+  encoding: "utf8",
+  stdio: out ? ["inherit", "pipe", "inherit"] : "inherit",
+});
 if (r.error) console.error(r.error.message);
 if (out && r.status === 0) {
   mkdirSync(dirname(out), { recursive: true });
