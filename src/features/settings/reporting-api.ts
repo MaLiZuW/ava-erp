@@ -10,7 +10,6 @@ const sb = () => getSupabase();
 
 export type OverheadRow = Tables<"overhead_costs">;
 export type TaxBracket = Tables<"income_tax_brackets">;
-export type CapacityRow = Tables<"capacity_plans">;
 export type KpiTarget = Tables<"kpi_targets">;
 
 const done = (qc: ReturnType<typeof useQueryClient>, table: string) => {
@@ -105,39 +104,152 @@ export function useSaveTaxBracket() {
   });
 }
 
-// --- capacity ----------------------------------------------------------------------------------------------
-export function useCapacity(month: string) {
+// --- capacity calendar (block H, D24) ---------------------------------------------------------------
+export type WorkPattern = Tables<"work_patterns">;
+export type CalendarException = Tables<"calendar_exceptions">;
+export type CapacityDay = {
+  day: string;
+  pattern_hours: number;
+  holiday_name: string | null;
+  is_day_off: boolean;
+  is_absent: boolean;
+  other_work: number;
+  extra: number;
+  available_hours: number;
+};
+
+const CAPACITY_KEYS = ["work_patterns", "calendar_exceptions", "resource_capacity"];
+const capacityDone = (qc: ReturnType<typeof useQueryClient>) => {
+  for (const k of CAPACITY_KEYS) void qc.invalidateQueries({ queryKey: [k] });
+  void qc.invalidateQueries({ queryKey: ["activity_logs"] });
+};
+
+/** People whose capacity is planned (resources of kind "user"). */
+export function useUserResources() {
   return useQuery({
-    queryKey: ["capacity_plans", month],
+    queryKey: ["bookable_resources", "user"],
     queryFn: async () => {
-      const { data, error } = await sb().from("capacity_plans").select("*").eq("month", month);
+      const { data, error } = await sb()
+        .from("v_bookable_resources")
+        .select("id, display_name")
+        .eq("kind", "user")
+        .eq("is_active", true)
+        .order("display_name");
+      if (error) throwDb(error);
+      return (data ?? []) as { id: string; display_name: string | null }[];
+    },
+  });
+}
+
+export function useWorkPatterns(resourceId: string | null) {
+  return useQuery({
+    queryKey: ["work_patterns", resourceId],
+    enabled: !!resourceId,
+    queryFn: async () => {
+      const { data, error } = await sb()
+        .from("work_patterns")
+        .select("*")
+        .eq("resource_id", resourceId!)
+        .order("valid_from", { ascending: false });
       if (error) throwDb(error);
       return data ?? [];
     },
   });
 }
 
-export function useSaveCapacity() {
+export function useSavePattern() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({
-      userId,
-      month,
-      hours,
-    }: {
-      userId: string;
-      month: string;
-      hours: number;
+    mutationFn: async (v: {
+      resourceId: string;
+      validFrom: string;
+      hours: Record<string, number>;
     }) => {
-      const { error } = await sb()
-        .from("capacity_plans")
-        .upsert(
-          { user_id: userId, month, available_hours: hours },
-          { onConflict: "user_id,month" },
-        );
+      const { error } = await sb().rpc("revise_work_pattern", {
+        p_resource_id: v.resourceId,
+        p_valid_from: v.validFrom,
+        p_mon: v.hours.mon,
+        p_tue: v.hours.tue,
+        p_wed: v.hours.wed,
+        p_thu: v.hours.thu,
+        p_fri: v.hours.fri,
+        p_sat: v.hours.sat,
+        p_sun: v.hours.sun,
+      });
+      if (error)
+        throwDb(error, { "23P01": "Vzor sa prekrýva s inou verziou. Zvoľte iný dátum platnosti." });
+    },
+    onSuccess: () => capacityDone(qc),
+  });
+}
+
+/** Daily capacity computed by the database (pattern − days of rest ± exceptions). */
+export function useCapacityRange(resourceId: string | null, from: string, to: string) {
+  return useQuery({
+    queryKey: ["resource_capacity", resourceId, from, to],
+    enabled: !!resourceId,
+    queryFn: async () => {
+      const { data, error } = await sb().rpc("resource_capacity", {
+        p_resource_id: resourceId!,
+        p_from: from,
+        p_to: to,
+      });
+      if (error) throwDb(error);
+      return (data ?? []).map((d) => ({
+        ...d,
+        available_hours: Number(d.available_hours),
+        pattern_hours: Number(d.pattern_hours),
+        other_work: Number(d.other_work),
+        extra: Number(d.extra),
+      })) as CapacityDay[];
+    },
+  });
+}
+
+export function useExceptions(resourceId: string | null, from: string, to: string) {
+  return useQuery({
+    queryKey: ["calendar_exceptions", resourceId, from, to],
+    enabled: !!resourceId,
+    queryFn: async () => {
+      const { data, error } = await sb()
+        .from("calendar_exceptions")
+        .select("*")
+        .eq("resource_id", resourceId!)
+        .lte("date_from", to)
+        .gte("date_to", from)
+        .order("date_from");
+      if (error) throwDb(error);
+      return data ?? [];
+    },
+  });
+}
+
+export function useSaveException() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: {
+      resource_id: string;
+      date_from: string;
+      date_to: string;
+      kind: string;
+      hours: number | null;
+      note: string | null;
+    }) => {
+      const { error } = await sb().from("calendar_exceptions").insert(v);
       if (error) throwDb(error);
     },
-    onSuccess: () => done(qc, "capacity_plans"),
+    onSuccess: () => capacityDone(qc),
+  });
+}
+
+export function useDeleteException() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await sb().from("calendar_exceptions").delete().eq("id", id);
+      if (error) throwDb(error);
+    },
+    onSuccess: () => capacityDone(qc),
   });
 }
 

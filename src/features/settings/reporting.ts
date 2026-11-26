@@ -225,7 +225,26 @@ export const REPORTING_FIELD_LABELS: Record<string, Record<string, string>> = {
     rate_pct: "Sadzba %",
     source_note: "Zdroj",
   },
-  capacity_plans: { user_id: "Používateľ", month: "Mesiac", available_hours: "Dostupné hodiny" },
+  work_patterns: {
+    resource_id: "Osoba",
+    valid_from: "Platí od",
+    valid_to: "Platí do",
+    mon: "Po (h)",
+    tue: "Ut (h)",
+    wed: "St (h)",
+    thu: "Št (h)",
+    fri: "Pi (h)",
+    sat: "So (h)",
+    sun: "Ne (h)",
+  },
+  calendar_exceptions: {
+    resource_id: "Osoba",
+    date_from: "Od",
+    date_to: "Do",
+    kind: "Typ",
+    hours: "Hodiny",
+    note: "Poznámka",
+  },
   kpi_targets: {
     kpi_key: "KPI",
     division_id: "Divízia",
@@ -239,6 +258,7 @@ export const REPORTING_FIELD_LABELS: Record<string, Record<string, string>> = {
 export const REPORTING_TABLES = [
   "overhead_costs",
   "income_tax_brackets",
-  "capacity_plans",
+  "work_patterns",
+  "calendar_exceptions",
   "kpi_targets",
 ] as const;

@@ -568,8 +568,8 @@ Pohľady s `security_invoker = true`, aby rešpektovali RLS.
 ### income_tax_brackets (sadzby dane z príjmov PO)
 `id`, `valid_from date`, `valid_to date null`, `revenue_from_cents bigint`, `revenue_to_cents bigint null`, `rate_pct numeric(7,4)`, `source_note text`. Hodnoty sa zadávajú migráciou/nastavením podľa aktuálneho zákona a overujú s účtovníkom – nikdy v kóde. **Pravidlo (schválené vlastníkom 26. 11. 2026):** pásma platné v rovnakom období sa neprekrývajú – exclusion constraint `daterange(valid_from, valid_to, '[]') &&` × `int8range(revenue_from_cents, revenue_to_cents, '[)') &&`.
 
-### capacity_plans (dostupné hodiny pre utilizáciu)
-`id`, `user_id FK profiles`, `month date`, `available_hours numeric(6,2)`. Unique (user_id, month).
+### ~~capacity_plans~~ (zrušená vo fáze 3, blok H)
+Ručne zadávané hodiny za mesiac nahradil výpočet z kalendára: týždenný vzor + výnimky + dni pracovného pokoja (§19, časť „Implementované vo F3“). Migrácia `20261129100000_phase3_capacity_calendar.sql` tabuľku zrušila so súhlasom vlastníka (1 testovací riadok na dev).
 
 ### nonconformities (nezhody a reklamácie)
 `id`, `number` (NZ-RRRR-NNNN), `party_type text` ('customer','supplier','internal'), `customer_id FK null`, `supplier_id FK null`, `job_id FK null`, `purchase_order_id FK null`, `reported_at`, `description`, `severity text` ('low','medium','high'), `cost_cents bigint`, `action_taken text`, `status text` ('open','resolved'), `resolved_at`.
@@ -603,7 +603,23 @@ Pohľady s `security_invoker = true`, aby rešpektovali RLS.
 
 ## 19. Doplnok – plánovanie zdrojov (F5a)
 
-> **NÁVRH – implementácia vo fáze 5a, zatiaľ neimplementované.** Podklad: rozhodnutie D24 a `docs/analyzy/ANALYZA-RIADENIE-PROJEKTOV-A-ZDROJOV.md` (kap. 5). Konvencie §0 a RLS §14 platia rovnako (audit, `require_aal2`, admin politiky, pgTAP).
+### 19.1 Implementované vo F3 (blok H, kalendár presunutý z F5a so súhlasom vlastníka)
+
+Migrácia `20261129100000_phase3_capacity_calendar.sql`:
+
+| Tabuľka / funkcia | Obsah |
+|---|---|
+| `resource_kinds` | `code` PK, `name`, `has_capacity`, `cost_source` ('labor_rate','purchase_order','equipment_rate','none'), `is_active`. Aktívny len `user`; `supplier`, `equipment`, `external_person`, `ai_agent` pripravené, neaktívne (trigger nedovolí použiť neaktívny typ). |
+| `bookable_resources` | `kind`, presne jeden z `profile_id` (cascade) / `supplier_id` / `equipment_id` podľa typu, pri `external_person`/`ai_agent` bez odkazu s `name`; `division_id`, `is_active`. Každý profil dostane zdroj typu `user` automaticky (trigger). |
+| `work_patterns` | jeden riadok = týždeň: `mon`…`sun` numeric(4,2) 0–24, `valid_from`, `valid_to`; exclusion – platnosti jedného zdroja sa neprekrývajú. `revise_work_pattern()` = nová verzia od dátumu, predchádzajúca sa uzavrie deň predtým. |
+| `calendar_exceptions` | `date_from`–`date_to`, `kind`: `vacation` a `unavailable` = celý deň 0 h (bez hodín), `other_work` odpočíta, `extra` pridá `hours` (0 < h ≤ 24); `note` ≤ 200 – len všeobecné dôvody, žiadne zdravotné údaje. |
+| `public_holidays` | `date` PK, `name`, `is_day_off`, `source`. `fill_sk_holidays(rok)` podľa zákona č. 241/1993 Z. z. v znení od 1. 11. 2025 (rok ≥ 2025); Veľká noc výpočtom (`private.sk_easter_sunday`). Naplnené 2025–2030. Ručná oprava riadku má prednosť (fill nič neprepíše). |
+| `resource_capacity(zdroj, od, do)` | deň: vzor (0 v deň pracovného pokoja alebo pri neprítomnosti) − iná práca + extra, nikdy pod 0; max. 400 dní na volanie. |
+| pohľady | `v_bookable_resources` (zobrazovaný názov), `v_resource_capacity_daily` (±12 mesiacov), `v_resource_capacity_weekly`, `v_resource_capacity_monthly` – všetky `security_invoker`. |
+
+### 19.2 Zvyšok – NÁVRH pre F5a
+
+> **NÁVRH – implementácia vo fáze 5a, zatiaľ neimplementované** (tabuľky nižšie okrem tých z 19.1). Podklad: rozhodnutie D24 a `docs/analyzy/ANALYZA-RIADENIE-PROJEKTOV-A-ZDROJOV.md` (kap. 5). Konvencie §0 a RLS §14 platia rovnako (audit, `require_aal2`, admin politiky, pgTAP).
 
 „Zdroj“ = človek (konateľ), dodávateľ alebo technika. Typ zdroja je **konfigurácia**, preto sa neskôr dá pridať externá osoba alebo AI agent / automatizovaná služba bez zmeny jadra.
 
@@ -627,7 +643,7 @@ Zmeny existujúcich tabuliek:
 | `project_tasks` (§7) | + `baseline_start`, `baseline_end` (časový baseline pri spustení zákazky); `assignee_*` nahradí `task_assignments` |
 | `purchase_orders` (§8) | + `confirmed_date` (potvrdený termín dodávateľa), `delivered_date` (skutočný) – Gantt a KPI dodržania termínov |
 | `time_entries` (§7) | bez zmeny – hodiny za deň, bez stopiek |
-| `capacity_plans` (§18) | po zavedení kalendárov len ručná korekcia / prechodné riešenie; kapacita sa počíta zo vzoru + výnimiek + sviatkov |
+| `capacity_plans` (§18) | zrušená vo F3 – kapacita sa počíta zo vzoru + výnimiek + sviatkov (19.1) |
 
 Pohľady (`security_invoker = true`):
 

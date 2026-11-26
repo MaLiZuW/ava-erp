@@ -66,44 +66,142 @@ export type Database = {
         };
         Relationships: [];
       };
-      capacity_plans: {
+      bookable_resources: {
         Row: {
-          available_hours: number;
           created_at: string;
           created_by: string | null;
+          division_id: string | null;
+          equipment_id: string | null;
           id: string;
-          month: string;
+          is_active: boolean;
+          kind: string;
+          name: string | null;
+          profile_id: string | null;
+          supplier_id: string | null;
           updated_at: string;
           updated_by: string | null;
-          user_id: string;
         };
         ComputedFields: never;
         Insert: {
-          available_hours: number;
           created_at?: string;
           created_by?: string | null;
+          division_id?: string | null;
+          equipment_id?: string | null;
           id?: string;
-          month: string;
+          is_active?: boolean;
+          kind: string;
+          name?: string | null;
+          profile_id?: string | null;
+          supplier_id?: string | null;
           updated_at?: string;
           updated_by?: string | null;
-          user_id: string;
         };
         Update: {
-          available_hours?: number;
           created_at?: string;
           created_by?: string | null;
+          division_id?: string | null;
+          equipment_id?: string | null;
           id?: string;
-          month?: string;
+          is_active?: boolean;
+          kind?: string;
+          name?: string | null;
+          profile_id?: string | null;
+          supplier_id?: string | null;
           updated_at?: string;
           updated_by?: string | null;
-          user_id?: string;
         };
         Relationships: [
           {
-            foreignKeyName: "capacity_plans_user_id_fkey";
-            columns: ["user_id"];
+            foreignKeyName: "bookable_resources_division_id_fkey";
+            columns: ["division_id"];
             isOneToOne: false;
+            referencedRelation: "divisions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "bookable_resources_equipment_id_fkey";
+            columns: ["equipment_id"];
+            isOneToOne: true;
+            referencedRelation: "resources";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "bookable_resources_kind_fkey";
+            columns: ["kind"];
+            isOneToOne: false;
+            referencedRelation: "resource_kinds";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "bookable_resources_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: true;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "bookable_resources_supplier_id_fkey";
+            columns: ["supplier_id"];
+            isOneToOne: true;
+            referencedRelation: "suppliers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      calendar_exceptions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          date_from: string;
+          date_to: string;
+          hours: number | null;
+          id: string;
+          kind: string;
+          note: string | null;
+          resource_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          date_from: string;
+          date_to: string;
+          hours?: number | null;
+          id?: string;
+          kind: string;
+          note?: string | null;
+          resource_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          date_from?: string;
+          date_to?: string;
+          hours?: number | null;
+          id?: string;
+          kind?: string;
+          note?: string | null;
+          resource_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "calendar_exceptions_resource_id_fkey";
+            columns: ["resource_id"];
+            isOneToOne: false;
+            referencedRelation: "bookable_resources";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "calendar_exceptions_resource_id_fkey";
+            columns: ["resource_id"];
+            isOneToOne: false;
+            referencedRelation: "v_bookable_resources";
             referencedColumns: ["id"];
           },
         ];
@@ -1017,6 +1115,77 @@ export type Database = {
         };
         Relationships: [];
       };
+      public_holidays: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          date: string;
+          is_day_off: boolean;
+          name: string;
+          source: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          date: string;
+          is_day_off: boolean;
+          name: string;
+          source: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          date?: string;
+          is_day_off?: boolean;
+          name?: string;
+          source?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [];
+      };
+      resource_kinds: {
+        Row: {
+          code: string;
+          cost_source: string;
+          created_at: string;
+          created_by: string | null;
+          has_capacity: boolean;
+          is_active: boolean;
+          name: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          code: string;
+          cost_source: string;
+          created_at?: string;
+          created_by?: string | null;
+          has_capacity: boolean;
+          is_active?: boolean;
+          name: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          code?: string;
+          cost_source?: string;
+          created_at?: string;
+          created_by?: string | null;
+          has_capacity?: boolean;
+          is_active?: boolean;
+          name?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [];
+      };
       resources: {
         Row: {
           bill_rate_cents: number | null;
@@ -1334,8 +1503,128 @@ export type Database = {
           },
         ];
       };
+      work_patterns: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          fri: number;
+          id: string;
+          mon: number;
+          resource_id: string;
+          sat: number;
+          sun: number;
+          thu: number;
+          tue: number;
+          updated_at: string;
+          updated_by: string | null;
+          valid_from: string;
+          valid_to: string | null;
+          wed: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          fri?: number;
+          id?: string;
+          mon?: number;
+          resource_id: string;
+          sat?: number;
+          sun?: number;
+          thu?: number;
+          tue?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from: string;
+          valid_to?: string | null;
+          wed?: number;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          fri?: number;
+          id?: string;
+          mon?: number;
+          resource_id?: string;
+          sat?: number;
+          sun?: number;
+          thu?: number;
+          tue?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from?: string;
+          valid_to?: string | null;
+          wed?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "work_patterns_resource_id_fkey";
+            columns: ["resource_id"];
+            isOneToOne: false;
+            referencedRelation: "bookable_resources";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "work_patterns_resource_id_fkey";
+            columns: ["resource_id"];
+            isOneToOne: false;
+            referencedRelation: "v_bookable_resources";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: {
+      v_bookable_resources: {
+        Row: {
+          display_name: string | null;
+          division_id: string | null;
+          equipment_id: string | null;
+          id: string;
+          is_active: boolean;
+          kind: string;
+          profile_id: string | null;
+          supplier_id: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "bookable_resources_division_id_fkey";
+            columns: ["division_id"];
+            isOneToOne: false;
+            referencedRelation: "divisions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "bookable_resources_equipment_id_fkey";
+            columns: ["equipment_id"];
+            isOneToOne: true;
+            referencedRelation: "resources";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "bookable_resources_kind_fkey";
+            columns: ["kind"];
+            isOneToOne: false;
+            referencedRelation: "resource_kinds";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "bookable_resources_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: true;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "bookable_resources_supplier_id_fkey";
+            columns: ["supplier_id"];
+            isOneToOne: true;
+            referencedRelation: "suppliers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       v_open_items: {
         Row: {
           delivered_not_invoiced: number | null;
@@ -1344,6 +1633,41 @@ export type Database = {
           overdue_tasks: number | null;
           quotes_to_approve: number | null;
           visuals_waiting: number | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
+      v_resource_capacity_daily: {
+        Row: {
+          available_hours: number | null;
+          day: string | null;
+          extra: number | null;
+          holiday_name: string | null;
+          is_absent: boolean | null;
+          is_day_off: boolean | null;
+          other_work: number | null;
+          pattern_hours: number | null;
+          resource_id: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
+      v_resource_capacity_monthly: {
+        Row: {
+          available_hours: number | null;
+          month: string | null;
+          pattern_hours: number | null;
+          resource_id: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
+      v_resource_capacity_weekly: {
+        Row: {
+          available_hours: number | null;
+          pattern_hours: number | null;
+          resource_id: string | null;
+          week_start: string | null;
         };
         ComputedFields: never;
         Relationships: [];
@@ -1362,8 +1686,37 @@ export type Database = {
           verified_totp_factors: number;
         }[];
       };
+      fill_sk_holidays: { Args: { p_year: number }; Returns: number };
       next_document_number: {
         Args: { p_doc_type: Database["public"]["Enums"]["doc_type"]; p_year?: number };
+        Returns: string;
+      };
+      resource_capacity: {
+        Args: { p_from: string; p_resource_id: string; p_to: string };
+        Returns: {
+          available_hours: number;
+          day: string;
+          extra: number;
+          holiday_name: string;
+          is_absent: boolean;
+          is_day_off: boolean;
+          other_work: number;
+          pattern_hours: number;
+          resource_id: string;
+        }[];
+      };
+      revise_work_pattern: {
+        Args: {
+          p_fri: number;
+          p_mon: number;
+          p_resource_id: string;
+          p_sat: number;
+          p_sun: number;
+          p_thu: number;
+          p_tue: number;
+          p_valid_from: string;
+          p_wed: number;
+        };
         Returns: string;
       };
       transition: {

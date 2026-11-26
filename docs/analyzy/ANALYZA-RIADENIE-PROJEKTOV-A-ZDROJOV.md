@@ -83,7 +83,7 @@ Pravidlá v DB: konflikt techniky = chyba; preťaženie človeka = upozornenie; 
 
 | Fáza | Obsah |
 |---|---|
-| F3 (doplnenie) | premenovať záložku „Zdroje“ → „Technika a vybavenie“; zapísať D24 a tento doplnok schémy. Bez zmeny DB. |
+| F3 (doplnenie) | premenovať záložku „Zdroje“ → „Technika a vybavenie“; zapísať D24 a tento doplnok schémy. **Doplnené neskôr (blok H):** kalendár – `resource_kinds`, `bookable_resources`, `work_patterns`, `calendar_exceptions`, `public_holidays`, výpočet kapacity; `capacity_plans` zrušená. |
 | F4 | z labor riadkov prijatej CP vznikajú `resource_requirements`; pri CP orientačná kontrola kapacity v dotknutých týždňoch. |
 | **F5a** – projekty a zdroje | register zdrojov, kalendáre (vzor + výnimky + sviatky), šablóny so spätným plánovaním, priradenia, rezervácie techniky, Gantt s baseline, výkaz hodín za deň, heatmapa vyťaženia, scenár eventu + PDF, iCal. |
 | **F5b** – vizuál, nákup, dodanie, e-mail | pôvodný rozsah STEP-05 bez projektov; termíny OD (`confirmed_date`, `delivered_date`) sa zobrazia v Gantte z F5a. |

@@ -13,29 +13,27 @@ insert into public.content_blocks (key, title, body) values ('zz_probe', 'Probe'
 insert into public.overhead_costs (month, category, amount_cents) values ('2998-01-01', 'Probe nájom', 10000);
 insert into public.income_tax_brackets (valid_from, revenue_from_cents, revenue_to_cents, rate_pct, source_note)
   values ('2998-01-01', 0, 100000, 10, 'probe');
-insert into public.capacity_plans (user_id, month, available_hours)
-  values ('a0000000-0000-0000-0000-00000000000a', '2998-01-01', 120);
 insert into public.kpi_targets (kpi_key, target_value, direction, valid_from)
   values ('probe_kpi', 5, 'lower_better', '2998-01-01');
 
 -- anon / aal1 / no role -------------------------------------------------------------------------
 set local role anon;
 select throws_ok(format('select 1 from public.%I limit 1', t), '42501', null, t || ': anon is denied')
-from unnest(array['content_blocks','overhead_costs','income_tax_brackets','capacity_plans','kpi_targets']) as t;
+from unnest(array['content_blocks','overhead_costs','income_tax_brackets','kpi_targets']) as t;
 reset role;
 
 select set_config('request.jwt.claims',
   '{"sub":"a0000000-0000-0000-0000-00000000000a","role":"authenticated","aal":"aal1"}', true);
 set local role authenticated;
 select is_empty(format('select 1 from public.%I', t), t || ': admin with aal1 sees nothing')
-from unnest(array['content_blocks','overhead_costs','income_tax_brackets','capacity_plans','kpi_targets']) as t;
+from unnest(array['content_blocks','overhead_costs','income_tax_brackets','kpi_targets']) as t;
 reset role;
 
 select set_config('request.jwt.claims',
   '{"sub":"b0000000-0000-0000-0000-00000000000b","role":"authenticated","aal":"aal2"}', true);
 set local role authenticated;
 select is_empty(format('select 1 from public.%I', t), t || ': user without role sees nothing')
-from unnest(array['content_blocks','overhead_costs','income_tax_brackets','capacity_plans','kpi_targets']) as t;
+from unnest(array['content_blocks','overhead_costs','income_tax_brackets','kpi_targets']) as t;
 select throws_ok($$insert into public.kpi_targets (kpi_key, target_value, direction) values ('x_kpi', 1, 'higher_better')$$,
   '42501', null, 'user without role cannot insert');
 reset role;
@@ -45,7 +43,7 @@ select set_config('request.jwt.claims',
   '{"sub":"a0000000-0000-0000-0000-00000000000a","role":"authenticated","aal":"aal2"}', true);
 set local role authenticated;
 select isnt_empty(format('select 1 from public.%I', t), t || ': admin with aal2 can read')
-from unnest(array['content_blocks','overhead_costs','income_tax_brackets','capacity_plans','kpi_targets']) as t;
+from unnest(array['content_blocks','overhead_costs','income_tax_brackets','kpi_targets']) as t;
 
 -- documents: image rule (category logo / content_image)
 select lives_ok($$insert into public.documents (id, entity_table, entity_id, category, storage_path, file_name, mime_type, size_bytes)
@@ -121,13 +119,6 @@ select throws_ok($$insert into public.income_tax_brackets (valid_from, revenue_f
   '23514', null, 'negative revenue limit is refused');
 select throws_ok($$delete from public.income_tax_brackets$$, '42501', null, 'tax brackets are not deleted (history)');
 
--- capacity
-select throws_ok($$insert into public.capacity_plans (user_id, month, available_hours)
-                   values ('a0000000-0000-0000-0000-00000000000a', '2998-01-01', 10)$$, '23505', null,
-  'one capacity row per person and month');
-select throws_ok($$insert into public.capacity_plans (user_id, month, available_hours)
-                   values ('a0000000-0000-0000-0000-00000000000a', '2998-02-01', -1)$$, '23514', null,
-  'negative hours are refused');
 
 -- KPI targets: duplicate for the whole company (division NULL) is refused
 select throws_ok($$insert into public.kpi_targets (kpi_key, target_value, direction, valid_from)

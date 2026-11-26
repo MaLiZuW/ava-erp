@@ -415,7 +415,7 @@ Nový evidenčný záznam: kto (zákazník/dodávateľ), zákazka, popis, záva�
 | Doba dodanie → faktúra | vystavenie FA − potvrdené dodanie | – |
 | DSO (dni inkasa) | priemer dní od vystavenia po úhradu | – |
 | Zákazky pod plánovaným ziskom | podiel uzavretých zákaziek so ziskom < baseline | – |
-| Utilizácia | fakturované hodiny ÷ dostupné hodiny (kapacita zadaná v `capacity_plans`) | S1 |
+| Utilizácia | fakturované hodiny ÷ dostupné hodiny (kapacita z kalendára: týždenný vzor − dni pracovného pokoja ± výnimky, D24) | S1 |
 | Realizovaná sadzba | tržby za hodinové služby ÷ fakturované hodiny | S2 |
 | Miera reklamácií | zákazky s reklamáciou ÷ všetky | S5 |
 | Opakované nákupy | zákazníci s ≥ 2 zákazkami ÷ aktívni | S7 |

@@ -28,7 +28,9 @@ Podľa D22: na dev reálne firmy (verejné údaje z OR), katalóg, sadzby, zdroj
 
 ## Fáza 5a – projekty a zdroje (D24)
 
-- [ ] Implementácia `DATABASE_SCHEMA.md` §19: register zdrojov (`resource_kinds`, `bookable_resources`), kalendáre (týždenný vzor, výnimky, SK sviatky), šablóny so spätným plánovaním, priradenia (`task_assignments` namiesto `assignee_*`), rezervácie techniky bez prekrytia, Gantt s baseline, výkaz hodín za deň, heatmapa vyťaženia, scenár dňa eventu + PDF, iCal. Podrobne v `docs/steps/STEP-03-az-08-prehlad.md` (STEP-05a) a v analýze.
+- [ ] Sviatky: každý rok doplniť ďalší rok (`select public.fill_sk_holidays(2031)` – admin) a overiť zmeny zákona č. 241/1993 Z. z.; neistoty pozri report fázy 3, blok H.
+
+- [ ] Implementácia `DATABASE_SCHEMA.md` §19: register zdrojov a kalendáre sú hotové vo F3 (blok H) – zostáva: aktivovať typy `supplier`/`equipment`, šablóny so spätným plánovaním, priradenia (`task_assignments` namiesto `assignee_*`), rezervácie techniky bez prekrytia, Gantt s baseline, výkaz hodín za deň, heatmapa vyťaženia, scenár dňa eventu + PDF, iCal. Podrobne v `docs/steps/STEP-03-az-08-prehlad.md` (STEP-05a) a v analýze.
 
 ## Fáza 2 – čaká na vlastníka (brána)
 

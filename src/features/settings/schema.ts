@@ -134,6 +134,7 @@ export const TABLE_LABELS: Record<string, string> = {
   "auth.mfa_factors": "2FA",
   overhead_costs: "Réžia",
   income_tax_brackets: "Daň z príjmov",
-  capacity_plans: "Kapacity",
+  work_patterns: "Kapacity – vzor",
+  calendar_exceptions: "Kapacity – výnimka",
   kpi_targets: "Ciele KPI",
 };

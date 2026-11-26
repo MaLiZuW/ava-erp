@@ -50,8 +50,13 @@ const TABLES = [
   "content_blocks",
   "overhead_costs",
   "income_tax_brackets",
-  "capacity_plans",
   "kpi_targets",
+  "resource_kinds",
+  "bookable_resources",
+  "work_patterns",
+  "calendar_exceptions",
+  "public_holidays",
+  "v_resource_capacity_monthly",
 ];
 /** tables an aal2 admin must see rows in (seeded / always present) */
 const ADMIN_VISIBLE = [

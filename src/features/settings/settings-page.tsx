@@ -11,7 +11,7 @@ import { LogoTile } from "./components/logo-tile";
 import { RecipientsTile } from "./components/recipients-tile";
 import { SystemSettingsTile } from "./components/system-settings-tile";
 import { UsersTile } from "./components/users-tile";
-import { CapacityTile } from "./components/reporting/capacity-tile";
+import { CapacityCalendarTile } from "./components/reporting/capacity-calendar-tile";
 import { KpiTargetsTile } from "./components/reporting/kpi-targets-tile";
 import { OverheadTile } from "./components/reporting/overhead-tile";
 import { TaxBracketsTile } from "./components/reporting/tax-brackets-tile";
@@ -63,7 +63,7 @@ function SettingsContent() {
         <BentoGrid className={GRID}>
           <OverheadTile />
           <TaxBracketsTile />
-          <CapacityTile />
+          <CapacityCalendarTile />
           <KpiTargetsTile />
         </BentoGrid>
       </section>

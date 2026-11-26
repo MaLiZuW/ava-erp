@@ -83,6 +83,7 @@ export async function purgeTestUsers(env: TestEnv, prefix?: string): Promise<num
       const email = u.email?.toLowerCase() ?? "";
       const ours = prefix ? email.startsWith(`${prefix}+`) : true;
       if (ours && email.endsWith(`@${TEST_EMAIL_DOMAIN}`)) {
+        await removeUserCalendar(env, u.id);
         const del = await admin.auth.admin.deleteUser(u.id);
         if (del.error) throw new Error(`deleteUser failed: ${del.error.message}`);
         removed++;
@@ -172,8 +173,24 @@ export async function deleteTestUser(
   user: TestUser | null | undefined,
 ): Promise<void> {
   if (!user) return;
+  await removeUserCalendar(env, user.id);
   const { error } = await adminClient(env).auth.admin.deleteUser(user.id);
   if (error) throw new Error(`deleteUser failed: ${error.message}`);
+}
+
+/**
+ * The calendar a test user created (work pattern, exceptions) references the user through
+ * created_by; Postgres checks that before the multi-level cascade from the profile removes it.
+ * So the user's resource (with its calendar) is removed first.
+ */
+async function removeUserCalendar(env: TestEnv, userId: string): Promise<void> {
+  const db = new Client({ connectionString: env.dbUrl });
+  await db.connect();
+  try {
+    await db.query("delete from public.bookable_resources where profile_id = $1", [userId]);
+  } finally {
+    await db.end();
+  }
 }
 
 /** Current TOTP code for a base32 secret (RFC 6238, 30 s, 6 digits – Supabase defaults). */

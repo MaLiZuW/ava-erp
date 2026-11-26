@@ -17,7 +17,7 @@ Podrobné zadanie každej fázy sa pripraví až po bráne predchádzajúcej fá
 
 ## STEP-05a – Projekty a zdroje (D24)
 Podklad: `docs/analyzy/ANALYZA-RIADENIE-PROJEKTOV-A-ZDROJOV.md`, DATABASE_SCHEMA §19.
-- Register zdrojov (typy ako konfigurácia – rozšíriteľné o externú osobu a AI agenta), kalendáre (týždenný vzor + výnimky na dni + SK sviatky).
+- Register zdrojov a kalendáre (týždenný vzor + výnimky + SK sviatky) sú **hotové vo F3 (blok H)**; vo F5a sa aktivujú typy dodávateľ a technika a doplnia priradenia.
 - Šablóny úloh podľa typu zákazky so spätným plánovaním od kotvy (štart, dátum eventu, termín dodania).
 - Priradenia úloha × zdroj (predbežné z CP / pevné zo zákazky), rezervácie techniky bez prekrytia.
 - Gantt s časovým baseline, výkaz hodín za deň (bez stopiek), heatmapa vyťaženia zdroj × týždeň, „Môj týždeň“, kalendár zdroja.

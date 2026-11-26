@@ -29,7 +29,7 @@ const NAME_COLUMNS: Record<string, string[]> = {
   content_blocks: ["title"],
   customer_contacts: ["full_name"],
   supplier_contacts: ["full_name"],
-  bookable_resources: ["id"], // name comes from its profile / supplier / equipment (block H)
+  v_bookable_resources: ["display_name"], // person / supplier / equipment name (block H)
 };
 
 /** column name → referenced table. */
@@ -47,6 +47,7 @@ export const REF_FIELDS: Record<string, string> = {
   target_user: "profiles",
   equipment_id: "resources",
   profile_id: "profiles",
+  resource_id: "v_bookable_resources",
 };
 
 /** entity_id is resolved by the entity_table of the same row (documents, data reviews …). */

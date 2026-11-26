@@ -239,5 +239,74 @@ test.describe.serial("master data", () => {
       timeout: 15_000,
     });
     await expect(page.getByTestId("tax-warning")).toContainText("overte ich s účtovníkom");
+
+    // --- capacity calendar (block H): pattern → month total; vacation → 0 h; extra on a holiday ---
+    const cal = page.getByRole("region", { name: "Kapacity – kalendár" });
+    await cal.getByLabel("Osoba", { exact: true }).selectOption({ label: "Test e2e-md" });
+    // default pattern for a new person is 8 h Mon–Fri; it is valid from today
+    await cal.getByRole("button", { name: "Uložiť vzor" }).click();
+    await expect(cal.getByText(/Vzor je uložený/)).toBeVisible({ timeout: 15_000 });
+
+    // go to December (contains 24–26 December, days of rest)
+    for (let i = 0; i < 13; i++) {
+      if ((await cal.getByTestId("capacity-month").textContent())?.startsWith("12/")) break;
+      await cal.getByRole("button", { name: "Nasledujúci mesiac" }).click();
+    }
+    const year = (await cal.getByTestId("capacity-month").textContent())!.slice(3);
+    const christmas = cal.locator(`[data-day="${year}-12-24"]`);
+    await expect(christmas).toHaveAttribute("aria-label", /: 0 h – Sviatok: Štedrý deň/, {
+      timeout: 15_000,
+    });
+
+    // the month total equals the sum of the day cells
+    const dayHours = async () =>
+      (
+        await cal
+          .locator("[data-day]")
+          .evaluateAll((els) =>
+            els.map((e) =>
+              Number(
+                (e.getAttribute("aria-label") ?? "")
+                  .split(": ")[1]
+                  ?.split(" h")[0]
+                  .replace(",", "."),
+              ),
+            ),
+          )
+      ).reduce((s, n) => s + n, 0);
+    const monthBadge = cal.getByText(/^Mesiac /);
+    const before = await dayHours();
+    await expect(monthBadge).toHaveText(`Mesiac ${String(before).replace(".", ",")} h`);
+
+    // vacation on a working day with 8 h → 0 h, total − 8
+    const workday = cal
+      .locator("[data-day]")
+      .filter({ has: page.getByText("8 h", { exact: true }) })
+      .first();
+    const workdayDate = await workday.getAttribute("data-day");
+    await workday.click();
+    await cal.getByLabel("Typ", { exact: true }).selectOption("vacation");
+    await cal.getByRole("button", { name: "Pridať výnimku" }).click();
+    await expect(cal.locator(`[data-day="${workdayDate}"]`)).toHaveAttribute(
+      "aria-label",
+      /: 0 h – Dovolenka/,
+      {
+        timeout: 15_000,
+      },
+    );
+    await expect(monthBadge).toHaveText(`Mesiac ${String(before - 8).replace(".", ",")} h`);
+
+    // extra hours on a holiday are added
+    await christmas.click();
+    await cal.getByLabel("Typ", { exact: true }).selectOption("extra");
+    await cal.getByLabel("Hodiny za deň", { exact: true }).fill("2");
+    await cal.getByRole("button", { name: "Pridať výnimku" }).click();
+    await expect(christmas).toHaveAttribute(
+      "aria-label",
+      /: 2 h – Sviatok: Štedrý deň, Extra \+2 h/,
+      {
+        timeout: 15_000,
+      },
+    );
   });
 });
