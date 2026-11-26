@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
+import { IDLE_SIGNED_OUT_KEY } from "@/core/auth/idle";
 import { useForm } from "react-hook-form";
 import { signInSchema, type SignInValues } from "@/core/auth/schemas";
 import { authErrorMessage, type AuthStatus } from "@/core/auth/status";
@@ -17,6 +18,11 @@ const SERVES: readonly AuthStatus[] = ["signed-out"];
 export default function SignInPage() {
   const { active, refresh } = useAuthStep(SERVES);
   const [error, setError] = useState<string | null>(null);
+  // shown once after an automatic sign-out for inactivity
+  const [idleNotice] = useState(
+    () =>
+      typeof window !== "undefined" && window.sessionStorage.getItem(IDLE_SIGNED_OUT_KEY) === "1",
+  );
   const {
     register,
     handleSubmit,
@@ -30,6 +36,7 @@ export default function SignInPage() {
       setError(authErrorMessage(e));
       return;
     }
+    window.sessionStorage.removeItem(IDLE_SIGNED_OUT_KEY);
     // the step hook moves on to the TOTP prompt / enrolment
     await refresh();
   });
@@ -45,6 +52,11 @@ export default function SignInPage() {
       footer="Účty zakladá administrátor. Ak ste zabudli heslo alebo stratili telefón, kontaktujte druhého administrátora."
     >
       <form onSubmit={submit} noValidate className="flex flex-col gap-4">
+        {idleNotice && (
+          <FormMessage tone="success">
+            Boli ste odhlásený pre nečinnosť. Prihláste sa znova.
+          </FormMessage>
+        )}
         <Field id="email" label="E-mail" error={emailError}>
           <Input
             id="email"
