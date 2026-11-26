@@ -17,7 +17,7 @@ Podľa D22: na dev reálne firmy (verejné údaje z OR), katalóg, sadzby, zdroj
 
 - [ ] Migrácia: `documents.storage_provider` (predvolene `supabase`), konfigurácia kategórií príloh v DB (kód, názov, povolené MIME typy, max. veľkosť) – foto, technický list, certifikát, zmluva, výkres, iné; povolené PNG, JPEG, WebP, PDF, DOCX, XLSX; zákaz SVG, HTML a spustiteľných súborov aj v DB.
 - [ ] Jeden adaptér súborov (rozšírenie `src/core/documents.ts`): nahratie, podpísané URL, mazanie – všetok prístup k súborom len cez neho.
-- [ ] Dlaždica „Prílohy“ (jedna pre všetky moduly): položka katalógu (+ hlavná fotka pre CP a prezentáciu, galéria), zákazník, dodávateľ, technika; kontakty bez príloh (D22).
+- [ ] Dlaždica „Prílohy“ (jedna pre všetky moduly): položka katalógu (+ hlavná fotka pre CP a prezentáciu, galéria), zákazník, dodávateľ, technika a vybavenie; kontakty bez príloh (D22).
 - [ ] Zmenšenie fotiek v prehliadači (max 2000 px, WebP); nahrávanie myšou, Ctrl+V, na mobile fotoaparát.
 - [ ] pgTAP, Vitest, e2e; rozšírenie bucketu (typy, limity) v súlade s konfiguráciou.
 
