@@ -18,7 +18,33 @@ const SUPABASE_STUB = `
   create role service_role nologin bypassrls;
   create schema extensions;
   create schema auth;
-  create table auth.users (id uuid primary key, email text, raw_user_meta_data jsonb);
+  create table auth.users (id uuid primary key, email text, raw_user_meta_data jsonb,
+                           last_sign_in_at timestamptz);
+  create table auth.mfa_factors (id uuid primary key, user_id uuid not null references auth.users (id),
+                                 friendly_name text, factor_type text not null, status text not null,
+                                 created_at timestamptz not null, updated_at timestamptz not null, secret text);
+  -- storage (shape taken from the dev project, phase 2): buckets, versioned objects, RLS, delete guard
+  create schema storage;
+  create table storage.buckets (id text primary key, name text not null, public boolean default false,
+                                file_size_limit bigint, allowed_mime_types text[]);
+  create table storage.objects (id uuid primary key default gen_random_uuid(), bucket_id text references storage.buckets (id),
+                                name text, owner uuid, metadata jsonb, version text, archived_at timestamptz,
+                                is_versioned boolean not null default false,
+                                created_at timestamptz default now(), updated_at timestamptz default now());
+  create unique index idx_objects_current_version on storage.objects (bucket_id, name collate "C") where archived_at is null;
+  alter table storage.objects enable row level security;
+  create function storage.protect_delete() returns trigger language plpgsql as $$
+  begin
+    if coalesce(current_setting('storage.allow_delete_query', true), 'false') != 'true' then
+      raise exception 'Direct deletion from storage tables is not allowed' using errcode = '42501';
+    end if;
+    return null;
+  end $$;
+  create trigger protect_objects_delete before delete on storage.objects
+    for each statement execute function storage.protect_delete();
+  grant usage on schema storage to anon, authenticated, service_role;
+  grant select, insert, update, delete on storage.objects to anon, authenticated, service_role;
+  grant select on storage.buckets to anon, authenticated, service_role;
   create function auth.uid() returns uuid language sql stable as $$
     select coalesce(nullif(current_setting('request.jwt.claim.sub', true), ''),
                     (nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub'))::uuid $$;

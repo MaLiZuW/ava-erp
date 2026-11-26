@@ -21,6 +21,25 @@ export function formatDate(input: Date | string | null | undefined): string {
   return `${pad2(d)}/${pad2(m)}/${y}`;
 }
 
+const DATE_TIME = new Intl.DateTimeFormat("sk-SK", {
+  timeZone: "Europe/Bratislava",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+
+/** Formats a timestamp as DD/MM/YYYY HH:mm in Slovak local time (Europe/Bratislava). */
+export function formatDateTime(input: Date | string | null | undefined): string {
+  if (input == null || input === "") return "";
+  const date = input instanceof Date ? input : new Date(input);
+  if (Number.isNaN(date.getTime())) return "";
+  const p = Object.fromEntries(DATE_TIME.formatToParts(date).map((x) => [x.type, x.value]));
+  return `${p.day}/${p.month}/${p.year} ${p.hour}:${p.minute}`;
+}
+
 /** Formats integer cents as "1 234,56 €" (non-breaking spaces, comma decimals). */
 export function formatMoney(cents: number | bigint | null | undefined): string {
   if (cents == null) return "";

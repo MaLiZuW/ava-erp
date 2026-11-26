@@ -2,19 +2,21 @@
 
 Cieľ: možnosť presunúť databázu zo Supabase cloud na vlastný server (D14). Dátový model je čistý PostgreSQL; tu je zoznam všetkého, čo je Supabase-špecifické a treba pri presune nahradiť.
 
-## Supabase-špecifické závislosti (stav fáza 1)
+## Supabase-špecifické závislosti (stav fáza 2)
 
-| Závislosť                                    | Kde sa používa                                                 | Pri self-hosted                                                                                    |
-| -------------------------------------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `auth.users`                                 | FK `created_by`, `profiles.id`, trigger `on_auth_user_created` | Supabase Auth (GoTrue) sa dá hostovať samostatne; alebo vlastná tabuľka používateľov + úprava FK   |
-| `auth.uid()`, `auth.jwt()`                   | RLS politiky, `set_updated`, `log_change`, `transition()`      | ak ostane PostgREST + vlastný JWT, treba funkcie s rovnakým významom (čítajú `request.jwt.claims`) |
-| Claim `aal` v JWT                            | politika `require_aal2`, `transition()`                        | musí ho vydávať Auth server (TOTP MFA)                                                             |
-| Roly `anon`, `authenticated`, `service_role` | `GRANT`/`REVOKE`, `to authenticated` v politikách              | vytvoriť rovnaké roly (PostgREST prepína rolu podľa JWT)                                           |
-| Schéma `extensions`                          | `pgcrypto`, `pg_trgm`, `pgtap`                                 | vytvoriť schému alebo upraviť `with schema`                                                        |
-| `storage` (od fázy 4)                        | dokumenty a PDF                                                | MinIO/S3 alebo súborový systém + podpísané odkazy                                                  |
-| `vault` (od fázy 5)                          | heslá k e-mailovým účtom                                       | iný správca tajomstiev (napr. pgsodium, SOPS, súbor mimo repozitára)                               |
-| Edge Functions (Deno)                        | PDF, e-mail, cron                                              | Deno/Node služba za reverzným proxy; cron cez `pg_cron`/systémový plánovač                         |
-| Session pooler                               | pripojenie skriptov                                            | PgBouncer alebo priame pripojenie                                                                  |
+| Závislosť                                    | Kde sa používa                                                                      | Pri self-hosted                                                                                                                                              |
+| -------------------------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `auth.users`                                 | FK `created_by`, `profiles.id`, trigger `on_auth_user_created`                      | Supabase Auth (GoTrue) sa dá hostovať samostatne; alebo vlastná tabuľka používateľov + úprava FK                                                             |
+| `auth.mfa_factors`                           | `admin_list_users()` (počet overených TOTP faktorov)                                | GoTrue má rovnakú tabuľku; inak upraviť funkciu podľa náhradného Auth servera                                                                                |
+| Auth Admin API (`auth.admin.*`)              | Edge Function `admin-mfa-reset`, testovací používatelia                             | GoTrue Admin API alebo ekvivalent                                                                                                                            |
+| `auth.uid()`, `auth.jwt()`                   | RLS politiky, `set_updated`, `log_change`, `transition()`                           | ak ostane PostgREST + vlastný JWT, treba funkcie s rovnakým významom (čítajú `request.jwt.claims`)                                                           |
+| Claim `aal` v JWT                            | politika `require_aal2`, `transition()`                                             | musí ho vydávať Auth server (TOTP MFA)                                                                                                                       |
+| Roly `anon`, `authenticated`, `service_role` | `GRANT`/`REVOKE`, `to authenticated` v politikách                                   | vytvoriť rovnaké roly (PostgREST prepína rolu podľa JWT)                                                                                                     |
+| Schéma `extensions`                          | `pgcrypto`, `pg_trgm`, `pgtap`                                                      | vytvoriť schému alebo upraviť `with schema`                                                                                                                  |
+| `storage` (od fázy 2)                        | bucket `documents` (logo; neskôr PDF), politiky na `storage.objects`, podpísané URL | Supabase Storage API sa dá hostovať samostatne; inak MinIO/S3 + vlastné podpísané odkazy a prenos politík (admin + aal2, bez prepisu, zámok cez `documents`) |
+| `vault` (od fázy 5)                          | heslá k e-mailovým účtom                                                            | iný správca tajomstiev (napr. pgsodium, SOPS, súbor mimo repozitára)                                                                                         |
+| Edge Functions (Deno)                        | `admin-mfa-reset` (fáza 2); neskôr PDF, e-mail, cron                                | Deno/Node služba za reverzným proxy; logika je v `handler.ts` bez závislosti od Supabase; cron cez `pg_cron`/systémový plánovač                              |
+| Session pooler                               | pripojenie skriptov                                                                 | PgBouncer alebo priame pripojenie                                                                                                                            |
 
 ## Čo sa prenáša bez zmeny
 

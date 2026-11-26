@@ -143,7 +143,15 @@ export type Database = {
           web?: string | null;
           zip?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "companies_logo_document_fk";
+            columns: ["logo_document_id"];
+            isOneToOne: false;
+            referencedRelation: "documents";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       divisions: {
         Row: {
@@ -179,6 +187,67 @@ export type Database = {
         };
         Relationships: [];
       };
+      documents: {
+        Row: {
+          category: string;
+          created_at: string;
+          created_by: string | null;
+          entity_id: string;
+          entity_table: string;
+          file_name: string;
+          id: string;
+          is_locked: boolean;
+          mime_type: string;
+          retention_until: string | null;
+          sha256: string | null;
+          size_bytes: number;
+          storage_bucket: string;
+          storage_path: string;
+          updated_at: string;
+          updated_by: string | null;
+          version: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          category: string;
+          created_at?: string;
+          created_by?: string | null;
+          entity_id: string;
+          entity_table: string;
+          file_name: string;
+          id?: string;
+          is_locked?: boolean;
+          mime_type: string;
+          retention_until?: string | null;
+          sha256?: string | null;
+          size_bytes: number;
+          storage_bucket?: string;
+          storage_path: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          version?: number;
+        };
+        Update: {
+          category?: string;
+          created_at?: string;
+          created_by?: string | null;
+          entity_id?: string;
+          entity_table?: string;
+          file_name?: string;
+          id?: string;
+          is_locked?: boolean;
+          mime_type?: string;
+          retention_until?: string | null;
+          sha256?: string | null;
+          size_bytes?: number;
+          storage_bucket?: string;
+          storage_path?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          version?: number;
+        };
+        Relationships: [];
+      };
       feature_flags: {
         Row: {
           created_at: string;
@@ -205,6 +274,40 @@ export type Database = {
           enabled?: boolean;
           key?: string;
           note?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [];
+      };
+      notification_recipients: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          email: string;
+          event_types: string[];
+          id: string;
+          is_active: boolean;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          email: string;
+          event_types?: string[];
+          id?: string;
+          is_active?: boolean;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          email?: string;
+          event_types?: string[];
+          id?: string;
+          is_active?: boolean;
           updated_at?: string;
           updated_by?: string | null;
         };
@@ -393,9 +496,32 @@ export type Database = {
       };
     };
     Views: {
-      [_ in never]: never;
+      v_open_items: {
+        Row: {
+          delivered_not_invoiced: number | null;
+          invoices_overdue: number | null;
+          new_inquiries: number | null;
+          overdue_tasks: number | null;
+          quotes_to_approve: number | null;
+          visuals_waiting: number | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
     };
     Functions: {
+      admin_list_users: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          email: string;
+          full_name: string;
+          is_active: boolean;
+          last_sign_in_at: string;
+          roles: Database["public"]["Enums"]["app_role"][];
+          user_id: string;
+          verified_totp_factors: number;
+        }[];
+      };
       next_document_number: {
         Args: { p_doc_type: Database["public"]["Enums"]["doc_type"]; p_year?: number };
         Returns: string;

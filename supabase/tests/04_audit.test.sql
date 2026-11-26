@@ -46,4 +46,18 @@ select throws_ok($$update public.activity_logs set note = 'tamper'$$, '42501', n
 select throws_ok($$delete from public.activity_logs$$, '42501', null, 'owner cannot delete from activity_logs');
 select throws_ok($$truncate public.activity_logs$$, '42501', null, 'owner cannot truncate activity_logs');
 
+-- phase 2 tables are audited as well
+select set_config('request.jwt.claims',
+  '{"sub":"a0000000-0000-0000-0000-00000000000a","role":"authenticated","aal":"aal2"}', true);
+set local role authenticated;
+insert into public.notification_recipients (email, event_types) values ('audit-probe@test.invalid', '{invoice_overdue}');
+update public.notification_recipients set is_active = false where email = 'audit-probe@test.invalid';
+reset role;
+select is((select count(*) from public.activity_logs where table_name = 'notification_recipients'
+            and coalesce(new_data, old_data) ->> 'email' = 'audit-probe@test.invalid'), 2::bigint,
+  'notification_recipients insert and update are logged');
+select is((select count(*) from pg_trigger where tgname = 'log_change'
+            and tgrelid in ('public.documents'::regclass, 'public.notification_recipients'::regclass)), 2::bigint,
+  'documents and notification_recipients have the log_change trigger');
+
 select * from finish();

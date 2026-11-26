@@ -26,3 +26,8 @@ insert into public.number_series (doc_type, year, prefix, next_number)
 select dt, extract(year from (now() at time zone 'Europe/Bratislava'))::int, dt::text, 1
 from unnest(enum_range(null::public.doc_type)) as dt
 on conflict (doc_type, year) do nothing;
+
+-- system settings (production: see DEPLOYMENT.md – seed is not run by db push)
+insert into public.system_settings (key, value, description) values
+  ('inactivity_minutes', '30', 'Automatic sign-out after N minutes of inactivity (5–240)')
+on conflict (key) do nothing;

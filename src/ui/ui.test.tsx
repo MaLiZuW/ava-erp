@@ -1,6 +1,8 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+import type { ReactNode } from "react";
+import { AuthContextProvider, type AuthState } from "@/core/auth/auth-provider";
 import { AppShell } from "./app-shell";
 import { DocumentShell } from "./document-shell";
 import { KpiNumber } from "./kpi-number";
@@ -75,10 +77,24 @@ describe("DocumentShell", () => {
   });
 });
 
+const signOut = vi.fn(async () => {});
+function withAuth(ui: ReactNode, roles: AuthState["roles"] = ["admin"]) {
+  const state: AuthState = {
+    status: "ready",
+    userId: "u1",
+    email: "konatel@example.sk",
+    fullName: "Konateľ Test",
+    roles,
+    refresh: async () => "ready",
+    signOut,
+  };
+  return <AuthContextProvider value={state}>{ui}</AuthContextProvider>;
+}
+
 describe("AppShell", () => {
   it("renders 14 navigation links and marks the active page", () => {
     pathname = "/zakazky/";
-    render(<AppShell>obsah</AppShell>);
+    render(withAuth(<AppShell>obsah</AppShell>));
     const nav = screen.getByRole("navigation", { name: "Hlavná navigácia" });
     expect(within(nav).getAllByRole("link")).toHaveLength(14);
     expect(within(nav).getByRole("link", { name: "Zákazky" })).toHaveAttribute(
@@ -90,10 +106,25 @@ describe("AppShell", () => {
 
   it("opens the command palette with Ctrl+K and navigates", async () => {
     pathname = "/";
-    render(<AppShell>obsah</AppShell>);
+    render(withAuth(<AppShell>obsah</AppShell>));
     await userEvent.keyboard("{Control>}k{/Control}");
     const item = await screen.findByRole("option", { name: "Faktúry" });
     await userEvent.click(item);
     expect(push).toHaveBeenCalledWith("/faktury/");
+  });
+
+  it("hides Nastavenia from a user without the admin role", () => {
+    pathname = "/";
+    render(withAuth(<AppShell>obsah</AppShell>, ["manager"]));
+    const nav = screen.getByRole("navigation", { name: "Hlavná navigácia" });
+    expect(within(nav).queryByRole("link", { name: "Nastavenia" })).not.toBeInTheDocument();
+  });
+
+  it("shows the signed-in user and signs out", async () => {
+    pathname = "/";
+    render(withAuth(<AppShell>obsah</AppShell>));
+    expect(screen.getByTestId("current-user")).toHaveTextContent("Konateľ Test");
+    await userEvent.click(screen.getByRole("button", { name: "Odhlásiť" }));
+    expect(signOut).toHaveBeenCalledOnce();
   });
 });
