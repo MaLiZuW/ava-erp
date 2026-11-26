@@ -3,7 +3,7 @@
 ## Fáza 2 – čaká na vlastníka (brána)
 
 - [x] `SUPABASE_SECRET_KEY` v `.env.local`; `npm run db:test:api` – aal1 token = žiadne dáta (bod brány splnený 27/11/2026); Playwright 8/8.
-- [ ] **Vypnúť verejnú registráciu** na dev projekte (Authentication → Sign In / Providers → _Allow new users to sign up_) – `db:test:api` ju teraz hlási ako FAIL.
+- [x] Verejná registrácia vypnutá; `db:test:api` ALL PASSED 50/50 (27/11/2026).
 - [ ] Skontrolovať nastavenia Supabase Auth podľa kontrolného zoznamu (`DEPLOYMENT.md`, časť A, bod 2) – registrácia, anonymné prihlásenie a nepoužívaní provideri vypnutí, bezpečná zmena e-mailu, min. heslo 12, JWT 3600 s, TOTP zapnuté, Redirect URLs.
 - [x] Edge Function `admin-mfa-reset` nasadená; `db:test:api` – 5/5 kontrol funkcie (27/11/2026).
 - [ ] Obaja konatelia: účet v dashboarde, rola admin, prvé prihlásenie s registráciou TOTP (bod brány).

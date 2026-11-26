@@ -82,6 +82,18 @@ Otvorené:
 - **Vypnúť verejnú registráciu** (Authentication → Sign In / Providers → _Allow new users to sign up_). Potom `db:test:api` musí skončiť „ALL PASSED“.
 - API test overuje odmietnutia Edge Function, nie úspešný reset (odstránenie faktora). Úspešnú cestu pokrýva unit test handlera; na skutočnom projekte ju overí ručný test reset 2FA medzi konateľmi (časť 7, bod 11).
 
+### Doplnenie 27/11/2026 – po vypnutí verejnej registrácie
+
+Vlastník vypol _Allow new users to sign up_. `npm run db:test:api`: **ALL PASSED – 50/50** (anon, aal1, aal2, Edge Function 5/5, nastavenia Auth 3/3). Žiadne zvyšky testovacích používateľov.
+
+Stav brány fázy 2:
+
+- [x] bez TOTP sa nedá dostať k dátam ani cez API (aal1 token) – overené
+- [ ] obaja konatelia majú zaregistrovaný TOTP (odporúčanie: 2 faktory na admina)
+- [ ] nastavenia firmy vyplnené reálnymi údajmi
+- [x] report
+- [ ] ručný test reset 2FA medzi konateľmi (časť 7, bod 11)
+
 Počas práce sandbox odhalil chybu v teste (`01_rls` vkladal kľúč, ktorý teraz pridáva seed – na dev projekte by zlyhal pri ďalšom behu) a mutácia odhalila slabú kontrolu prepisu v `05` – obe opravené.
 
 ## 5. Otvorené problémy a riziká
