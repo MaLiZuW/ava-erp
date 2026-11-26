@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40" role="img" aria-label="AV">
+  <!-- PLACEHOLDER – replace with the official AV mark supplied by the owner -->
+  <rect width="40" height="40" rx="10" fill="#00384C"/>
+  <path d="M8 29 L16 11 L24 29 M11.5 23 H20.5" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="square"/>
+  <path d="M24 11 L29 25 L34 11" fill="none" stroke="#00B0EF" stroke-width="3" stroke-linecap="square"/>
+</svg>
