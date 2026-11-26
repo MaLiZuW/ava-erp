@@ -5,7 +5,7 @@
  *  1. anon key only (anonymous visitor)            → no rows, writes and RPC refused
  *  2. real user, password only  (aal1 access token) → no rows, writes and RPC refused
  *  3. same user after TOTP       (aal2 access token) → admin sees data
- *  4. public sign-up is disabled
+ *  4. Auth settings: public sign-up, anonymous sign-ins and other providers are disabled
  *  5. Edge Function admin-mfa-reset: aal1, foreign origin, self-reset and unknown user are refused
  *
  * The test user is created through the Auth Admin API (secret key, .env.local only), with a random
@@ -18,7 +18,6 @@ import {
   enrollTotp,
   loadTestEnv,
   purgeTestUsers,
-  randomTestEmail,
   type TestUser,
 } from "./lib/test-users";
 
@@ -107,7 +106,6 @@ async function main() {
   await expectNoAccess("anon", makeApi(env.url, env.anonKey, env.anonKey));
 
   let user: TestUser | null = null;
-  let probe: string | null = null;
   try {
     // 2. aal1 – password only ---------------------------------------------------------------------
     user = await createTestUser(env, "api-test", { admin: true });
@@ -197,16 +195,28 @@ async function main() {
       report(forged.status === 401, `tampered token → 401 (got ${forged.status})`);
     }
 
-    // 4. public sign-up must be disabled -----------------------------------------------------------
-    probe = randomTestEmail("signup-probe");
-    const su = await anonClient(env).auth.signUp({ email: probe, password: `${probe}-Aa1!` });
+    // 4. Auth settings (public endpoint, no user is created) ----------------------------------------
+    // a sign-up attempt with a test address is not proof: Supabase may reject the address itself
+    console.log("\n-- Auth settings --");
+    const st = await fetch(`${env.url}/auth/v1/settings`, { headers: { apikey: env.anonKey } });
+    const settings = (await st.json()) as {
+      disable_signup?: boolean;
+      external?: Record<string, boolean>;
+    };
     report(
-      !!su.error && !su.data.user,
-      `public sign-up refused${su.error ? ` (${su.error.code ?? su.error.message})` : " – SIGN-UP IS ENABLED"}`,
+      settings.disable_signup === true,
+      `public sign-up disabled (disable_signup = ${settings.disable_signup})`,
+    );
+    report(settings.external?.anonymous_users === false, "anonymous sign-ins disabled");
+    const providers = Object.entries(settings.external ?? {})
+      .filter(([k, v]) => v && k !== "email" && k !== "anonymous_users")
+      .map(([k]) => k);
+    report(
+      providers.length === 0,
+      `only the e-mail provider is enabled${providers.length ? ` (also: ${providers.join(", ")})` : ""}`,
     );
   } finally {
     await deleteTestUser(env, user);
-    // a sign-up probe that slipped through is removed by the purge
     const left = await purgeTestUsers(env);
     if (left > 0) console.log(`cleanup: removed ${left} more test user(s)`);
   }

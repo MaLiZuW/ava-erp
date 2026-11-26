@@ -51,6 +51,16 @@ Jedna migrácia `20261127100000_phase2_security.sql`, nasadená na `ava-erp-dev`
 | Playwright | **5/5** bez prihlásenia; **3 testy s TOTP preskočené** – chýba `SUPABASE_SECRET_KEY` v `.env.local` |
 | `npm run db:test:api` (aal1/aal2 token) | **nespustené** – chýba `SUPABASE_SECRET_KEY`; časť Edge Function hlási SKIP, kým funkcia nie je nasadená |
 
+Výsledky so skutočnými tokenmi sú v doplnení nižšie.
+
+### Doplnenie 27/11/2026 – testy so skutočnými tokenmi (po doplnení `SUPABASE_SECRET_KEY`)
+
+- `npm run db:test:api`: **aal1 token (len heslo) → 0 riadkov** zo všetkých 12 tabuliek a pohľadov, zápis aj RPC odmietnuté (HTTP 403); po TOTP **aal2 → admin vidí dáta**; anon → HTTP 401. **Bod brány „bez TOTP žiadne dáta ani cez API“ je splnený.**
+- **Zistenie:** verejná registrácia je na dev projekte **zapnutá** (`disable_signup: false`). Pôvodná kontrola cez `signUp` bola falošne zelená (Supabase odmietol adresu `@test.invalid`, nie registráciu) – nahradená kontrolou nastavení `/auth/v1/settings`, ktorá teraz správne hlási FAIL. Anonymné prihlásenie a ostatní provideri sú vypnutí. **Treba vypnúť:** Authentication → Sign In / Providers → _Allow new users to sign up_.
+- Playwright: **8/8** (2 behy po sebe), vrátane registrácie TOTP, odmietnutia zlého kódu, návratu na pôvodnú stránku a odhlásenia. Test s TOTP dostal dlhší limit (kód sa používa raz – čaká sa na ďalšie 30 s okno; dev projekt Free odpovedá pomalšie).
+- Po testoch v `auth.users` neostal žiadny používateľ `*@test.invalid`.
+- Edge Function: stále SKIP, kým nie je nasadená.
+
 Počas práce sandbox odhalil chybu v teste (`01_rls` vkladal kľúč, ktorý teraz pridáva seed – na dev projekte by zlyhal pri ďalšom behu) a mutácia odhalila slabú kontrolu prepisu v `05` – obe opravené.
 
 ## 5. Otvorené problémy a riziká
