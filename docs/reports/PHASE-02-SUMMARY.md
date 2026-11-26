@@ -5,6 +5,8 @@ Dátum: 27/11/2026 · PR #2: https://github.com/MaLiZuW/ava-erp/pull/2 · Podrob
 PR je otvorený (nie draft), CI na GitHube prešlo celé. **Bez tvojho súhlasu sa nezlúči.**
 **Aktualizácia 27/11/2026:** hlavný bod brány je **splnený** – s tokenom len po hesle (aal1) prišlo cez API 0 riadkov, s TOTP (aal2) admin dáta vidí. Playwright 8/8. **Nové zistenie: verejná registrácia je na dev projekte zapnutá – treba ju vypnúť** (Authentication → Sign In / Providers → _Allow new users to sign up_ → vypnúť), potom `npm run db:test:api` musí skončiť „ALL PASSED“.
 
+**Aktualizácia po výmene kľúčov a nasadení Edge Function:** `db:test:api` 49 ok / 1 FAIL (len verejná registrácia), Edge Function 5/5, Playwright 8/8. Zostáva vypnúť _Allow new users to sign up_.
+
 ## 1. Čo bolo vytvorené
 
 - **Prihlásenie:** e-mail + heslo + povinný kód z overovacej aplikácie v telefóne (TOTP). Pri prvom prihlásení sa telefón zaregistruje cez QR kód. Kým nie je zadaný kód, aplikácia neukáže nič okrem prihlasovacích obrazoviek.

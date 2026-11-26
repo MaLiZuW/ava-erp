@@ -5,7 +5,7 @@
 - [x] `SUPABASE_SECRET_KEY` v `.env.local`; `npm run db:test:api` – aal1 token = žiadne dáta (bod brány splnený 27/11/2026); Playwright 8/8.
 - [ ] **Vypnúť verejnú registráciu** na dev projekte (Authentication → Sign In / Providers → _Allow new users to sign up_) – `db:test:api` ju teraz hlási ako FAIL.
 - [ ] Skontrolovať nastavenia Supabase Auth podľa kontrolného zoznamu (`DEPLOYMENT.md`, časť A, bod 2) – registrácia, anonymné prihlásenie a nepoužívaní provideri vypnutí, bezpečná zmena e-mailu, min. heslo 12, JWT 3600 s, TOTP zapnuté, Redirect URLs.
-- [ ] `npx supabase login` a nasadiť Edge Function `admin-mfa-reset` (`DEPLOYMENT.md`, časť F); `db:test:api` potom nesmie hlásiť SKIP.
+- [x] Edge Function `admin-mfa-reset` nasadená; `db:test:api` – 5/5 kontrol funkcie (27/11/2026).
 - [ ] Obaja konatelia: účet v dashboarde, rola admin, prvé prihlásenie s registráciou TOTP (bod brány).
 - [ ] Odporúčanie: každý admin 2 TOTP faktory (telefón + záloha) – Nastavenia → Používatelia a 2FA.
 - [ ] Nastavenia → Firma vyplnené reálnymi údajmi + logo (bod brány).

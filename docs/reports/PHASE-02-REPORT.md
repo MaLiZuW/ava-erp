@@ -61,6 +61,27 @@ Výsledky so skutočnými tokenmi sú v doplnení nižšie.
 - Po testoch v `auth.users` neostal žiadny používateľ `*@test.invalid`.
 - Edge Function: stále SKIP, kým nie je nasadená.
 
+### Doplnenie 27/11/2026 – po výmene kľúčov a nasadení Edge Function
+
+Vlastník vymenil kľúče (publishable aj secret) a nasadil `admin-mfa-reset`. Nový build s novými kľúčmi.
+
+| Kontrola | Výsledok |
+|---|---|
+| `npm run db:test:api` | **49 ok, 1 FAIL** |
+| – anon | HTTP 401, 0 riadkov, RPC aj zápis odmietnuté |
+| – aal1 token (len heslo, rola admin) | 0 riadkov z 12 tabuliek/pohľadov; RPC a zápis HTTP 403 – **bod brány splnený** |
+| – aal2 token | admin vidí dáta; `admin_list_users` OK; `next_document_number` stále odmietnuté (403) |
+| – Edge Function `admin-mfa-reset` | **5/5**: neexistujúci cieľ 404, reset seba 400, cudzí Origin 403, aal1 token 403, upravený (podvrhnutý) token 401 |
+| – nastavenia Auth | anonymné prihlásenie vypnuté, len e-mailový provider – OK; **verejná registrácia stále zapnutá (`disable_signup = false`) – FAIL** |
+| `npm run build` | OK |
+| `npm run test:e2e` | **8/8** (5 bez prihlásenia + 3 s TOTP) |
+| Zvyšky testovacích používateľov | 0 (`*@test.invalid`) |
+
+Otvorené:
+
+- **Vypnúť verejnú registráciu** (Authentication → Sign In / Providers → _Allow new users to sign up_). Potom `db:test:api` musí skončiť „ALL PASSED“.
+- API test overuje odmietnutia Edge Function, nie úspešný reset (odstránenie faktora). Úspešnú cestu pokrýva unit test handlera; na skutočnom projekte ju overí ručný test reset 2FA medzi konateľmi (časť 7, bod 11).
+
 Počas práce sandbox odhalil chybu v teste (`01_rls` vkladal kľúč, ktorý teraz pridáva seed – na dev projekte by zlyhal pri ďalšom behu) a mutácia odhalila slabú kontrolu prepisu v `05` – obe opravené.
 
 ## 5. Otvorené problémy a riziká
