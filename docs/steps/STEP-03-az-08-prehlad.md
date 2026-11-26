@@ -11,10 +11,22 @@ Podrobné zadanie každej fázy sa pripraví až po bráne predchádzajúcej fá
 ## STEP-04 – Dopyt → kalkulácia → CP → objednávka → zákazka + prvé dokumenty
 - Dopyty, dopyty na dodávateľov, kalkulačné jadro, verzie CP, schvaľovanie, `accept_quote_version()`.
 - **Generátor dokumentov** (prototyp technológie PDF hneď na začiatku fázy): cenová ponuka, **firemná prezentácia k CP**, potvrdenie objednávky, dopyt na dodávateľa. Uzamknuté PDF + hash.
+- Na začiatku fázy: **prílohy podľa D23** (jedna dlaždica „Prílohy“, kategórie a typy ako konfigurácia v DB, adaptér úložiska) – pred generátorom CP.
+- **Zdroje (D24):** z labor riadkov prijatej CP vznikajú `resource_requirements` (DATABASE_SCHEMA §19); pri CP orientačná kontrola kapacity v dotknutých týždňoch.
 - Brána: reálna CP s prezentáciou od dopytu po zákazku; výpočet sedí s ručnou kalkuláciou.
 
-## STEP-05 – Vizuál, nákup, dodanie, projekty, e-mail
-- Schválenie vizuálu (PDF žiadosť), OD, príjemky, doklady dodania (dodací list, preberací protokol), Gantt, hodiny, plán vs. skutočnosť, e-mailový modul.
+## STEP-05a – Projekty a zdroje (D24)
+Podklad: `docs/analyzy/ANALYZA-RIADENIE-PROJEKTOV-A-ZDROJOV.md`, DATABASE_SCHEMA §19.
+- Register zdrojov (typy ako konfigurácia – rozšíriteľné o externú osobu a AI agenta), kalendáre (týždenný vzor + výnimky na dni + SK sviatky).
+- Šablóny úloh podľa typu zákazky so spätným plánovaním od kotvy (štart, dátum eventu, termín dodania).
+- Priradenia úloha × zdroj (predbežné z CP / pevné zo zákazky), rezervácie techniky bez prekrytia.
+- Gantt s časovým baseline, výkaz hodín za deň (bez stopiek), heatmapa vyťaženia zdroj × týždeň, „Môj týždeň“, kalendár zdroja.
+- Scenár dňa eventu (run-of-show) + PDF pre tím a dodávateľov; iCal export.
+- Brána [NÁVRH]: zákazka EVENT naplánovaná zo šablóny, so scenárom dňa a bez konfliktu techniky; vyťaženie konateľov zodpovedá ich kalendáru.
+
+## STEP-05b – Vizuál, nákup, dodanie, e-mail, nezhody
+- Schválenie vizuálu (PDF žiadosť), OD, príjemky, doklady dodania (dodací list, preberací protokol), plán vs. skutočnosť, e-mailový modul.
+- Termíny OD dodávateľa (`confirmed_date`, `delivered_date`) – zobrazenie v Gantte z F5a.
 - Nezhody a reklamácie, ručné hodnotenie dodávateľa po príjme.
 - Brána: zákazka PROMO od vizuálu po potvrdené dodanie s PDF dokladmi.
 
@@ -26,6 +38,7 @@ Podrobné zadanie každej fázy sa pripraví až po bráne predchádzajúcej fá
 ## STEP-07 – Reporting, KPI, hodnotenie partnerov, propagácia
 - Dashboard podľa DESIGN_SYSTEM.md 6.1: Spolu / Agentúra / AVENG, finančné ukazovatele a grafy (BUSINESS_PROCESSES.md kap. 12), tlač a PDF/CSV/XLSX export.
 - Karty zákazníkov a dodávateľov s KPI a skóre A/B/C (kap. 13), procesné KPI so semaformi a drill-downom (kap. 14).
+- Zdroje (D24): kapacita vs. pipeline (predbežné rezervácie z CP), utilizácia v KPI (z kalendárov a výkazov), prognóza do konca (EAC), KPI dodržania termínov dodávateľov.
 - Propagačné dokumenty: všeobecná firemná prezentácia, katalóg služieb, referenčný list (len so súhlasom zákazníka), súhrn zákazky.
 - Brána: vlastník overí čísla dashboardu voči ručnému prepočtu za 1 mesiac; vytlačí report.
 

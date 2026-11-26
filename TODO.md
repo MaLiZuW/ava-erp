@@ -7,9 +7,28 @@ Podľa D22: na dev reálne firmy (verejné údaje z OR), katalóg, sadzby, zdroj
 - [ ] Zákazníci a dodávatelia – reálne firmy (názov, IČO, adresa), len všeobecné firemné kontakty.
 - [ ] Katalóg: položky, balíčky (napr. sezónne), jednotky podľa potreby.
 - [ ] Roly a hodinové sadzby (O5) – kalkulačná aj fakturovaná sadzba s platnosťou.
-- [ ] Vlastné zdroje (obstarávacia cena, životnosť v hodinách, prevádzka/h).
-- [ ] Knižnica obsahu: „O firme“ + popisy služieb (ENG, EVENT, PROMO, SEASON), prípadne obrázky (bod brány).
+- [ ] Technika a vybavenie (obstarávacia cena, životnosť v hodinách, prevádzka/h).
+- [ ] Knižnica obsahu: „O firme“, „Prečo my“, „Ako pracujeme“, „Kontakt“ + popisy služieb (ENG, EVENT, PROMO, SEASON), prípadne obrázky (bod brány).
 - [ ] Nastavenia → Reporting: réžia, **pásma dane z príjmov overené s účtovníkom**, kapacity, ciele KPI (môžu prísť aj neskôr – dashboard ich využije vo fáze 7).
+
+## Fáza 4 – na začiatku (pred generátorom CP)
+
+**Prílohy podľa D23** (`docs/DECISIONS.md`):
+
+- [ ] Migrácia: `documents.storage_provider` (predvolene `supabase`), konfigurácia kategórií príloh v DB (kód, názov, povolené MIME typy, max. veľkosť) – foto, technický list, certifikát, zmluva, výkres, iné; povolené PNG, JPEG, WebP, PDF, DOCX, XLSX; zákaz SVG, HTML a spustiteľných súborov aj v DB.
+- [ ] Jeden adaptér súborov (rozšírenie `src/core/documents.ts`): nahratie, podpísané URL, mazanie – všetok prístup k súborom len cez neho.
+- [ ] Dlaždica „Prílohy“ (jedna pre všetky moduly): položka katalógu (+ hlavná fotka pre CP a prezentáciu, galéria), zákazník, dodávateľ, technika; kontakty bez príloh (D22).
+- [ ] Zmenšenie fotiek v prehliadači (max 2000 px, WebP); nahrávanie myšou, Ctrl+V, na mobile fotoaparát.
+- [ ] pgTAP, Vitest, e2e; rozšírenie bucketu (typy, limity) v súlade s konfiguráciou.
+
+**Zdroje podľa D24** (analýza kap. 7):
+
+- [ ] Z labor riadkov prijatej CP vznikajú `resource_requirements` (DATABASE_SCHEMA §19).
+- [ ] Pri CP orientačná kontrola kapacity v dotknutých týždňoch.
+
+## Fáza 5a – projekty a zdroje (D24)
+
+- [ ] Implementácia `DATABASE_SCHEMA.md` §19: register zdrojov (`resource_kinds`, `bookable_resources`), kalendáre (týždenný vzor, výnimky, SK sviatky), šablóny so spätným plánovaním, priradenia (`task_assignments` namiesto `assignee_*`), rezervácie techniky bez prekrytia, Gantt s baseline, výkaz hodín za deň, heatmapa vyťaženia, scenár dňa eventu + PDF, iCal. Podrobne v `docs/steps/STEP-03-az-08-prehlad.md` (STEP-05a) a v analýze.
 
 ## Fáza 2 – čaká na vlastníka (brána)
 
@@ -45,7 +64,7 @@ Presunuté z brány fázy 1 do fázy 2 a so súhlasom vlastníka (27. 11. 2026) 
 - [ ] Prepínač divízie (Všetko / AVENG / Agentúra) v hornej lište – `DESIGN_SYSTEM.md` §5; presunuté do fázy 4 (zmysel má až s dopytmi a zákazkami).
 - [ ] GDPR: informačná povinnosť ku kontaktom zákazníkov a dodávateľov (presné znenie, doba uchovania, práva dotknutých osôb) – fáza 8; vo formulári kontaktu je zatiaľ krátky text (D22).
 - [ ] História zmien kusovníka a jednotiek nie je viazaná na konkrétny záznam (tabuľky nemajú stĺpec `id`); v Katalógu sa zobrazuje história celej časti. Ak to bude prekážať, doplniť `id` alebo rozšíriť `log_change`.
-- [ ] Prettier hlási formát v ~20 starších súboroch (konce riadkov CRLF/LF po `core.autocrlf`) – zjednotiť `.gitattributes` (`* text=auto eol=lf`) v samostatnom malom PR.
+- [ ] **Po zlúčení fázy 3:** samostatný malý PR – `.gitattributes` (`* text=auto eol=lf`) a jednorazové preformátovanie (Prettier hlási ~20 starších súborov kvôli koncom riadkov CRLF/LF po `core.autocrlf`). Teraz sa nič neformátuje.
 - [ ] Politiky pre role `manager`, `accountant`, `external` (s modulmi, ktoré ich potrebujú).
 - [ ] Trigger `lock_issued` a `status_transitions` naplniť podľa `BUSINESS_PROCESSES.md` kap. 4 (s prvými dokladmi).
 - [ ] Typy udalostí pre `notification_recipients.event_types` – až s notifikáciami (nevymýšľať vopred).

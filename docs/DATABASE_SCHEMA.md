@@ -345,6 +345,7 @@ Check: `approved` vyžaduje `decided_at`, `decided_by_name` a aspoň jeden dôka
 
 ### project_tasks
 `id`, `job_id FK on delete cascade`, `parent_task_id FK self`, `name`, `description`, `start_date`, `end_date` (check end ≥ start), `is_milestone`, `progress_pct int 0–100`, `status task_status`, `assignee_user_id FK profiles null`, `assignee_supplier_id FK suppliers null`, `planned_hours`, `sort_order`, `billing_milestone boolean` (fakturačný míľnik).
+> Poznámka (D24): `assignee_user_id` a `assignee_supplier_id` nahradí tabuľka `task_assignments` (§19, F5a) – úloha môže mať viac zdrojov s hodinami a typom rezervácie. Pribudne aj časový baseline `baseline_start`, `baseline_end`.
 
 ### task_dependencies
 `predecessor_id FK project_tasks on delete cascade`, `successor_id FK … cascade`, `lag_days int default 0`; PK (predecessor_id, successor_id); check predecessor ≠ successor; ochrana proti cyklu (trigger).
@@ -599,3 +600,44 @@ Pohľady s `security_invoker = true`, aby rešpektovali RLS.
 | `v_receivables_aging` | vekové pásma pohľadávok |
 
 `doc_type` enum rozšíriť o `NZ` (nezhoda).
+
+## 19. Doplnok – plánovanie zdrojov (F5a)
+
+> **NÁVRH – implementácia vo fáze 5a, zatiaľ neimplementované.** Podklad: rozhodnutie D24 a `docs/analyzy/ANALYZA-RIADENIE-PROJEKTOV-A-ZDROJOV.md` (kap. 5). Konvencie §0 a RLS §14 platia rovnako (audit, `require_aal2`, admin politiky, pgTAP).
+
+„Zdroj“ = človek (konateľ), dodávateľ alebo technika. Typ zdroja je **konfigurácia**, preto sa neskôr dá pridať externá osoba alebo AI agent / automatizovaná služba bez zmeny jadra.
+
+| Tabuľka | Účel | Kľúčové stĺpce a pravidlá |
+|---|---|---|
+| `resource_kinds` | konfigurácia typov zdrojov | `code` (`user`, `supplier`, `equipment` – aktívne; `external_person`, `ai_agent` – pripravené, neaktívne), `name`, `has_capacity boolean` (dodávateľ nie – plánuje sa termínmi), `cost_source` (odkiaľ sa berie náklad: sadzba roly, OD, sadzba techniky), `is_active` |
+| `bookable_resources` | register plánovateľných zdrojov | `kind FK resource_kinds`, odkaz **presne na jeden** z `profile_id` / `supplier_id` / `equipment_id` (`resources`) podľa typu (check), `default_role_id FK labor_roles null`, `division_id null`, `is_active` |
+| `work_patterns` | týždenný vzor kapacity | `resource_id`, `weekday 1–7`, `hours numeric(4,2) ≥ 0`, `valid_from`, `valid_to null`; bez prekrytia platností (exclusion) |
+| `calendar_exceptions` | výnimka na konkrétny deň / obdobie | `resource_id`, `date_from`, `date_to`, `hours` (0 = nedostupný, viac = extra hodiny), `reason` ('vacation','unavailable','other'), `note` |
+| `public_holidays` | SK štátne sviatky a dni pracovného pokoja | `date PK`, `name`; referenčné dáta, ročne doplniť |
+| `resource_requirements` | požiadavka zákazky podľa roly (z labor riadkov prijatej CP, F4) | `job_id`, `role_id`, `period_from`, `period_to`, `hours`, `source_quote_item_id null`, stav obsadená / neobsadená (odvodený z `task_assignments`) |
+| `task_assignments` | úloha × zdroj | `task_id FK project_tasks`, `resource_id FK bookable_resources`, `date_from`, `date_to`, `planned_hours`, `booking_type` ('tentative' z CP, 'firm' zo zákazky); nahrádza `project_tasks.assignee_*` |
+| `equipment_bookings` | rezervácia techniky | `resource_id` (typ `equipment`), `job_id`, `task_id null`, `starts_at`, `ends_at`, `booking_type`; **exclusion constraint** na prekrytie času rovnakej techniky |
+| `project_templates`, `template_tasks`, `template_dependencies` | šablóny podľa typu zákazky | termín úlohy = posun v dňoch od kotvy (štart zákazky / dátum eventu / termín dodania), **aj záporný** (spätné plánovanie); závislosti koniec–začiatok |
+| `event_schedule_items` | scenár dňa eventu (run-of-show, len EVENT) | `job_id`, `starts_at`, `ends_at`, `activity`, `location`, `responsible_resource_id null`, `equipment_resource_id null`, `note`, `sort_order`; PDF pre tím a dodávateľov |
+
+Zmeny existujúcich tabuliek:
+
+| Tabuľka | Zmena |
+|---|---|
+| `project_tasks` (§7) | + `baseline_start`, `baseline_end` (časový baseline pri spustení zákazky); `assignee_*` nahradí `task_assignments` |
+| `purchase_orders` (§8) | + `confirmed_date` (potvrdený termín dodávateľa), `delivered_date` (skutočný) – Gantt a KPI dodržania termínov |
+| `time_entries` (§7) | bez zmeny – hodiny za deň, bez stopiek |
+| `capacity_plans` (§18) | po zavedení kalendárov len ručná korekcia / prechodné riešenie; kapacita sa počíta zo vzoru + výnimiek + sviatkov |
+
+Pohľady (`security_invoker = true`):
+
+| View | Obsah |
+|---|---|
+| `v_resource_capacity_daily` | zdroj × deň: dostupné hodiny (vzor − sviatky ± výnimky) |
+| `v_resource_load` | zdroj × týždeň: kapacita, pevné a predbežné rezervácie, % vyťaženia |
+| `v_job_schedule_variance` | zákazka: baseline vs. aktuálny plán (posun termínov) |
+| `v_job_forecast` | prognóza nákladov do konca (EAC) |
+
+Pravidlá v DB: konflikt techniky = **chyba** (exclusion); preťaženie človeka = **upozornenie** (nie chyba); dodávateľ nemá kapacitu, plánuje sa termínmi; zmeny úloh uzavretej zákazky sú zakázané.
+
+Názvy a typy stĺpcov sú orientačné (rozpracovanie analýzy); záväzne sa potvrdia v pláne fázy 5a.

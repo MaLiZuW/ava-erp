@@ -40,6 +40,7 @@ Tabuľka rozdielov krokov (✔ = krok sa používa, – = nepoužíva, ○ = vol
 | Schválenie vizuálu | – | ○ | ✔ povinné | ○ | – |
 | Gantt / úlohy | ✔ | ✔ | ○ | ○ | ○ |
 | Evidencia hodín | ✔ | ✔ | ○ | ○ | ✔ |
+| Scenár dňa eventu (D24) | – | ✔ | – | – | – |
 | Objednávka dodávateľovi | ○ | ✔ | ✔ | ✔ | ✔ |
 | Príjem tovaru/služby | ○ | ✔ | ✔ | ✔ | ✔ |
 | Dodací list | ○ | – | ✔ | ✔ | ✔ |
@@ -315,7 +316,7 @@ Zaokrúhlenie [NÁVRH]: výpočty v celých centoch, jednotková cena zaokrúhle
 | Q15 watchlist, AI | 4 predpisy v kap. 8; AI vypnuté |
 | Q16 úložisko | Supabase Storage (súkromné buckety), záloha na domáci server |
 | Q17 potvrdenie dodania | sken/fotka podpísaného dokladu alebo e-mail v systéme |
-| Q18 Gantt | úlohy, podúlohy, míľniky, závislosti „koniec–začiatok“, priradenie osobe alebo dodávateľovi |
+| Q18 Gantt | úlohy, podúlohy, míľniky, závislosti „koniec–začiatok“, priradenie osobe alebo dodávateľovi. **Rozšírené rozhodnutím D24** a analýzou `docs/analyzy/ANALYZA-RIADENIE-PROJEKTOV-A-ZDROJOV.md` (plánovanie zdrojov, kalendáre, šablóny, baseline, scenár eventu – fáza 5a) |
 | Q19 jazyk, mena | doklady SK, mena EUR (pole meny pripravené) |
 | Q20 B2C | primárne B2B; zákazník môže byť aj fyzická osoba (typ zákazníka) – GDPR |
 | Q21 import | bez importu, dáta sa zadajú ručne vo fáze 3 |
