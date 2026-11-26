@@ -1,9 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useWatch } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { Button } from "@/ui/button";
 import { Checkbox, describedBy, Field, FormMessage, Input, Select, Textarea } from "@/ui/field";
+import { NumberStepper } from "@/ui/number-stepper";
 import { Tile } from "@/ui/tile";
 import { useSaveParty, type Party } from "../api";
 import {
@@ -137,13 +138,35 @@ export function PartyForm({
                 error={err}
                 className={f.wide ? "md:col-span-2" : undefined}
               >
-                <Input
-                  id={id}
-                  invalid={!!err}
-                  inputMode={f.name === "payment_terms_days" ? "numeric" : undefined}
-                  aria-describedby={describedBy(id, { hint: f.hint, error: err })}
-                  {...register(f.name)}
-                />
+                {f.name === "payment_terms_days" ? (
+                  <Controller
+                    control={control}
+                    name="payment_terms_days"
+                    render={({ field }) => (
+                      <NumberStepper
+                        id={id}
+                        label="Splatnosť v dňoch"
+                        suffix="dní"
+                        step={1}
+                        max={365}
+                        decimals={0}
+                        value={field.value}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        ref={field.ref}
+                        invalid={!!err}
+                        aria-describedby={describedBy(id, { hint: f.hint, error: err })}
+                      />
+                    )}
+                  />
+                ) : (
+                  <Input
+                    id={id}
+                    invalid={!!err}
+                    aria-describedby={describedBy(id, { hint: f.hint, error: err })}
+                    {...register(f.name)}
+                  />
+                )}
               </Field>
             );
           })}

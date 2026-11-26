@@ -4,7 +4,7 @@ import { useState } from "react";
 import { parseDecimal } from "@/core/format";
 import { useProfiles } from "@/core/shared-queries";
 import { Field, FormMessage, Select } from "@/ui/field";
-import { SuffixInput } from "@/ui/inputs";
+import { NumberStepper } from "@/ui/number-stepper";
 import { Tile } from "@/ui/tile";
 import { monthOptions } from "../../reporting";
 import { useCapacity, useSaveCapacity, type CapacityRow } from "../../reporting-api";
@@ -24,24 +24,33 @@ function HoursInput({
 }) {
   const save = useSaveCapacity();
   const [value, setValue] = useState(row ? String(row.available_hours).replace(".", ",") : "");
-  const parsed = value.trim() === "" ? null : parseDecimal(value, 2);
-  const invalid = value.trim() !== "" && (parsed == null || parsed > MAX_HOURS);
-  const commit = () => {
-    if (parsed == null || invalid || parsed === Number(row?.available_hours)) return;
-    save.mutate({ userId, month, hours: parsed });
+  const check = (text: string) => {
+    const n = text.trim() === "" ? null : parseDecimal(text, 2);
+    return { n, invalid: text.trim() !== "" && (n == null || n > MAX_HOURS) };
+  };
+  const { invalid } = check(value);
+  const commit = (text: string) => {
+    const { n, invalid: bad } = check(text);
+    if (n == null || bad || n === Number(row?.available_hours)) return;
+    save.mutate({ userId, month, hours: n });
   };
   return (
     <div className="flex flex-col gap-1">
-      <SuffixInput
+      <NumberStepper
+        label={`Dostupné hodiny – ${label}`}
         suffix="h"
-        inputMode="decimal"
-        aria-label={`Dostupné hodiny – ${label}`}
+        unit="hod"
+        max={MAX_HOURS}
+        decimals={2}
         value={value}
         invalid={invalid}
-        onChange={(e) => setValue(e.target.value)}
-        onBlur={commit}
-        onKeyDown={(e) => e.key === "Enter" && commit()}
-        className="w-32"
+        onChange={setValue}
+        onStep={commit}
+        onBlur={() => commit(value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") commit(value);
+        }}
+        className="w-48"
       />
       {invalid && <p className="text-danger text-[13px]">0–{MAX_HOURS} hodín.</p>}
       {save.error && <FormMessage tone="error">{save.error.message}</FormMessage>}

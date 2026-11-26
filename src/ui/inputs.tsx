@@ -1,4 +1,5 @@
-import type { InputHTMLAttributes, Ref } from "react";
+import type { InputHTMLAttributes, KeyboardEvent, Ref } from "react";
+import { formatMoneyInput, parseMoneyToCents } from "@/core/format";
 import { cn } from "./cn";
 import { Input } from "./field";
 
@@ -22,9 +23,40 @@ export function SuffixInput({ suffix, className, ...props }: InputProps & { suff
   );
 }
 
-/** Amount in euros, e.g. "1 234,56" (stored as cents – see moneyField). */
-export function MoneyInput(props: InputProps) {
-  return <SuffixInput suffix="€" inputMode="decimal" autoComplete="off" {...props} />;
+/**
+ * Sets an input's value the way typing does, so React and react-hook-form (`register`)
+ * receive a normal change event.
+ */
+export function setNativeValue(el: HTMLInputElement, value: string) {
+  const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
+  setter?.call(el, value);
+  el.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+/** ↑ / ↓ in a money field: ± 1,00 € (Shift ± 10,00 €), never below 0. */
+export function stepMoneyText(text: string, direction: 1 | -1, shift: boolean): string {
+  const cents = parseMoneyToCents(text) ?? 0;
+  const next = Math.max(0, cents + direction * (shift ? 1000 : 100));
+  return formatMoneyInput(next);
+}
+
+/** Amount in euros, e.g. "1 234,56" (stored as cents – see moneyField). No buttons, only ↑ / ↓. */
+export function MoneyInput({ onKeyDown, ...props }: InputProps) {
+  return (
+    <SuffixInput
+      suffix="€"
+      inputMode="decimal"
+      autoComplete="off"
+      onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
+        onKeyDown?.(e);
+        if (e.defaultPrevented || (e.key !== "ArrowUp" && e.key !== "ArrowDown")) return;
+        e.preventDefault();
+        const el = e.currentTarget;
+        setNativeValue(el, stepMoneyText(el.value, e.key === "ArrowUp" ? 1 : -1, e.shiftKey));
+      }}
+      {...props}
+    />
+  );
 }
 
 /** Percentage, e.g. "12,5". */

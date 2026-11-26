@@ -2,12 +2,13 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { formatMoney } from "@/core/format";
 import { Button } from "@/ui/button";
 import { EmptyState } from "@/ui/empty-state";
-import { describedBy, Field, FormMessage, Input, Select } from "@/ui/field";
+import { describedBy, Field, FormMessage, Select } from "@/ui/field";
 import { KpiNumber } from "@/ui/kpi-number";
+import { NumberStepper, stepForUnit } from "@/ui/number-stepper";
 import { Tile } from "@/ui/tile";
 import {
   useAddComponent,
@@ -42,11 +43,14 @@ function AddComponentForm({ packageId, excluded }: { packageId: string; excluded
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<ComponentInput, unknown, ComponentOutput>({
     resolver: zodResolver(componentSchema),
     defaultValues: { component_item_id: "", quantity: "1" },
   });
+  const selectedId = useWatch({ control, name: "component_item_id" });
+  const unit = options.find((i) => i.id === selectedId)?.unit_code;
   const submit = handleSubmit(async (values) => {
     const ok = await add
       .mutateAsync(values)
@@ -80,13 +84,24 @@ function AddComponentForm({ packageId, excluded }: { packageId: string; excluded
           ))}
         </Select>
       </Field>
-      <Field id="component-qty" label="Množstvo" error={errors.quantity?.message} className="w-32">
-        <Input
-          id="component-qty"
-          inputMode="decimal"
-          invalid={!!errors.quantity}
-          aria-describedby={describedBy("component-qty", { error: errors.quantity?.message })}
-          {...register("quantity")}
+      <Field id="component-qty" label="Množstvo" error={errors.quantity?.message} className="w-48">
+        <Controller
+          control={control}
+          name="quantity"
+          render={({ field }) => (
+            <NumberStepper
+              id="component-qty"
+              label="Množstvo komponentu"
+              unit={unit}
+              min={stepForUnit(unit)}
+              value={field.value}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
+              ref={field.ref}
+              invalid={!!errors.quantity}
+              aria-describedby={describedBy("component-qty", { error: errors.quantity?.message })}
+            />
+          )}
         />
       </Field>
       <Button type="submit" disabled={isSubmitting}>
@@ -105,21 +120,27 @@ function QuantityCell({ packageId, row }: { packageId: string; row: PackageCompo
   const update = useUpdateComponent(packageId);
   const [value, setValue] = useState(qtyText(row.quantity));
   const parsed = componentSchema.shape.quantity.safeParse(value);
-  const commit = () => {
-    if (parsed.success && parsed.data !== Number(row.quantity)) {
-      update.mutate({ componentId: row.component_item_id, quantity: parsed.data });
+  const save = (text: string) => {
+    const r = componentSchema.shape.quantity.safeParse(text);
+    if (r.success && r.data !== Number(row.quantity)) {
+      update.mutate({ componentId: row.component_item_id, quantity: r.data });
     }
   };
+  const unit = row.component?.unit_code;
   return (
-    <Input
-      aria-label={`Množstvo – ${row.component?.name ?? ""}`}
-      inputMode="decimal"
+    <NumberStepper
+      label={`Množstvo – ${row.component?.name ?? ""}`}
+      unit={unit}
+      min={stepForUnit(unit)}
       value={value}
       invalid={!parsed.success}
-      onChange={(e) => setValue(e.target.value)}
-      onBlur={commit}
-      onKeyDown={(e) => e.key === "Enter" && commit()}
-      className="h-9 w-24 text-right tabular-nums"
+      onChange={setValue}
+      onStep={save} // − / + and arrows save immediately
+      onBlur={() => save(value)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") save(value);
+      }}
+      className="ml-auto w-44"
     />
   );
 }

@@ -116,9 +116,17 @@ test.describe.serial("master data", () => {
     await componentSelect.selectOption({ label: `${goods} (ks)` });
     await page.getByLabel("Množstvo", { exact: true }).fill("2");
     await page.getByRole("button", { name: "Pridať", exact: true }).click();
-    await expect(page.getByRole("region", { name: "Náklad 1 balíčka" })).toContainText("5,00 €", {
-      timeout: 15_000,
-    });
+    const cost = page.getByRole("region", { name: "Náklad 1 balíčka" });
+    await expect(cost).toContainText("5,00 €", { timeout: 15_000 });
+
+    // NumberStepper: + / − change the quantity and save immediately (step 1 for "ks")
+    const qty = page.getByLabel(`Množstvo – ${goods}`, { exact: true });
+    await page.getByRole("button", { name: `Zvýšiť – Množstvo – ${goods}` }).click();
+    await expect(qty).toHaveValue("3");
+    await expect(cost).toContainText("7,50 €", { timeout: 15_000 });
+    await page.getByRole("button", { name: `Znížiť – Množstvo – ${goods}` }).click();
+    await expect(qty).toHaveValue("2");
+    await expect(cost).toContainText("5,00 €", { timeout: 15_000 });
 
     // labour rates: an overlapping period is refused with a clear message
     await page.goto("/katalog/?tab=sadzby");

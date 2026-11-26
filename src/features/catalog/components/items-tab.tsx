@@ -2,14 +2,15 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMemo, useState } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { formatMoney, formatMoneyInput, formatPercent } from "@/core/format";
 import { Button } from "@/ui/button";
 import { ChipGroup } from "@/ui/chips";
 import { DataTable, type Column } from "@/ui/data-table";
 import { EmptyState } from "@/ui/empty-state";
 import { describedBy, Field, FormMessage, Input, Select, Textarea } from "@/ui/field";
-import { MoneyInput, PercentInput } from "@/ui/inputs";
+import { MoneyInput } from "@/ui/inputs";
+import { NumberStepper } from "@/ui/number-stepper";
 import { StatusBadge } from "@/ui/status-badge";
 import { Tile } from "@/ui/tile";
 import {
@@ -178,14 +179,29 @@ export function ItemForm({ item, onDone }: { item: CatalogItem | null; onDone: (
               hint={pctHint}
               error={err("default_pricing_pct")}
             >
-              <PercentInput
-                id={id("default_pricing_pct")}
-                invalid={!!err("default_pricing_pct")}
-                aria-describedby={describedBy(id("default_pricing_pct"), {
-                  hint: pctHint,
-                  error: err("default_pricing_pct"),
-                })}
-                {...register("default_pricing_pct")}
+              <Controller
+                control={control}
+                name="default_pricing_pct"
+                render={({ field }) => (
+                  <NumberStepper
+                    id={id("default_pricing_pct")}
+                    label={mode === "margin" ? "Marža" : "Prirážka"}
+                    suffix="%"
+                    step={1}
+                    // margin: price = cost / (1 − m) → m must stay below 100 %
+                    max={mode === "margin" ? 100 : undefined}
+                    maxExclusive={mode === "margin"}
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    ref={field.ref}
+                    invalid={!!err("default_pricing_pct")}
+                    aria-describedby={describedBy(id("default_pricing_pct"), {
+                      hint: pctHint,
+                      error: err("default_pricing_pct"),
+                    })}
+                  />
+                )}
               />
             </Field>
           )}

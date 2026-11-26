@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { resourceCostRateCents } from "@/core/calc/resource-rate";
 import { formatMoney, formatMoneyInput, parseDecimal, parseMoneyToCents } from "@/core/format";
 import { Button } from "@/ui/button";
@@ -10,7 +10,8 @@ import { ChipGroup } from "@/ui/chips";
 import { DataTable, type Column } from "@/ui/data-table";
 import { EmptyState } from "@/ui/empty-state";
 import { describedBy, Field, FormMessage, Input } from "@/ui/field";
-import { MoneyInput, SuffixInput } from "@/ui/inputs";
+import { MoneyInput } from "@/ui/inputs";
+import { NumberStepper } from "@/ui/number-stepper";
 import { StatusBadge } from "@/ui/status-badge";
 import { Tile } from "@/ui/tile";
 import { useResources, useSaveResource, useSetResourceActive, type Resource } from "../api";
@@ -125,15 +126,26 @@ function ResourceForm({ resource, onDone }: { resource: Resource | null; onDone:
           label="Predpokladaná životnosť"
           error={err("expected_life_hours")}
         >
-          <SuffixInput
-            suffix="h"
-            inputMode="decimal"
-            id={id("expected_life_hours")}
-            invalid={!!err("expected_life_hours")}
-            aria-describedby={describedBy(id("expected_life_hours"), {
-              error: err("expected_life_hours"),
-            })}
-            {...register("expected_life_hours")}
+          <Controller
+            control={control}
+            name="expected_life_hours"
+            render={({ field }) => (
+              <NumberStepper
+                id={id("expected_life_hours")}
+                label="Predpokladaná životnosť"
+                suffix="h"
+                step={100} // owner's choice: 100 h, Shift = 1000 h
+                decimals={2}
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                ref={field.ref}
+                invalid={!!err("expected_life_hours")}
+                aria-describedby={describedBy(id("expected_life_hours"), {
+                  error: err("expected_life_hours"),
+                })}
+              />
+            )}
           />
         </Field>
         <Field
