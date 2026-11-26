@@ -67,8 +67,7 @@ function Harness(props: Partial<NumberStepperProps> & { initial?: string }) {
 describe("NumberStepper", () => {
   it("− is disabled at the minimum; + and − change the value", async () => {
     const user = userEvent.setup();
-    const onStep = vi.fn();
-    render(<Harness initial="0" onStep={onStep} />);
+    render(<Harness initial="0" />);
     const input = screen.getByLabelText("Množstvo");
     const minus = screen.getByRole("button", { name: "Znížiť – Množstvo" });
     const plus = screen.getByRole("button", { name: "Zvýšiť – Množstvo" });
@@ -79,7 +78,47 @@ describe("NumberStepper", () => {
     expect(minus).toBeEnabled();
     await user.click(minus);
     expect(input).toHaveValue("1");
-    expect(onStep).toHaveBeenLastCalledWith("1");
+  });
+
+  it("onCommit: three quick clicks = one save after 800 ms (one history entry)", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+      const onCommit = vi.fn();
+      render(<Harness initial="2" onCommit={onCommit} />);
+      const plus = screen.getByRole("button", { name: "Zvýšiť – Množstvo" });
+      await user.click(plus);
+      await user.click(plus);
+      await user.click(plus);
+      vi.advanceTimersByTime(700);
+      expect(onCommit).not.toHaveBeenCalled();
+      vi.advanceTimersByTime(200);
+      expect(onCommit).toHaveBeenCalledTimes(1);
+      expect(onCommit).toHaveBeenCalledWith("5");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("onCommit: leaving the field or Enter saves at once; no change = no save", async () => {
+    const user = userEvent.setup();
+    const onCommit = vi.fn();
+    render(
+      <>
+        <Harness initial="3,5" onCommit={onCommit} />
+        <button type="button">inde</button>
+      </>,
+    );
+    const input = screen.getByLabelText("Množstvo");
+    await user.click(input);
+    await user.click(screen.getByRole("button", { name: "inde" }));
+    expect(onCommit).not.toHaveBeenCalled(); // nothing changed
+    await user.clear(input);
+    await user.type(input, "5{Enter}");
+    expect(onCommit).toHaveBeenCalledTimes(1);
+    expect(onCommit).toHaveBeenLastCalledWith("5");
+    await user.click(screen.getByRole("button", { name: "inde" }));
+    expect(onCommit).toHaveBeenCalledTimes(1); // already saved
   });
 
   it("arrow keys step, Shift steps ×10; typing still works", async () => {

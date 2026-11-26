@@ -20,14 +20,16 @@ import {
 } from "../api";
 import { componentSchema, type ComponentInput, type ComponentOutput } from "../schema";
 
+/** One BOM line: quantity × unit price of the component, rounded to cents. */
+export function lineCostCents(r: Pick<PackageComponent, "quantity" | "component">): number {
+  return Math.round((r.component?.default_cost_cents ?? 0) * Number(r.quantity));
+}
+
 /** Indicative cost of one package: Σ component cost × quantity (each line rounded to cents). */
 export function packageCostCents(
   rows: readonly Pick<PackageComponent, "quantity" | "component">[],
 ): number {
-  return rows.reduce(
-    (sum, r) => sum + Math.round((r.component?.default_cost_cents ?? 0) * Number(r.quantity)),
-    0,
-  );
+  return rows.reduce((sum, r) => sum + lineCostCents(r), 0);
 }
 
 const qtyText = (q: number) => String(Number(q)).replace(".", ",");
@@ -50,7 +52,8 @@ function AddComponentForm({ packageId, excluded }: { packageId: string; excluded
     defaultValues: { component_item_id: "", quantity: "1" },
   });
   const selectedId = useWatch({ control, name: "component_item_id" });
-  const unit = options.find((i) => i.id === selectedId)?.unit_code;
+  const selected = options.find((i) => i.id === selectedId);
+  const unit = selected?.unit_code;
   const submit = handleSubmit(async (values) => {
     const ok = await add
       .mutateAsync(values)
@@ -104,6 +107,14 @@ function AddComponentForm({ packageId, excluded }: { packageId: string; excluded
           )}
         />
       </Field>
+      {selected && (
+        <p
+          data-testid="component-unit-price"
+          className="h-10 text-[15px] leading-10 text-neutral-700 tabular-nums"
+        >
+          {selected.unit_code} · {formatMoney(selected.default_cost_cents)} / {selected.unit_code}
+        </p>
+      )}
       <Button type="submit" disabled={isSubmitting}>
         Pridať
       </Button>
@@ -135,11 +146,7 @@ function QuantityCell({ packageId, row }: { packageId: string; row: PackageCompo
       value={value}
       invalid={!parsed.success}
       onChange={setValue}
-      onStep={save} // − / + and arrows save immediately
-      onBlur={() => save(value)}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") save(value);
-      }}
+      onCommit={save} // after 800 ms without change, on leaving the cell or Enter
       className="ml-auto w-44"
     />
   );
@@ -174,6 +181,9 @@ function PackageEditor({ packageId }: { packageId: string }) {
                 Jedn.
               </th>
               <th scope="col" className="px-3 text-right">
+                Jedn. cena
+              </th>
+              <th scope="col" className="px-3 text-right">
                 Náklad
               </th>
               <th scope="col">
@@ -190,9 +200,11 @@ function PackageEditor({ packageId }: { packageId: string }) {
                 </td>
                 <td className="px-3">{r.component?.unit_code}</td>
                 <td className="px-3 text-right tabular-nums">
-                  {formatMoney(
-                    Math.round((r.component?.default_cost_cents ?? 0) * Number(r.quantity)),
-                  )}
+                  {formatMoney(r.component?.default_cost_cents ?? 0)}
+                </td>
+                <td className="px-3 text-right tabular-nums">
+                  {/* cost = quantity × unit price (rounded to cents per line) */}
+                  {formatMoney(lineCostCents(r))}
                 </td>
                 <td className="text-right">
                   <Button

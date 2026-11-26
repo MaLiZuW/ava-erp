@@ -5,6 +5,7 @@ import { AuditTimeline, type AuditEntry } from "@/ui/audit-timeline";
 import { FormMessage } from "@/ui/field";
 import { ChipGroup } from "@/ui/chips";
 import { Tile } from "@/ui/tile";
+import { useAuditRefs } from "@/core/audit-refs";
 import { useAuditLog, useProfiles } from "../api";
 import { FIELD_LABELS, TABLE_LABELS } from "../schema";
 import { REPORTING_TABLES } from "../reporting";
@@ -44,6 +45,7 @@ export function AuditTile() {
   const [filter, setFilter] = useState(0);
   const log = useAuditLog(FILTERS[filter].tables);
   const profiles = useProfiles();
+  const resolve = useAuditRefs(log.data);
   const names = useMemo(
     () => new Map((profiles.data ?? []).map((p) => [p.id, p.full_name || p.email || "Používateľ"])),
     [profiles.data],
@@ -70,6 +72,7 @@ export function AuditTile() {
           actorName={(id) => (id ? (names.get(id) ?? "Neznámy používateľ") : "Systém")}
           fieldLabel={(t, f) => FIELD_LABELS[t]?.[f] ?? f}
           recordLabel={recordLabel}
+          resolveRef={resolve}
         />
       )}
     </Tile>

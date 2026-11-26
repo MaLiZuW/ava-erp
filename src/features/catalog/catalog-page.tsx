@@ -3,7 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { RequireRole } from "@/core/auth/require-role";
 import { RecordHistoryTile } from "@/core/record-history";
-import type { AuditEntry } from "@/ui/audit-timeline";
+import type { AuditEntry, RefResolver } from "@/ui/audit-timeline";
 import { ChipGroup } from "@/ui/chips";
 import { BentoGrid } from "@/ui/tile";
 import { ItemsTab } from "./components/items-tab";
@@ -28,8 +28,13 @@ const TAB_TABLES: Record<CatalogTab, string[]> = {
 
 const LEGACY_TABS: Record<string, CatalogTab> = { zdroje: "technika" };
 
-function recordLabel(e: AuditEntry): string {
+function recordLabel(e: AuditEntry, resolve: RefResolver): string {
   const data = (e.new_data ?? e.old_data) as Record<string, unknown> | null;
+  if (e.table_name === "package_components" && data) {
+    const pkg = resolve("package_item_id", data.package_item_id, data) ?? "?";
+    const part = resolve("component_item_id", data.component_item_id, data) ?? "?";
+    return `Kusovník: ${pkg} ← ${part}`;
+  }
   const name =
     typeof data?.name === "string" ? data.name : typeof data?.code === "string" ? data.code : null;
   const table = CATALOG_TABLE_LABELS[e.table_name] ?? e.table_name;
@@ -61,13 +66,14 @@ function Catalog() {
         {tab === "jednotky" && <UnitsTab />}
         {tab === "sadzby" && <RatesTab />}
         {tab === "technika" && <ResourcesTab key={params.get("nova") ?? ""} openNew={openNew} />}
-        <RecordHistoryTile
-          key={tab}
-          tables={TAB_TABLES[tab]}
-          fieldLabels={CATALOG_FIELD_LABELS}
-          recordLabel={recordLabel}
-        />
       </BentoGrid>
+      {/* change history is always the last section of the page (DESIGN_SYSTEM §1) */}
+      <RecordHistoryTile
+        key={tab}
+        tables={TAB_TABLES[tab]}
+        fieldLabels={CATALOG_FIELD_LABELS}
+        recordLabel={recordLabel}
+      />
     </div>
   );
 }

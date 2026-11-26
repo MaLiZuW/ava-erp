@@ -17,6 +17,10 @@ import {
  */
 const env: TestEnv | null = loadTestEnv({ optional: true });
 
+// real scrollbars, as on Windows (headless Chromium hides them by default) – the menu
+// must not be squeezed or clipped by them (owner's points 1, 2, 7)
+test.use({ launchOptions: { ignoreDefaultArgs: ["--hide-scrollbars"] } });
+
 test.describe.serial("sign-in with TOTP", () => {
   test.skip(!env, "Supabase test credentials are not configured (.env.local) – skipped.");
   // a TOTP code is used once; waiting for the next 30 s window must fit into the test
@@ -122,6 +126,21 @@ test.describe.serial("sign-in with TOTP", () => {
       await expect(last).toBeInViewport();
       await expect(settings).toBeInViewport();
     }
+
+    // collapsed menu with a visible scrollbar: active item and logo are whole, tooltip on focus
+    await page.setViewportSize({ width: 1024, height: 560 });
+    await page.goto("/");
+    const sidebar = await page.getByTestId("sidebar").boundingBox();
+    const active = page.getByTestId("sidebar-scroll").locator('[aria-current="page"]');
+    const activeBox = await active.boundingBox();
+    expect(activeBox!.width).toBeGreaterThanOrEqual(44);
+    expect(activeBox!.x).toBeGreaterThanOrEqual(sidebar!.x);
+    expect(activeBox!.x + activeBox!.width).toBeLessThanOrEqual(sidebar!.x + sidebar!.width);
+    const logo = await page.getByTestId("sidebar-logo").locator("img").boundingBox();
+    expect(logo!.width).toBe(40);
+    expect(logo!.x).toBeGreaterThanOrEqual(sidebar!.x + 8);
+    await page.getByTestId("sidebar-scroll").getByRole("link", { name: "Dopyty" }).focus();
+    await expect(page.getByRole("tooltip")).toHaveText("Dopyty");
   });
 
   test("the return path is kept through sign-in and sign-out ends the session", async ({

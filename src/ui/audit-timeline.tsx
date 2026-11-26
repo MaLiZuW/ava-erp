@@ -1,4 +1,4 @@
-import { formatDateTime } from "@/core/format";
+import { formatDate, formatDateTime, formatMoney } from "@/core/format";
 
 /** One row of public.activity_logs. */
 export interface AuditEntry {
@@ -15,6 +15,16 @@ export interface AuditEntry {
   at: string;
 }
 
+/**
+ * Turns a stored reference (UUID, code) into a readable name: (field, value, row) → name.
+ * Returns undefined when the field is not a reference (the raw value is shown).
+ */
+export type RefResolver = (
+  field: string,
+  value: unknown,
+  row: Record<string, unknown>,
+) => string | undefined;
+
 export interface AuditChange {
   field: string;
   from: string;
@@ -28,16 +38,50 @@ function asRecord(v: unknown): Record<string, unknown> {
   return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : {};
 }
 
-export function displayValue(v: unknown): string {
-  if (v === null || v === undefined || v === "") return "—";
-  if (typeof v === "boolean") return v ? "áno" : "nie";
-  const s = typeof v === "string" ? v : JSON.stringify(v);
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const ISO_TIMESTAMP = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}/;
+const decimalComma = (n: number) => String(n).replace(".", ",");
+
+function clip(s: string): string {
   return s.length > MAX_VALUE ? `${s.slice(0, MAX_VALUE - 1)}…` : s;
+}
+
+/**
+ * A value in Slovak format (owner's point 11): decimal comma, *_cents as € with 2 decimals,
+ * *_pct as "12,5 %", dates DD/MM/YYYY, timestamps DD/MM/YYYY HH:mm, áno/nie, lists with commas.
+ * References (UUID) are replaced by names through `resolve`.
+ */
+export function displayValue(
+  v: unknown,
+  field = "",
+  resolve?: RefResolver,
+  row: Record<string, unknown> = {},
+): string {
+  if (v === null || v === undefined || v === "") return "—";
+  const named = resolve?.(field, v, row);
+  if (named !== undefined) return clip(named);
+  if (Array.isArray(v)) {
+    if (v.length === 0) return "—";
+    return clip(v.map((x) => resolve?.(field, x, row) ?? displayValue(x, field)).join(", "));
+  }
+  if (typeof v === "boolean") return v ? "áno" : "nie";
+  if (typeof v === "number") {
+    if (field.endsWith("_cents") && Number.isSafeInteger(v)) return formatMoney(v);
+    if (field.endsWith("_pct")) return `${decimalComma(v)} %`;
+    return decimalComma(v);
+  }
+  if (typeof v === "string") {
+    if (ISO_DATE.test(v)) return formatDate(v);
+    if (ISO_TIMESTAMP.test(v)) return formatDateTime(v);
+    return clip(v);
+  }
+  return clip(JSON.stringify(v));
 }
 
 /** Field-level differences of one log entry (audit columns are ignored). */
 export function auditChanges(
   entry: Pick<AuditEntry, "action" | "old_data" | "new_data">,
+  resolve?: RefResolver,
 ): AuditChange[] {
   const before = asRecord(entry.old_data);
   const after = asRecord(entry.new_data);
@@ -52,8 +96,8 @@ export function auditChanges(
     if (entry.action === "delete" && (before[field] ?? null) === null) continue;
     out.push({
       field,
-      from: entry.action === "insert" ? "" : displayValue(before[field]),
-      to: entry.action === "delete" ? "" : displayValue(after[field]),
+      from: entry.action === "insert" ? "" : displayValue(before[field], field, resolve, before),
+      to: entry.action === "delete" ? "" : displayValue(after[field], field, resolve, after),
     });
   }
   return out;
@@ -75,19 +119,22 @@ export function AuditTimeline({
   actorName,
   fieldLabel = (_t, f) => f,
   recordLabel,
+  resolveRef,
   emptyText = "Zatiaľ bez zmien.",
 }: {
   entries: AuditEntry[];
   actorName: (actorId: string | null) => string;
   fieldLabel?: (table: string, field: string) => string;
   recordLabel?: (entry: AuditEntry) => string;
+  /** names instead of UUIDs – see src/core/audit-refs.ts */
+  resolveRef?: RefResolver;
   emptyText?: string;
 }) {
   if (entries.length === 0) return <p className="text-neutral-700">{emptyText}</p>;
   return (
     <ol className="flex flex-col" aria-label="História zmien">
       {entries.map((e) => {
-        const changes = auditChanges(e);
+        const changes = auditChanges(e, resolveRef);
         return (
           <li key={e.id} className="border-b border-neutral-200 py-3 last:border-b-0">
             <p className="text-[13px] leading-5 text-neutral-700">

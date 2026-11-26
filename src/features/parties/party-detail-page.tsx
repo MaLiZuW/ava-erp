@@ -148,20 +148,6 @@ function Detail({ kind, id }: { kind: PartyKind; id: string }) {
         )}
         <ContactsTile kind={kind} partyId={id} />
         {kind === "customers" && machinesOn && <MachinesTile customerId={id} />}
-        <RecordHistoryTile
-          tables={[
-            kind,
-            text.contactsTable,
-            ...(kind === "customers" ? ["customer_machines"] : []),
-          ]}
-          recordIds={childIds}
-          fieldLabels={{
-            [kind]: PARTY_FIELD_LABELS,
-            [text.contactsTable]: CONTACT_FIELD_LABELS,
-            customer_machines: MACHINE_FIELD_LABELS,
-          }}
-          recordLabel={recordLabel}
-        />
         <Tile size="M" title="Stav">
           <div className="flex flex-col items-start gap-3">
             <p className="text-[15px] text-neutral-700">
@@ -176,6 +162,17 @@ function Detail({ kind, id }: { kind: PartyKind; id: string }) {
           </div>
         </Tile>
       </BentoGrid>
+      {/* change history is always the last section of the page (DESIGN_SYSTEM §1) */}
+      <RecordHistoryTile
+        tables={[kind, text.contactsTable, ...(kind === "customers" ? ["customer_machines"] : [])]}
+        recordIds={childIds}
+        fieldLabels={{
+          [kind]: PARTY_FIELD_LABELS,
+          [text.contactsTable]: CONTACT_FIELD_LABELS,
+          customer_machines: MACHINE_FIELD_LABELS,
+        }}
+        recordLabel={recordLabel}
+      />
       <ConfirmDialog
         open={confirm}
         title={p.is_active ? `Deaktivovať – ${p.name}?` : `Aktivovať – ${p.name}?`}

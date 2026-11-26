@@ -69,3 +69,14 @@ body {
     display: none !important;
   }
 }
+
+/*
+ * Thin, quiet scrollbar (Swiss style) – the left menu. `stable` reserves the gutter so the
+ * menu items keep their width whether the list scrolls or not (Windows classic scrollbars
+ * would otherwise take ~15 px of the 72 px column and squeeze the items).
+ */
+@utility scrollbar-quiet {
+  scrollbar-width: thin;
+  scrollbar-color: var(--neutral-200) transparent;
+  scrollbar-gutter: stable;
+}

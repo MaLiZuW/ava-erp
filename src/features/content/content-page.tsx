@@ -54,12 +54,13 @@ function ContentLibrary() {
             divisionId={divisionId(slot.division)}
           />
         ))}
-        <RecordHistoryTile
-          tables={["content_blocks"]}
-          fieldLabels={CONTENT_FIELD_LABELS}
-          recordLabel={recordLabel}
-        />
       </BentoGrid>
+      {/* change history is always the last section of the page (DESIGN_SYSTEM §1) */}
+      <RecordHistoryTile
+        tables={["content_blocks"]}
+        fieldLabels={CONTENT_FIELD_LABELS}
+        recordLabel={recordLabel}
+      />
     </div>
   );
 }

@@ -114,19 +114,41 @@ test.describe.serial("master data", () => {
     const componentSelect = page.getByLabel("Komponent", { exact: true });
     await expect(componentSelect.locator("option", { hasText: pkg })).toHaveCount(0);
     await componentSelect.selectOption({ label: `${goods} (ks)` });
+    // unit and unit price of the chosen component are shown before adding
+    await expect(page.getByTestId("component-unit-price")).toContainText("2,50");
     await page.getByLabel("Množstvo", { exact: true }).fill("2");
     await page.getByRole("button", { name: "Pridať", exact: true }).click();
     const cost = page.getByRole("region", { name: "Náklad 1 balíčka" });
     await expect(cost).toContainText("5,00 €", { timeout: 15_000 });
 
-    // NumberStepper: + / − change the quantity and save immediately (step 1 for "ks")
+    // BOM row: unit price column; cost = quantity × unit price
+    const bomRow = page.getByRole("row", { name: new RegExp(goods) });
+    await expect(bomRow).toContainText("2,50 €");
+
+    // NumberStepper: quick + + = ONE save after a pause → one history entry "2 → 4" with names
     const qty = page.getByLabel(`Množstvo – ${goods}`, { exact: true });
-    await page.getByRole("button", { name: `Zvýšiť – Množstvo – ${goods}` }).click();
-    await expect(qty).toHaveValue("3");
-    await expect(cost).toContainText("7,50 €", { timeout: 15_000 });
+    const plus = page.getByRole("button", { name: `Zvýšiť – Množstvo – ${goods}` });
+    await plus.click();
+    await plus.click();
+    await expect(qty).toHaveValue("4");
+    await expect(cost).toContainText("10,00 €", { timeout: 15_000 });
+    const catalogHistory = page.getByRole("region", { name: "História zmien" });
+    const bomEntries = catalogHistory
+      .getByRole("listitem")
+      .filter({ hasText: `Kusovník: ${pkg} ← ${goods}` });
+    await expect(bomEntries.filter({ hasText: "Zmenené" })).toHaveCount(1, { timeout: 15_000 });
+    await expect(bomEntries.filter({ hasText: "Zmenené" })).toContainText("4");
+    await expect(catalogHistory).not.toContainText(/[0-9a-f]{8}-[0-9a-f]{4}-/); // no raw UUIDs
+    await page.getByRole("button", { name: `Znížiť – Množstvo – ${goods}` }).click();
     await page.getByRole("button", { name: `Znížiť – Množstvo – ${goods}` }).click();
     await expect(qty).toHaveValue("2");
     await expect(cost).toContainText("5,00 €", { timeout: 15_000 });
+
+    // the change history is the last section of the page (DESIGN_SYSTEM principle 8)
+    const lastRegion = await page
+      .locator("main section[aria-label]")
+      .evaluateAll((els) => els.at(-1)?.getAttribute("aria-label"));
+    expect(lastRegion).toBe("História zmien");
 
     // labour rates: an overlapping period is refused with a clear message
     await page.goto("/katalog/?tab=sadzby");

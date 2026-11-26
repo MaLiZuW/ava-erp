@@ -26,6 +26,7 @@ import { Button } from "./button";
 import { cn } from "./cn";
 import { CommandPalette } from "./command-palette";
 import { NewMenu } from "./new-menu";
+import { Tooltip, useMinWidth } from "./tooltip";
 
 const ICONS: Record<string, LucideIcon> = {
   "/": LayoutDashboard,
@@ -44,21 +45,39 @@ const ICONS: Record<string, LucideIcon> = {
   "/nastavenia/": Settings,
 };
 
-function NavLink({ item, active }: { item: NavItem; active: boolean }) {
+/**
+ * Menu item. Collapsed menu (< 1280 px): a 44 px square with the icon and a tooltip on hover
+ * and keyboard focus. Expanded: icon + label. The focus ring is drawn inside the item so the
+ * scrolling list (overflow hidden on the x axis) never cuts it.
+ */
+function NavLink({
+  item,
+  active,
+  expanded,
+}: {
+  item: NavItem;
+  active: boolean;
+  expanded: boolean;
+}) {
   const Icon = ICONS[item.href];
   return (
-    <Link
-      href={item.href}
-      aria-current={active ? "page" : undefined}
-      title={item.label}
-      className={cn(
-        "flex h-11 shrink-0 items-center gap-3 rounded-xl px-3 text-[15px] font-medium transition-colors duration-150 ease-out",
-        active ? "bg-navy text-white" : "text-ink hover:bg-canvas",
+    <Tooltip label={item.label} enabled={!expanded}>
+      {(tip) => (
+        <Link
+          href={item.href}
+          aria-current={active ? "page" : undefined}
+          {...tip}
+          className={cn(
+            "flex h-11 w-11 shrink-0 items-center justify-center gap-3 rounded-xl text-[15px] font-medium transition-colors duration-150 ease-out focus-visible:outline-offset-[-3px]",
+            "xl:w-auto xl:justify-start xl:px-3",
+            active ? "bg-navy text-white" : "text-ink hover:bg-canvas",
+          )}
+        >
+          {Icon && <Icon aria-hidden className="size-5 shrink-0" />}
+          <span className="sr-only xl:not-sr-only">{item.label}</span>
+        </Link>
       )}
-    >
-      {Icon && <Icon aria-hidden className="size-5 shrink-0" />}
-      <span className="sr-only xl:not-sr-only">{item.label}</span>
-    </Link>
+    </Tooltip>
   );
 }
 
@@ -70,6 +89,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const current = findNavItem(pathname);
   const isActive = (item: NavItem) => current?.href === item.href;
+  const expanded = useMinWidth(1280); // Tailwind xl – the menu shows labels
 
   return (
     <div className="flex min-h-screen">
@@ -81,10 +101,17 @@ export function AppShell({ children }: { children: ReactNode }) {
         <Link
           href="/"
           aria-label="Add Value Agency – Prehľad"
-          className="m-3 mb-1 flex h-12 shrink-0 items-center gap-3 px-1"
+          data-testid="sidebar-logo"
+          className="mx-auto mt-3 mb-1 flex h-12 shrink-0 items-center gap-3 rounded-xl focus-visible:outline-offset-[-3px] xl:mx-3 xl:px-1"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/av-mark.svg" alt="" width={40} height={40} />
+          <img
+            src="/brand/av-mark.svg"
+            alt=""
+            width={40}
+            height={40}
+            className="size-10 shrink-0"
+          />
           <span className="text-navy hidden text-[13px] leading-4 font-semibold xl:block">
             Add Value Agency
           </span>
@@ -92,29 +119,30 @@ export function AppShell({ children }: { children: ReactNode }) {
         <nav
           aria-label="Hlavná navigácia"
           data-testid="sidebar-scroll"
-          className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overscroll-contain p-3"
+          className="scrollbar-quiet flex min-h-0 flex-1 flex-col items-center gap-1 overflow-x-hidden overflow-y-auto overscroll-contain py-3 pr-1 pl-3 xl:items-stretch"
         >
           {items
             .filter((i) => i.group === "main")
             .map((item) => (
-              <NavLink key={item.href} item={item} active={isActive(item)} />
+              <NavLink key={item.href} item={item} active={isActive(item)} expanded={expanded} />
             ))}
           <hr className="my-2 shrink-0 border-neutral-200" />
           {items
             .filter((i) => i.group === "master")
             .map((item) => (
-              <NavLink key={item.href} item={item} active={isActive(item)} />
+              <NavLink key={item.href} item={item} active={isActive(item)} expanded={expanded} />
             ))}
         </nav>
         <nav
           aria-label="Nastavenia a profil"
           data-testid="sidebar-bottom"
-          className="flex shrink-0 flex-col gap-1 border-t border-neutral-200 p-3"
+          // same gutter as the list above → the items line up
+          className="scrollbar-quiet flex shrink-0 flex-col items-center gap-1 overflow-hidden border-t border-neutral-200 py-3 pr-1 pl-3 xl:items-stretch"
         >
           {items
             .filter((i) => i.group === "bottom")
             .map((item) => (
-              <NavLink key={item.href} item={item} active={isActive(item)} />
+              <NavLink key={item.href} item={item} active={isActive(item)} expanded={expanded} />
             ))}
         </nav>
       </aside>

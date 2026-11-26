@@ -14,6 +14,7 @@ Interpretácia [NÁVRH]: **švajčiarsky (Swiss) štýl** – prísna mriežka, 
 5. **Čísla sú hrdinovia.** Sumy, termíny a počty veľkým písmom s tabulárnymi číslicami.
 6. **Klávesnica prvá.** Globálne vyhľadávanie a príkazy cez `Ctrl+K`, skratky na hlavné akcie.
 7. **Prístupnosť WCAG 2.1 AA** minimum: kontrast textu ≥ 4,5 : 1, viditeľné zameranie (focus), stav vždy aj textom/ikonou, nie len farbou.
+8. **História zmien je vždy posledná.** Poradie stránky: obsah a formuláre → **História zmien** ako posledná dlaždica na celú šírku, nikdy medzi formulármi (Nastavenia, detaily zákazníka/dodávateľa, katalóg, dokumenty, neskôr všetky doklady). Hodnoty v histórii sú v slovenskom formáte (čiarka, sumy €, DD/MM/YYYY, áno/nie) a odkazy sa zobrazujú ako názvy záznamov, nie UUID. *(Pripomienka vlastníka, fáza 3.)*
 
 ## 2. Mriežka a rozmery
 
@@ -115,7 +116,8 @@ Tlačový štýl A4 na výšku aj na šírku: biele pozadie, logo, názov report
 
 1. **HERO dlaždica:** číslo dokladu, stav (štítok), zákazník, suma, **jedno hlavné tlačidlo „ďalší krok“**.
 2. **Procesná os** pod HERO: Dopyt → Ponuka → Objednávka → Vizuál → Nákup → Dodanie → Faktúra → Úhrada → Archív; hotové kroky plné, aktuálny zvýraznený, budúce prázdne; klik = otvorí súvisiaci doklad.
-3. Bento dlaždice podľa typu dokladu, napr. pri zákazke: Ekonomika (plán vs. skutočnosť) L, Úlohy/Gantt XL, Nákup M, Dokumenty M, E-maily M, História zmien M.
+3. Bento dlaždice podľa typu dokladu, napr. pri zákazke: Ekonomika (plán vs. skutočnosť) L, Úlohy/Gantt XL, Nákup M, Dokumenty M, E-maily M.
+4. **História zmien** ako posledná sekcia stránky na celú šírku (princíp 8).
 
 ### 6.3 Zoznamy
 

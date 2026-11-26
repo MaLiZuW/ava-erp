@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { AuditTimeline, type AuditEntry } from "@/ui/audit-timeline";
+import { AuditTimeline, type AuditEntry, type RefResolver } from "@/ui/audit-timeline";
+import { useAuditRefs } from "./audit-refs";
 import { FormMessage } from "@/ui/field";
 import { Tile, type TileSize } from "@/ui/tile";
 import { useAuditLog, useProfiles } from "./shared-queries";
@@ -15,24 +16,26 @@ export function RecordHistoryTile({
   recordIds,
   fieldLabels,
   recordLabel,
-  size = "L",
+  size = "XL",
 }: {
   tables: readonly string[];
   /** omitted = whole tables (e.g. the catalog) */
   recordIds?: readonly string[];
   fieldLabels: Record<string, Record<string, string>>;
-  recordLabel: (e: AuditEntry) => string;
+  /** short name of the changed record; `resolve` turns referenced ids into names */
+  recordLabel: (e: AuditEntry, resolve: RefResolver) => string;
   size?: TileSize;
 }) {
   const log = useAuditLog(tables, { recordIds });
   const profiles = useProfiles();
+  const resolve = useAuditRefs(log.data);
   const names = useMemo(
     () => new Map((profiles.data ?? []).map((p) => [p.id, p.full_name || p.email || "Používateľ"])),
     [profiles.data],
   );
 
   return (
-    <Tile size={size} title="História zmien" className="md:row-span-3">
+    <Tile size={size} title="História zmien">
       {log.error && <FormMessage tone="error">{log.error.message}</FormMessage>}
       {log.isPending ? (
         <div aria-hidden className="flex animate-pulse flex-col gap-2">
@@ -45,7 +48,8 @@ export function RecordHistoryTile({
             entries={log.data ?? []}
             actorName={(id) => (id ? (names.get(id) ?? "Neznámy používateľ") : "Systém")}
             fieldLabel={(t, f) => fieldLabels[t]?.[f] ?? f}
-            recordLabel={recordLabel}
+            recordLabel={(e) => recordLabel(e, resolve)}
+            resolveRef={resolve}
           />
         </div>
       )}

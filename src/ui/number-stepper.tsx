@@ -1,7 +1,14 @@
 "use client";
 
 import { Minus, Plus } from "lucide-react";
-import type { InputHTMLAttributes, KeyboardEvent, Ref } from "react";
+import {
+  useEffect,
+  useRef,
+  type FocusEvent,
+  type InputHTMLAttributes,
+  type KeyboardEvent,
+  type Ref,
+} from "react";
 import { cn } from "./cn";
 import { Input } from "./field";
 
@@ -89,8 +96,13 @@ export type NumberStepperProps = Omit<
 > & {
   value: string;
   onChange: (value: string) => void;
-  /** called after a step by button or arrow key (inline cells save immediately) */
-  onStep?: (value: string) => void;
+  /**
+   * Inline cells that save by themselves: called once after a pause (`commitDelay`, 800 ms)
+   * or right away when focus leaves the stepper or Enter is pressed – and only when the value
+   * really changed. Three clicks 2 → 5 = one save (one entry in the change history).
+   */
+  onCommit?: (value: string) => void;
+  commitDelay?: number;
   /** name of the value for screen readers: "Znížiť – {label}" */
   label: string;
   step?: number;
@@ -112,7 +124,8 @@ export type NumberStepperProps = Omit<
 export function NumberStepper({
   value,
   onChange,
-  onStep,
+  onCommit,
+  commitDelay = 800,
   label,
   step,
   unit,
@@ -130,15 +143,45 @@ export function NumberStepper({
   ...input
 }: NumberStepperProps) {
   const opts: StepOptions = { step: step ?? stepForUnit(unit), min, max, maxExclusive, decimals };
+  // --- delayed commit (inline cells) -----------------------------------------------------
+  const committed = useRef(value);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const latest = useRef(value);
+  // the newest callback without re-creating timers (also used by the unmount cleanup)
+  const onCommitRef = useRef(onCommit);
+  useEffect(() => {
+    onCommitRef.current = onCommit;
+  });
+  const commitNow = () => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = null;
+    const cb = onCommitRef.current;
+    if (!cb || latest.current === committed.current) return;
+    committed.current = latest.current;
+    cb(latest.current);
+  };
+  const change = (next: string) => {
+    onChange(next);
+    if (!onCommit) return;
+    latest.current = next;
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(commitNow, commitDelay);
+  };
+  // a pending change is not lost when the cell disappears (e.g. the list reloads)
+  useEffect(() => () => commitNow(), []);
+
   const apply = (direction: 1 | -1, multiplier = 1) => {
     const next = stepValue(value, direction, opts, multiplier);
     if (next === value) return;
-    onChange(next);
-    onStep?.(next);
+    change(next);
+  };
+  const leaveGroup = (e: FocusEvent<HTMLDivElement>) => {
+    if (!e.currentTarget.contains(e.relatedTarget as Node | null)) commitNow();
   };
   const keyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     onKeyDown?.(e);
     if (e.defaultPrevented) return;
+    if (e.key === "Enter") commitNow();
     if (e.key === "ArrowUp" || e.key === "ArrowDown") {
       e.preventDefault();
       apply(e.key === "ArrowUp" ? 1 : -1, e.shiftKey ? 10 : 1);
@@ -150,7 +193,7 @@ export function NumberStepper({
 
   return (
     // the input is named by its <label> (in a Field) or by aria-label; buttons by "Znížiť/Zvýšiť – …"
-    <div role="group" className={cn("flex items-center gap-1", className)}>
+    <div role="group" className={cn("flex items-center gap-1", className)} onBlur={leaveGroup}>
       <button
         type="button"
         className={button}
@@ -170,7 +213,7 @@ export function NumberStepper({
           value={value}
           invalid={invalid}
           disabled={disabled}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => change(e.target.value)}
           onKeyDown={keyDown}
           className={cn("text-right tabular-nums", suffix && "pr-10")}
           {...input}

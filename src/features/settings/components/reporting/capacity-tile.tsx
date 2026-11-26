@@ -45,11 +45,7 @@ function HoursInput({
         value={value}
         invalid={invalid}
         onChange={setValue}
-        onStep={commit}
-        onBlur={() => commit(value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") commit(value);
-        }}
+        onCommit={commit}
         className="w-48"
       />
       {invalid && <p className="text-danger text-[13px]">0–{MAX_HOURS} hodín.</p>}

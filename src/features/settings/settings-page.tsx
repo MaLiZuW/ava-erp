@@ -49,7 +49,6 @@ function SettingsContent() {
         <SystemSettingsTile />
         <FeatureFlagsTile />
         <RecipientsTile />
-        <AuditTile />
       </BentoGrid>
 
       <section aria-labelledby="settings-reporting" className="flex flex-col gap-4">
@@ -68,6 +67,9 @@ function SettingsContent() {
           <KpiTargetsTile />
         </BentoGrid>
       </section>
+
+      {/* change history is always the last section of the page (DESIGN_SYSTEM §1) */}
+      <AuditTile />
     </div>
   );
 }
