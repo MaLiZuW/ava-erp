@@ -96,7 +96,9 @@ describe("AppShell", () => {
     pathname = "/zakazky/";
     render(withAuth(<AppShell>obsah</AppShell>));
     const nav = screen.getByRole("navigation", { name: "Hlavná navigácia" });
-    expect(within(nav).getAllByRole("link")).toHaveLength(14);
+    expect(within(nav).getAllByRole("link")).toHaveLength(13);
+    const bottom = screen.getByRole("navigation", { name: "Nastavenia a profil" });
+    expect(within(bottom).getAllByRole("link")).toHaveLength(1);
     expect(within(nav).getByRole("link", { name: "Zákazky" })).toHaveAttribute(
       "aria-current",
       "page",
@@ -116,8 +118,20 @@ describe("AppShell", () => {
   it("hides Nastavenia from a user without the admin role", () => {
     pathname = "/";
     render(withAuth(<AppShell>obsah</AppShell>, ["manager"]));
-    const nav = screen.getByRole("navigation", { name: "Hlavná navigácia" });
-    expect(within(nav).queryByRole("link", { name: "Nastavenia" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Nastavenia" })).not.toBeInTheDocument();
+  });
+
+  it("pins Nastavenia below the scrollable module list", () => {
+    pathname = "/";
+    render(withAuth(<AppShell>obsah</AppShell>));
+    const scroll = screen.getByTestId("sidebar-scroll");
+    const bottom = screen.getByTestId("sidebar-bottom");
+    // only the module list scrolls; the bottom block does not shrink and is not inside it
+    expect(scroll.className).toMatch(/\boverflow-y-auto\b/);
+    expect(scroll.className).toMatch(/\bmin-h-0\b/);
+    expect(bottom.className).toMatch(/\bshrink-0\b/);
+    expect(scroll).not.toContainElement(within(bottom).getByRole("link", { name: "Nastavenia" }));
+    expect(scroll.compareDocumentPosition(bottom) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it("shows the signed-in user and signs out", async () => {

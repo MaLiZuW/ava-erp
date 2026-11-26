@@ -6,11 +6,20 @@ export const signInSchema = z.object({
 });
 export type SignInValues = z.infer<typeof signInSchema>;
 
-/** 6 digits; spaces the user may type (e.g. "123 456") are removed. */
+/**
+ * Removes separators users type or paste around a TOTP code: spaces (incl. non-breaking
+ * U+00A0 / U+202F, covered by `\s`), line breaks and hyphens – "123 456", "123-456" → "123456".
+ */
+export const normalizeTotpCode = (v: string) => v.replace(/[\s\-‐-―]+/g, "");
+
+/** Longest input the field accepts (6 digits + separators); the schema then requires 6 digits. */
+export const TOTP_INPUT_MAX = 16;
+
+/** 6 digits after `normalizeTotpCode`. */
 export const totpCodeSchema = z.object({
   code: z
     .string()
-    .transform((v) => v.replace(/\s+/g, ""))
+    .transform(normalizeTotpCode)
     .pipe(z.string().regex(/^\d{6}$/, "Kód má 6 číslic.")),
 });
 export type TotpCodeValues = z.input<typeof totpCodeSchema>;

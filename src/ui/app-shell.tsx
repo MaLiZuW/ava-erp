@@ -51,7 +51,7 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
       aria-current={active ? "page" : undefined}
       title={item.label}
       className={cn(
-        "flex h-11 items-center gap-3 rounded-xl px-3 text-[15px] font-medium transition-colors duration-150 ease-out",
+        "flex h-11 shrink-0 items-center gap-3 rounded-xl px-3 text-[15px] font-medium transition-colors duration-150 ease-out",
         active ? "bg-navy text-white" : "text-ink hover:bg-canvas",
       )}
     >
@@ -71,11 +71,15 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen">
-      <aside className="no-print sticky top-0 flex h-screen w-[72px] shrink-0 flex-col border-r border-neutral-200 bg-white p-3 xl:w-[240px]">
+      {/* Logo and the bottom block are pinned; only the module list scrolls on short screens. */}
+      <aside
+        data-testid="sidebar"
+        className="no-print sticky top-0 flex h-dvh w-[72px] shrink-0 flex-col border-r border-neutral-200 bg-white xl:w-[240px]"
+      >
         <Link
           href="/"
           aria-label="Add Value Agency – Prehľad"
-          className="mb-4 flex h-12 items-center gap-3 px-1"
+          className="m-3 mb-1 flex h-12 shrink-0 items-center gap-3 px-1"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/brand/av-mark.svg" alt="" width={40} height={40} />
@@ -83,25 +87,33 @@ export function AppShell({ children }: { children: ReactNode }) {
             Add Value Agency
           </span>
         </Link>
-        <nav aria-label="Hlavná navigácia" className="flex flex-1 flex-col gap-1">
+        <nav
+          aria-label="Hlavná navigácia"
+          data-testid="sidebar-scroll"
+          className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overscroll-contain p-3"
+        >
           {items
             .filter((i) => i.group === "main")
             .map((item) => (
               <NavLink key={item.href} item={item} active={isActive(item)} />
             ))}
-          <hr className="my-2 border-neutral-200" />
+          <hr className="my-2 shrink-0 border-neutral-200" />
           {items
             .filter((i) => i.group === "master")
             .map((item) => (
               <NavLink key={item.href} item={item} active={isActive(item)} />
             ))}
-          <div className="mt-auto flex flex-col gap-1">
-            {items
-              .filter((i) => i.group === "bottom")
-              .map((item) => (
-                <NavLink key={item.href} item={item} active={isActive(item)} />
-              ))}
-          </div>
+        </nav>
+        <nav
+          aria-label="Nastavenia a profil"
+          data-testid="sidebar-bottom"
+          className="flex shrink-0 flex-col gap-1 border-t border-neutral-200 p-3"
+        >
+          {items
+            .filter((i) => i.group === "bottom")
+            .map((item) => (
+              <NavLink key={item.href} item={item} active={isActive(item)} />
+            ))}
         </nav>
       </aside>
 

@@ -73,7 +73,10 @@ test.describe.serial("sign-in with TOTP", () => {
     });
     await expect(
       page.getByRole("navigation", { name: "Hlavná navigácia" }).getByRole("link"),
-    ).toHaveCount(14);
+    ).toHaveCount(13);
+    await expect(
+      page.getByRole("navigation", { name: "Nastavenia a profil" }).getByRole("link"),
+    ).toHaveCount(1);
   });
 
   test("next sign-in asks for the code; a wrong code is refused", async ({ page }) => {
@@ -90,11 +93,35 @@ test.describe.serial("sign-in with TOTP", () => {
     await expect(page.getByText(/^Neplatný kód/)).toBeVisible({ timeout: 15_000 });
     await expect(page).toHaveURL(/\/prihlasenie\/overenie\//, { timeout: 15_000 });
 
-    await page.getByLabel(/Kód z aplikácie/).fill(await freshCode(page));
+    // the code as authenticator apps display it: "123 456"
+    const code = await freshCode(page);
+    await page.getByLabel(/Kód z aplikácie/).fill(`${code.slice(0, 3)} ${code.slice(3)}`);
     await page.getByRole("button", { name: "Overiť", exact: true }).click();
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Prehľad", {
       timeout: 15_000,
     });
+
+    // short screens: the module list scrolls, Settings stay pinned at the bottom
+    for (const size of [
+      { width: 1280, height: 560 },
+      { width: 375, height: 640 },
+    ]) {
+      await page.setViewportSize(size);
+      const settings = page
+        .getByRole("navigation", { name: "Nastavenia a profil" })
+        .getByRole("link", { name: "Nastavenia" });
+      await expect(settings).toBeInViewport();
+      const box = await settings.boundingBox();
+      expect(box!.y + box!.height).toBeLessThanOrEqual(size.height);
+
+      const scroller = page.getByTestId("sidebar-scroll");
+      const overflows = await scroller.evaluate((el) => el.scrollHeight > el.clientHeight);
+      expect(overflows).toBe(true);
+      const last = scroller.getByRole("link", { name: "Katalóg" });
+      await last.scrollIntoViewIfNeeded();
+      await expect(last).toBeInViewport();
+      await expect(settings).toBeInViewport();
+    }
   });
 
   test("the return path is kept through sign-in and sign-out ends the session", async ({
