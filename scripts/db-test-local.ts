@@ -27,10 +27,9 @@ const SUPABASE_STUB = `
                     nullif(current_setting('request.jwt.claims', true), ''))::jsonb $$;
   grant usage on schema public, extensions, auth to anon, authenticated, service_role;
   grant execute on function auth.uid(), auth.jwt() to anon, authenticated, service_role;
-  -- Supabase default privileges for objects created in public
-  alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
+  -- Functions keep Supabase's default grants (so our explicit REVOKEs are tested).
+  -- Tables get NO default grants: the migration has to grant explicitly (stricter than Supabase today).
   alter default privileges in schema public grant all on functions to anon, authenticated, service_role;
-  alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
 `;
 
 async function main() {

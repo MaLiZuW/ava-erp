@@ -535,7 +535,12 @@ create policy activity_logs_admin_select on public.activity_logs for select to a
 -- ---------------------------------------------------------------------
 -- 6. Privileges
 -- ---------------------------------------------------------------------
+-- Explicit grants: this migration must not depend on Supabase's default privileges
+-- (new projects may require explicit GRANTs). RLS decides what is actually visible/writable.
+-- Convention: every later migration that creates a table grants privileges the same way.
 revoke all on all tables in schema public from anon;
+grant select, insert, update, delete on all tables in schema public to authenticated;
+grant all on all tables in schema public to service_role;
 revoke insert, update, delete, truncate on public.activity_logs from authenticated;
 revoke insert, update, delete, truncate on public.number_series from authenticated;
 revoke insert, update, delete, truncate on public.status_transitions from authenticated;

@@ -8,6 +8,7 @@ create table public.zz_docs (
 );
 create trigger block_direct_status_update before update on public.zz_docs
   for each row execute function private.block_direct_status_update();
+grant select, update on public.zz_docs to authenticated;
 
 create function private.zz_guard_ok(p_id uuid) returns boolean language sql as $$ select true $$;
 create function private.zz_guard_fail(p_id uuid) returns boolean language sql as $$ select false $$;

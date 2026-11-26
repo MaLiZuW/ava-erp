@@ -13,8 +13,8 @@
     "test:e2e": "playwright test",
     "format": "prettier --write .",
     "db:test": "tsx scripts/db-test.ts",
-    "db:push": "supabase db push",
-    "db:types": "supabase gen types typescript --linked > src/core/supabase/database.types.ts",
+    "db:push": "supabase db push --remote",
+    "db:types": "supabase gen types --remote --lang typescript > src/core/supabase/database.types.ts",
     "db:test:local": "tsx scripts/db-test-local.ts",
     "db:seed": "tsx scripts/db-seed.ts"
   },

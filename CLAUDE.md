@@ -14,6 +14,7 @@ Tento súbor číta Claude Code na začiatku každej session. Platí pre celý r
 Interný systém, ktorý riadi celý proces od dopytu po archív: dopyt → kalkulácia → cenová ponuka (verzie) → objednávka → zákazka → schválenie vizuálu → nákup u dodávateľov → príjem → realizácia (Gantt, hodiny) → dodací list / protokol → faktúra → úhrada → archív. Plus e-mailová schránka prepojená so zákazkami, legislatívny monitoring, dashboard s ukazovateľmi a grafmi (Spolu / Agentúra / AVENG), hodnotenie zákazníkov a dodávateľov, procesné KPI a generovanie všetkých dokumentov na tlač a propagáciu (vrátane firemnej prezentácie k CP).
 
 Záväzné podklady (čítaj pred každou fázou):
+
 - `docs/BUSINESS_PROCESSES.md` – procesy, stavy, prechody, kalkulácia
 - `docs/DATABASE_SCHEMA.md` – dátový model, RLS, funkcie
 - `docs/DECISIONS.md` – rozhodnutia vlastníka
