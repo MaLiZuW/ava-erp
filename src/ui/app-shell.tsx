@@ -20,7 +20,8 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
-import { NAV_ITEMS, findNavItem, type NavItem } from "@/core/navigation";
+import { useAuth } from "@/core/auth/auth-provider";
+import { findNavItem, visibleNavItems, type NavItem } from "@/core/navigation";
 import { Button } from "./button";
 import { cn } from "./cn";
 import { CommandPalette } from "./command-palette";
@@ -62,6 +63,8 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const { roles, fullName, email, signOut } = useAuth();
+  const items = visibleNavItems(roles);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const current = findNavItem(pathname);
   const isActive = (item: NavItem) => current?.href === item.href;
@@ -81,17 +84,23 @@ export function AppShell({ children }: { children: ReactNode }) {
           </span>
         </Link>
         <nav aria-label="Hlavná navigácia" className="flex flex-1 flex-col gap-1">
-          {NAV_ITEMS.filter((i) => i.group === "main").map((item) => (
-            <NavLink key={item.href} item={item} active={isActive(item)} />
-          ))}
-          <hr className="my-2 border-neutral-200" />
-          {NAV_ITEMS.filter((i) => i.group === "master").map((item) => (
-            <NavLink key={item.href} item={item} active={isActive(item)} />
-          ))}
-          <div className="mt-auto flex flex-col gap-1">
-            {NAV_ITEMS.filter((i) => i.group === "bottom").map((item) => (
+          {items
+            .filter((i) => i.group === "main")
+            .map((item) => (
               <NavLink key={item.href} item={item} active={isActive(item)} />
             ))}
+          <hr className="my-2 border-neutral-200" />
+          {items
+            .filter((i) => i.group === "master")
+            .map((item) => (
+              <NavLink key={item.href} item={item} active={isActive(item)} />
+            ))}
+          <div className="mt-auto flex flex-col gap-1">
+            {items
+              .filter((i) => i.group === "bottom")
+              .map((item) => (
+                <NavLink key={item.href} item={item} active={isActive(item)} />
+              ))}
           </div>
         </nav>
       </aside>
@@ -111,6 +120,15 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Button disabled title="Pripravujeme">
               + Nové
             </Button>
+            <span
+              className="hidden text-[13px] leading-5 text-neutral-700 lg:inline"
+              data-testid="current-user"
+            >
+              {fullName || email}
+            </span>
+            <Button variant="ghost" onClick={() => void signOut()}>
+              Odhlásiť
+            </Button>
           </div>
         </header>
         <main className="mx-auto w-full max-w-[1600px] flex-1 px-4 pb-8 md:px-6 xl:px-8">
@@ -118,7 +136,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </main>
       </div>
 
-      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
+      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} items={items} />
     </div>
   );
 }

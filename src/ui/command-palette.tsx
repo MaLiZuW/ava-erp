@@ -3,15 +3,18 @@
 import { Command } from "cmdk";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { NAV_ITEMS } from "@/core/navigation";
+import { NAV_ITEMS, type NavItem } from "@/core/navigation";
 
 /** Ctrl+K command palette. Phase 1: navigation only. */
 export function CommandPalette({
   open,
   onOpenChange,
+  items = NAV_ITEMS,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** navigation items the user may see */
+  items?: readonly NavItem[];
 }) {
   const router = useRouter();
 
@@ -46,7 +49,7 @@ export function CommandPalette({
           heading="Navigácia"
           className="[&_[cmdk-group-heading]]:px-4 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-[13px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:tracking-[0.04em] [&_[cmdk-group-heading]]:text-neutral-500 [&_[cmdk-group-heading]]:uppercase"
         >
-          {NAV_ITEMS.map((item) => (
+          {items.map((item) => (
             <Command.Item
               key={item.href}
               value={item.label}

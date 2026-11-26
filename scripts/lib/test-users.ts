@@ -43,13 +43,20 @@ export function loadTestEnv(opts: { optional?: boolean } = {}): TestEnv | null {
     if (opts.optional) return null;
     throw new Error(`Missing in .env.local: ${missing.join(", ")} (see DEPLOYMENT.md, section B).`);
   }
-  if (!new URL(url).hostname.startsWith(`${DEV_PROJECT_REF}.`) || !dbUrl.includes(DEV_PROJECT_REF)) {
-    throw new Error(`Refusing to run: test users may only be created on the DEV project (${DEV_PROJECT_REF}).`);
+  if (
+    !new URL(url).hostname.startsWith(`${DEV_PROJECT_REF}.`) ||
+    !dbUrl.includes(DEV_PROJECT_REF)
+  ) {
+    throw new Error(
+      `Refusing to run: test users may only be created on the DEV project (${DEV_PROJECT_REF}).`,
+    );
   }
   return { url, anonKey, secretKey, dbUrl };
 }
 
-const NO_SESSION = { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } };
+const NO_SESSION = {
+  auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+};
 
 export function adminClient(env: TestEnv): SupabaseClient {
   return createClient(env.url, env.secretKey, NO_SESSION);
@@ -109,7 +116,9 @@ export async function createTestUser(
     const db = new Client({ connectionString: env.dbUrl });
     await db.connect();
     try {
-      await db.query("insert into public.user_roles (user_id, role) values ($1, 'admin')", [data.user.id]);
+      await db.query("insert into public.user_roles (user_id, role) values ($1, 'admin')", [
+        data.user.id,
+      ]);
     } finally {
       await db.end();
     }
@@ -117,7 +126,10 @@ export async function createTestUser(
   return { id: data.user.id, email, password };
 }
 
-export async function deleteTestUser(env: TestEnv, user: TestUser | null | undefined): Promise<void> {
+export async function deleteTestUser(
+  env: TestEnv,
+  user: TestUser | null | undefined,
+): Promise<void> {
   if (!user) return;
   const { error } = await adminClient(env).auth.admin.deleteUser(user.id);
   if (error) throw new Error(`deleteUser failed: ${error.message}`);

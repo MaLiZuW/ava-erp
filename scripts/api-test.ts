@@ -36,7 +36,14 @@ const TABLES = [
   "v_open_items",
 ];
 /** tables an aal2 admin must see rows in (seeded / always present) */
-const ADMIN_VISIBLE = ["companies", "divisions", "profiles", "user_roles", "feature_flags", "v_open_items"];
+const ADMIN_VISIBLE = [
+  "companies",
+  "divisions",
+  "profiles",
+  "user_roles",
+  "feature_flags",
+  "v_open_items",
+];
 
 let failures = 0;
 const report = (ok: boolean, msg: string) => {
@@ -58,7 +65,11 @@ function makeApi(base: string, apikey: string, bearer: string) {
   return {
     get: (t: string) => fetch(`${base}/rest/v1/${t}?select=*&limit=5`, { headers }),
     rpc: (fn: string, payload: unknown) =>
-      fetch(`${base}/rest/v1/rpc/${fn}`, { method: "POST", headers, body: JSON.stringify(payload) }),
+      fetch(`${base}/rest/v1/rpc/${fn}`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(payload),
+      }),
     insert: (t: string, row: unknown) =>
       fetch(`${base}/rest/v1/${t}`, { method: "POST", headers, body: JSON.stringify(row) }),
   };
@@ -72,7 +83,10 @@ async function expectNoAccess(label: string, api: ReturnType<typeof makeApi>) {
   }
   for (const [fn, payload] of [
     ["next_document_number", { p_doc_type: "CP" }],
-    ["transition", { p_entity_table: "jobs", p_id: "00000000-0000-0000-0000-000000000000", p_to_status: "x" }],
+    [
+      "transition",
+      { p_entity_table: "jobs", p_id: "00000000-0000-0000-0000-000000000000", p_to_status: "x" },
+    ],
     ["admin_list_users", {}],
   ] as const) {
     const res = await api.rpc(fn, payload);
@@ -97,10 +111,17 @@ async function main() {
     // 2. aal1 – password only ---------------------------------------------------------------------
     user = await createTestUser(env, "api-test", { admin: true });
     const client = anonClient(env);
-    const signIn = await client.auth.signInWithPassword({ email: user.email, password: user.password });
-    if (signIn.error || !signIn.data.session) throw new Error(`sign-in failed: ${signIn.error?.message}`);
+    const signIn = await client.auth.signInWithPassword({
+      email: user.email,
+      password: user.password,
+    });
+    if (signIn.error || !signIn.data.session)
+      throw new Error(`sign-in failed: ${signIn.error?.message}`);
     const aal1 = await client.auth.mfa.getAuthenticatorAssuranceLevel();
-    report(aal1.data?.currentLevel === "aal1", `password sign-in gives aal1 (got ${aal1.data?.currentLevel})`);
+    report(
+      aal1.data?.currentLevel === "aal1",
+      `password sign-in gives aal1 (got ${aal1.data?.currentLevel})`,
+    );
     console.log("\n-- admin with aal1 token (password only) --");
     await expectNoAccess("aal1", makeApi(env.url, env.anonKey, signIn.data.session.access_token));
 
@@ -108,7 +129,10 @@ async function main() {
     await enrollTotp(client);
     const { data: s2 } = await client.auth.getSession();
     const aal2 = await client.auth.mfa.getAuthenticatorAssuranceLevel();
-    report(aal2.data?.currentLevel === "aal2", `TOTP verification gives aal2 (got ${aal2.data?.currentLevel})`);
+    report(
+      aal2.data?.currentLevel === "aal2",
+      `TOTP verification gives aal2 (got ${aal2.data?.currentLevel})`,
+    );
     console.log("\n-- admin with aal2 token --");
     const api2 = makeApi(env.url, env.anonKey, s2.session!.access_token);
     for (const t of ADMIN_VISIBLE) {
@@ -119,7 +143,10 @@ async function main() {
     const lu = await api2.rpc("admin_list_users", {});
     const list = (await lu.json()) as { email: string; verified_totp_factors: number }[];
     const me = Array.isArray(list) ? list.find((u) => u.email === user!.email) : undefined;
-    report(lu.ok && me?.verified_totp_factors === 1, `aal2 admin RPC admin_list_users: HTTP ${lu.status}`);
+    report(
+      lu.ok && me?.verified_totp_factors === 1,
+      `aal2 admin RPC admin_list_users: HTTP ${lu.status}`,
+    );
     const n = await api2.rpc("next_document_number", { p_doc_type: "CP" });
     report(!n.ok, `aal2 admin still cannot call next_document_number directly: HTTP ${n.status}`);
 

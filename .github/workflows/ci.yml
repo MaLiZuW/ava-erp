@@ -18,6 +18,11 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
+      # placeholder public settings: the app renders its sign-in screens; no request reaches Supabase.
+      # Auth e2e tests need real credentials and are skipped in CI (see TESTING_STRATEGY.md).
       - run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e

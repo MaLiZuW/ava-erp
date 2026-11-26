@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { NAV_ITEMS, findNavItem } from "./navigation";
+import { NAV_ITEMS, findNavItem, visibleNavItems } from "./navigation";
 
 describe("navigation", () => {
   it("has 14 unique items", () => {
@@ -10,6 +10,11 @@ describe("navigation", () => {
     const labels = NAV_ITEMS.map((i) => i.label);
     expect(labels).toContain("Reporty a KPI");
     expect(labels).toContain("Dokumenty");
+  });
+  it("hides Nastavenia from users without the admin role", () => {
+    expect(visibleNavItems(["admin"])).toHaveLength(14);
+    expect(visibleNavItems(["manager"]).map((i) => i.href)).not.toContain("/nastavenia/");
+    expect(visibleNavItems([])).toHaveLength(13);
   });
   it("finds items with and without trailing slash", () => {
     expect(findNavItem("/zakazky")?.label).toBe("Zákazky");

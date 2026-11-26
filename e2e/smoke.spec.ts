@@ -1,26 +1,37 @@
 import { expect, test } from "@playwright/test";
 
-test("dashboard skeleton loads with 14 menu items", async ({ page }) => {
+// Anonymous visitor: nothing of the application is shown without signing in.
+
+test("the dashboard redirects an anonymous visitor to sign-in", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Prehľad");
-  await expect(
-    page.getByRole("navigation", { name: "Hlavná navigácia" }).getByRole("link"),
-  ).toHaveCount(14);
+  await expect(page).toHaveURL(/\/prihlasenie\/$/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Prihlásenie");
+  await expect(page.getByRole("navigation", { name: "Hlavná navigácia" })).toHaveCount(0);
 });
 
-test("navigation to a section shows the placeholder and survives a reload", async ({ page }) => {
-  await page.goto("/");
-  await page.getByRole("link", { name: "Zákazky" }).click();
-  await expect(page).toHaveURL(/\/zakazky\/$/);
-  await expect(page.getByText("Pripravujeme").first()).toBeVisible();
+test("a section keeps its return path and survives a reload", async ({ page }) => {
+  await page.goto("/zakazky/");
+  await expect(page).toHaveURL(/\/prihlasenie\/\?next=%2Fzakazky%2F$/);
   await page.reload();
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Zákazky");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Prihlásenie");
 });
 
-test("Ctrl+K opens the command palette", async ({ page }) => {
-  await page.goto("/");
-  await page.keyboard.press("Control+k");
-  await expect(page.getByPlaceholder("Kam chcete ísť?")).toBeVisible();
-  await page.getByRole("option", { name: "Faktúry" }).click();
-  await expect(page).toHaveURL(/\/faktury\/$/);
+test("settings are not reachable without signing in", async ({ page }) => {
+  await page.goto("/nastavenia/");
+  await expect(page).toHaveURL(/\/prihlasenie\/\?next=%2Fnastavenia%2F$/);
+  await expect(page.getByText("Firma")).toHaveCount(0);
+});
+
+test("TOTP pages without a session send the visitor to sign-in", async ({ page }) => {
+  await page.goto("/prihlasenie/overenie/");
+  await expect(page).toHaveURL(/\/prihlasenie\/$/);
+  await page.goto("/prihlasenie/registracia-faktora/");
+  await expect(page).toHaveURL(/\/prihlasenie\/$/);
+});
+
+test("the sign-in form validates input before calling the server", async ({ page }) => {
+  await page.goto("/prihlasenie/");
+  await page.getByRole("button", { name: "Pokračovať" }).click();
+  await expect(page.getByText("Zadajte e-mail.")).toBeVisible();
+  await expect(page.getByText("Zadajte heslo.")).toBeVisible();
 });

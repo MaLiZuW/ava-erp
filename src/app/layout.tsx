@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import "@fontsource-variable/inter";
 import "./globals.css";
-import { AppShell } from "@/ui/app-shell";
+import { Providers } from "@/core/providers";
+import { AppGate } from "./app-gate";
 
 export const metadata: Metadata = {
   title: "Add Value Agency",
@@ -14,7 +15,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="sk">
       <body>
-        <AppShell>{children}</AppShell>
+        <Providers>
+          <AppGate>{children}</AppGate>
+        </Providers>
       </body>
     </html>
   );
