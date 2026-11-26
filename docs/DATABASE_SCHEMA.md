@@ -565,7 +565,7 @@ Pohľady s `security_invoker = true`, aby rešpektovali RLS.
 `id`, `month date` (1. deň mesiaca), `division_id FK null` (null = spoločná), `category text`, `amount_cents bigint`, `note`. Unique **nulls not distinct** (month, division_id, category) – inak by sa dala vložiť duplicitná spoločná réžia.
 
 ### income_tax_brackets (sadzby dane z príjmov PO)
-`id`, `valid_from date`, `valid_to date null`, `revenue_from_cents bigint`, `revenue_to_cents bigint null`, `rate_pct numeric(7,4)`, `source_note text`. Hodnoty sa zadávajú migráciou/nastavením podľa aktuálneho zákona a overujú s účtovníkom – nikdy v kóde.
+`id`, `valid_from date`, `valid_to date null`, `revenue_from_cents bigint`, `revenue_to_cents bigint null`, `rate_pct numeric(7,4)`, `source_note text`. Hodnoty sa zadávajú migráciou/nastavením podľa aktuálneho zákona a overujú s účtovníkom – nikdy v kóde. **Pravidlo (schválené vlastníkom 26. 11. 2026):** pásma platné v rovnakom období sa neprekrývajú – exclusion constraint `daterange(valid_from, valid_to, '[]') &&` × `int8range(revenue_from_cents, revenue_to_cents, '[)') &&`.
 
 ### capacity_plans (dostupné hodiny pre utilizáciu)
 `id`, `user_id FK profiles`, `month date`, `available_hours numeric(6,2)`. Unique (user_id, month).
@@ -577,7 +577,7 @@ Pohľady s `security_invoker = true`, aby rešpektovali RLS.
 `id`, `party_type text` ('customer','supplier'), `customer_id FK null`, `supplier_id FK null`, `job_id FK null`, `rated_at`, `rated_by FK profiles`, `scores jsonb` (napr. `{"quality":4,"on_time":5,"price":3,"communication":4}` – kritériá podľa typu partnera), `note`. Check: práve jeden z customer_id/supplier_id.
 
 ### kpi_targets
-`id uuid PK`, `kpi_key text`, `division_id FK null` (null = Spolu), `target_value numeric`, `warning_value numeric`, `direction text` ('higher_better','lower_better'), `valid_from date`. Unique **nulls not distinct** (kpi_key, division_id, valid_from). (Upresnené vo fáze 3: stĺpec s NULL nemôže byť v primárnom kľúči.) Hranica upozornenia leží na horšej strane cieľa.
+`id uuid PK`, `kpi_key text`, `division_id FK null` (null = Spolu), `target_value numeric`, `warning_value numeric`, `direction text` ('higher_better','lower_better'), `valid_from date`. Unique **nulls not distinct** (kpi_key, division_id, valid_from). (Upresnené vo fáze 3: stĺpec s NULL nemôže byť v primárnom kľúči.) **Pravidlo (schválené vlastníkom 26. 11. 2026):** hranica upozornenia leží na horšej strane cieľa – `higher_better` → `warning_value <= target_value`, `lower_better` → `warning_value >= target_value` (check).
 
 ### content_blocks (knižnica obsahu pre prezentácie)
 `id`, `key text` (napr. 'about_company', 'service_ENG', 'service_PROMO'), `division_id FK null`, `job_type job_type null`, `title`, `body text` (markdown), `image_document_ids uuid[]` (len dokumenty kategórie `content_image`), `language char(2) default 'sk'`, `is_active`, `version int` (zvyšuje trigger pri zmene textu alebo obrázkov). Unique (key, language).
