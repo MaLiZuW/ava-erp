@@ -1,5 +1,7 @@
-import { ComingSoon } from "@/ui/coming-soon";
+"use client";
+
+import { SettingsPage } from "@/features/settings/settings-page";
 
 export default function Page() {
-  return <ComingSoon module="Nastavenia" />;
+  return <SettingsPage />;
 }

@@ -6,6 +6,7 @@
  *  2. real user, password only  (aal1 access token) → no rows, writes and RPC refused
  *  3. same user after TOTP       (aal2 access token) → admin sees data
  *  4. public sign-up is disabled
+ *  5. Edge Function admin-mfa-reset: aal1, foreign origin, self-reset and unknown user are refused
  *
  * The test user is created through the Auth Admin API (secret key, .env.local only), with a random
  * password and TOTP secret, and is deleted in `finally`. Leftovers (*@test.invalid) are removed first.
@@ -149,6 +150,52 @@ async function main() {
     );
     const n = await api2.rpc("next_document_number", { p_doc_type: "CP" });
     report(!n.ok, `aal2 admin still cannot call next_document_number directly: HTTP ${n.status}`);
+
+    // 5. Edge Function admin-mfa-reset ----------------------------------------------------------------
+    console.log("\n-- Edge Function admin-mfa-reset --");
+    const fnUrl = `${env.url}/functions/v1/admin-mfa-reset`;
+    const call = (token: string, body: unknown, origin = "http://localhost:3000") =>
+      fetch(fnUrl, {
+        method: "POST",
+        headers: {
+          apikey: env.anonKey,
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Origin: origin,
+        },
+        body: JSON.stringify(body),
+      });
+    const probeRes = await call(s2.session!.access_token, {
+      user_id: "00000000-0000-4000-8000-000000000000",
+    });
+    if (probeRes.status === 404 && !(await probeRes.text()).includes("user_not_found")) {
+      console.log(
+        "SKIP Edge Function is not deployed (DEPLOYMENT.md, section F) – reset checks not run",
+      );
+    } else {
+      report(probeRes.status === 404, `aal2 admin, unknown target → 404 (got ${probeRes.status})`);
+      const self = await call(s2.session!.access_token, { user_id: user.id });
+      report(self.status === 400, `aal2 admin resetting themselves → 400 (got ${self.status})`);
+      const foreign = await call(
+        s2.session!.access_token,
+        { user_id: user.id },
+        "https://evil.example",
+      );
+      report(foreign.status === 403, `foreign Origin → 403 (got ${foreign.status})`);
+      const c1 = anonClient(env);
+      const s1 = await c1.auth.signInWithPassword({ email: user.email, password: user.password });
+      const aal1Res = await call(s1.data.session!.access_token, {
+        user_id: "00000000-0000-4000-8000-000000000000",
+      });
+      report(
+        aal1Res.status === 403 || aal1Res.status === 401,
+        `aal1 token → refused (got ${aal1Res.status})`,
+      );
+      const forged = await call(`${s2.session!.access_token.slice(0, -4)}AAAA`, {
+        user_id: user.id,
+      });
+      report(forged.status === 401, `tampered token → 401 (got ${forged.status})`);
+    }
 
     // 4. public sign-up must be disabled -----------------------------------------------------------
     probe = randomTestEmail("signup-probe");

@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { formatDate, formatMoney, parseMoneyToCents } from "./format";
+import { formatDate, formatDateTime, formatMoney, parseMoneyToCents } from "./format";
+
+describe("formatDateTime", () => {
+  it("formats in Bratislava time as DD/MM/YYYY HH:mm (winter and summer time)", () => {
+    expect(formatDateTime("2026-11-27T08:05:00Z")).toBe("27/11/2026 09:05");
+    expect(formatDateTime("2026-07-01T22:30:00Z")).toBe("02/07/2026 00:30");
+    expect(formatDateTime(null)).toBe("");
+    expect(formatDateTime("nonsense")).toBe("");
+  });
+});
 
 describe("formatDate", () => {
   it("formats DD/MM/YYYY", () => {
