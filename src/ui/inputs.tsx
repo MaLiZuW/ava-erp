@@ -23,15 +23,8 @@ export function SuffixInput({ suffix, className, ...props }: InputProps & { suff
   );
 }
 
-/**
- * Sets an input's value the way typing does, so React and react-hook-form (`register`)
- * receive a normal change event.
- */
-export function setNativeValue(el: HTMLInputElement, value: string) {
-  const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
-  setter?.call(el, value);
-  el.dispatchEvent(new Event("input", { bubbles: true }));
-}
+export { setNativeValue } from "./native-value";
+import { setNativeValue } from "./native-value";
 
 /** ↑ / ↓ in a money field: ± 1,00 € (Shift ± 10,00 €), never below 0. */
 export function stepMoneyText(text: string, direction: 1 | -1, shift: boolean): string {
@@ -64,16 +57,5 @@ export function PercentInput(props: InputProps) {
   return <SuffixInput suffix="%" inputMode="decimal" autoComplete="off" {...props} />;
 }
 
-/** Date DD/MM/YYYY (CLAUDE.md – dates in the UI). */
-export function DateInput({ className, ...props }: InputProps) {
-  return (
-    <Input
-      inputMode="numeric"
-      placeholder="DD/MM/YYYY"
-      autoComplete="off"
-      maxLength={10}
-      className={cn("tabular-nums", className)}
-      {...props}
-    />
-  );
-}
+/** Date DD/MM/YYYY with a calendar – one component for all date fields (src/ui/date-input.tsx). */
+export { DateInput } from "./date-input";

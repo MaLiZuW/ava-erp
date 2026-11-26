@@ -308,5 +308,51 @@ test.describe.serial("master data", () => {
         timeout: 15_000,
       },
     );
+
+    // --- point 18: stepper values are never cut (1,5 / 12,5 / 999 at 1280 and 375 px) ---------
+    const sample = [
+      ["Pondelok", "1,5"],
+      ["Utorok", "12,5"],
+      ["Streda", "999"],
+    ] as const;
+    for (const width of [1280, 375]) {
+      await page.setViewportSize({ width, height: 900 });
+      for (const [day, value] of sample) {
+        const field = cal.getByLabel(`Hodiny – ${day}`, { exact: true });
+        await field.fill(value);
+        await field.scrollIntoViewIfNeeded();
+        const cut = await field.evaluate((el) => el.scrollWidth > el.clientWidth);
+        expect(cut, `${value} at ${width} px`).toBe(false);
+        // the whole stepper (− field +) fits into the tile, nothing cut off on the right
+        const fits = await field.evaluate((el) => {
+          const group = el.closest('[role="group"]')!.getBoundingClientRect();
+          const tile = el
+            .closest('section[aria-label="Kapacity – kalendár"]')!
+            .getBoundingClientRect();
+          return group.right <= tile.right + 0.5;
+        });
+        expect(fits, `stepper fits at ${width} px`).toBe(true);
+      }
+    }
+    await page.setViewportSize({ width: 1280, height: 900 });
+
+    // --- point 19: date from the calendar, Esc, impossible date → error --------------------------
+    const pattern = cal.getByRole("region", { name: "Týždenný vzor" });
+    const from = pattern.getByLabel("Platí od", { exact: true });
+    const picker = page.getByRole("dialog", { name: "Kalendár" });
+    await pattern.getByRole("button", { name: "Vybrať dátum z kalendára" }).click();
+    await expect(picker).toBeVisible();
+    await picker.getByRole("button", { name: "Dnes" }).click();
+    const t = new Date();
+    await expect(from).toHaveValue(
+      `${String(t.getDate()).padStart(2, "0")}/${String(t.getMonth() + 1).padStart(2, "0")}/${t.getFullYear()}`,
+    );
+    await pattern.getByRole("button", { name: "Vybrať dátum z kalendára" }).click();
+    await page.keyboard.press("Escape");
+    await expect(picker).toHaveCount(0);
+    await from.fill("31/02/2026");
+    for (const [day] of sample) await cal.getByLabel(`Hodiny – ${day}`, { exact: true }).fill("8");
+    await pattern.getByRole("button", { name: "Uložiť vzor" }).click();
+    await expect(pattern.getByText("Zadajte dátum „platí od“ v tvare DD/MM/YYYY.")).toBeVisible();
   });
 });

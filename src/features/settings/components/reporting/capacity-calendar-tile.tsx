@@ -81,7 +81,8 @@ function PatternEditor({ resourceId, patterns }: { resourceId: string; patterns:
       <h3 className="text-[13px] font-semibold tracking-[0.04em] text-neutral-500 uppercase">
         Týždenný vzor
       </h3>
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-7">
+      {/* 7 columns only when there is room; 4 + 3 on a normal screen, 1 on a phone (point 18) */}
+      <div className="grid grid-cols-1 gap-3 min-[1800px]:grid-cols-7 sm:grid-cols-2 lg:grid-cols-4">
         {WEEKDAYS.map((d) => (
           <div key={d.key} className="flex flex-col gap-1">
             <span className="text-[13px] font-medium text-neutral-700">{d.label}</span>
@@ -351,7 +352,7 @@ export function CapacityCalendarTile() {
 
         {resourceId && patterns.data && (
           <PatternEditor
-            key={`${resourceId}-${patterns.data[0]?.id ?? "none"}`}
+            key={resourceId} // not by version: a save must not reset the form and its message
             resourceId={resourceId}
             patterns={patterns.data}
           />

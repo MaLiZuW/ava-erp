@@ -90,6 +90,24 @@ export function stepValue(text: string, direction: 1 | -1, o: StepOptions, multi
   return formatStepperNumber(next, decimals);
 }
 
+/**
+ * Width of the text field: the longest expected value (at least 6 characters) plus the unit,
+ * so "1,5 h", "12,5 h" or "999" are never cut (owner's point 18).
+ */
+export function fieldMinWidth(
+  value: string,
+  max: number | undefined,
+  decimals: number,
+  suffix?: string,
+): string {
+  const longestMax =
+    max != null ? formatStepperNumber(max, decimals).length + (decimals > 0 ? 2 : 0) : 0;
+  const chars = Math.max(6, value.length, longestMax);
+  // px-3 left + right padding (or the unit area) of the Input
+  const padding = suffix ? `0.75rem + ${Math.max(2, suffix.length + 1)}ch + 0.625rem` : "1.5rem";
+  return `calc(${chars}ch + ${padding})`;
+}
+
 export type NumberStepperProps = Omit<
   InputHTMLAttributes<HTMLInputElement>,
   "value" | "onChange" | "type" | "min" | "max" | "step"
@@ -203,7 +221,8 @@ export function NumberStepper({
       >
         <Minus aria-hidden className="size-4" />
       </button>
-      <div className="relative min-w-0 flex-1">
+      {/* no min-w-0: the field never shrinks below its content, so the value is never cut */}
+      <div className="relative flex-1">
         <Input
           ref={ref}
           id={id}
@@ -215,13 +234,14 @@ export function NumberStepper({
           disabled={disabled}
           onChange={(e) => change(e.target.value)}
           onKeyDown={keyDown}
-          className={cn("text-right tabular-nums", suffix && "pr-10")}
+          style={{ minWidth: fieldMinWidth(value, max, decimals, suffix) }}
+          className={cn("text-right tabular-nums", suffix && "pr-8")}
           {...input}
         />
         {suffix && (
           <span
             aria-hidden
-            className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[15px] text-neutral-500"
+            className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-[15px] text-neutral-500"
           >
             {suffix}
           </span>

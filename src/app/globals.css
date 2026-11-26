@@ -80,3 +80,30 @@ body {
   scrollbar-color: var(--neutral-200) transparent;
   scrollbar-gutter: stable;
 }
+
+/* Date picker (react-day-picker) in the brand colours – DESIGN_SYSTEM §3 */
+.rdp-root {
+  --rdp-accent-color: var(--brand-navy);
+  --rdp-accent-background-color: var(--canvas);
+  --rdp-today-color: var(--brand-navy);
+  --rdp-day-height: 40px;
+  --rdp-day-width: 40px;
+  --rdp-day_button-height: 38px;
+  --rdp-day_button-width: 38px;
+  font-size: 14px;
+}
+.rdp-today:not(.rdp-outside) .rdp-day_button {
+  font-weight: 700;
+  box-shadow: inset 0 0 0 2px var(--brand-blue);
+  border-radius: 9999px;
+}
+.rdp-day_button {
+  position: relative;
+}
+.rdp-weekend:not(.rdp-selected) .rdp-day_button {
+  color: var(--neutral-500);
+}
+.rdp-holiday:not(.rdp-selected) .rdp-day_button {
+  color: var(--warning);
+  font-weight: 600;
+}
