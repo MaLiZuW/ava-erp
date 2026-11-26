@@ -19,6 +19,7 @@ npm run dev            # http://localhost:3000
 | `npm run test:e2e`                   | Playwright proti `out/` (najprv `npm run build`)                        |
 | `npm run db:test:local`              | DB testy (pgTAP) lokálne v pamäti (PGlite), bez Dockeru a bez internetu |
 | `npm run db:test`                    | DB testy proti vývojovému projektu Supabase (potrebuje `.env.local`)    |
+| `npm run db:test:api`                | anon kľúč proti REST API dev projektu: bez prihlásenia žiadne dáta      |
 | `npm run db:push`                    | nasadí migrácie na vývojový projekt Supabase                            |
 | `npm run db:seed`                    | nahrá testovacie dáta (`supabase/seed.sql`, opakovane bezpečné)         |
 | `npm run db:types`                   | vygeneruje TypeScript typy z databázy                                   |

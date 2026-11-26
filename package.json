@@ -13,10 +13,11 @@
     "test:e2e": "playwright test",
     "format": "prettier --write .",
     "db:test": "tsx scripts/db-test.ts",
-    "db:push": "supabase db push --remote",
-    "db:types": "supabase gen types --remote --lang typescript > src/core/supabase/database.types.ts",
+    "db:push": "node --env-file=.env.local scripts/supabase-remote.cjs db push",
+    "db:types": "node --env-file=.env.local scripts/supabase-remote.cjs gen types --lang typescript --out src/core/supabase/database.types.ts",
     "db:test:local": "tsx scripts/db-test-local.ts",
-    "db:seed": "tsx scripts/db-seed.ts"
+    "db:seed": "tsx scripts/db-seed.ts",
+    "db:test:api": "tsx scripts/api-test.ts"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",

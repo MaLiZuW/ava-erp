@@ -30,8 +30,7 @@ ErrorDocument 404 /404.html
 
   # CSP: own domain + Supabase only. 'unsafe-inline' for scripts/styles is required by the Next.js
   # static export (inline bootstrap scripts); tightening with hashes is tracked in TODO.md.
-  # TODO: replace *.supabase.co with the exact project host once the project exists.
-  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; font-src 'self'; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://hkfkdomslzvpxukzhlwc.supabase.co; font-src 'self'; connect-src 'self' https://hkfkdomslzvpxukzhlwc.supabase.co wss://hkfkdomslzvpxukzhlwc.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
 
   # --- Caching: hashed assets are immutable, pages are always revalidated ---
   <FilesMatch "\.(html|txt)$">

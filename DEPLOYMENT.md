@@ -23,12 +23,12 @@ Vyplň `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` a `SUPABASE_D
 ## C. Databáza (migrácie, seed, testy)
 
 ```powershell
-npx supabase login                       # otvorí prehliadač, jednorazovo
-npx supabase link --project-ref <REF>    # REF = časť z URL projektu pred .supabase.co; spýta sa na DB heslo
+# Skripty čítajú SUPABASE_DB_URL z .env.local (session pooler) – netreba `supabase login` ani `link`.
 npm run db:push                          # nasadí supabase/migrations na dev projekt
 npm run db:seed                          # testovacie dáta (opakovane bezpečné)
 npm run db:types                         # typy do src/core/supabase/database.types.ts
 npm run db:test                          # pgTAP + súbežnosť na dev projekte
+npm run db:test:api                      # anon kľúč: bez prihlásenia žiadne dáta (HTTP 401)
 ```
 
 Prvý používateľ a rola administrátora (po pozvánke z dashboardu _Authentication → Users → Invite user_): v _SQL Editor_ spusti

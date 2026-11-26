@@ -2,9 +2,8 @@
 
 ## Rozpracované vo fáze 1 (čaká na vlastníka)
 
-- [ ] Založiť Supabase projekt `ava-erp-dev` (postup: `DEPLOYMENT.md`, časť A) a poslať URL + anon kľúč.
-- [ ] Do `.env.local` doplniť `SUPABASE_DB_URL` (session pooler) – heslo len lokálne.
-- [ ] `npx supabase link`, `npm run db:push`, `npm run db:seed`, `npm run db:test` (beh na reálnom projekte = brána fázy).
+- [x] Supabase projekt `ava-erp-dev` založený, `.env.local` hotový (session pooler).
+- [x] `db:push`, `db:seed`, `db:types`, `db:test`, `db:test:api` na dev projekte – zelené (26. 11. 2026).
 - [ ] Súhlas s postavením DB od nuly na dev projekte (brána „databáza sa dá postaviť od nuly“).
 - [ ] Nahrať `out/` na `https://app.av-agency.sk` cez WinSCP (`DEPLOYMENT.md`, časť D, E).
 - [ ] O3: overiť HTTPS certifikát `app.av-agency.sk`.
@@ -12,7 +11,7 @@
 
 ## Technický dlh a neskôr
 
-- [ ] CSP: nahradiť `'unsafe-inline'` pre skripty hashmi generovanými po builde (fáza 8); `*.supabase.co` zúžiť na presný host projektu.
+- [ ] CSP: nahradiť `'unsafe-inline'` pre skripty hashmi generovanými po builde (fáza 8).
 - [ ] Logo a znak AV: nahradiť zástupné SVG v `public/brand/` súbormi od vlastníka.
 - [ ] Farby `success`/`warning`/`danger` a neutrály: overiť kontrast (WCAG AA) vo fáze 2.
 - [ ] Prepínač divízie (Všetko / AVENG / Agentúra) v hornej lište – `DESIGN_SYSTEM.md` §5 (po zavedení dát, fáza 3+).

@@ -6,6 +6,7 @@
 | Kritické toky       | Playwright (proti `out/`, rovnako ako produkcia) | načítanie, menu, obnovenie stránky, Ctrl+K                                              | `npm run build` a `npm run test:e2e` |
 | Databáza            | pgTAP                                            | RLS, aal2, číslovanie, `transition()`, audit                                            | `npm run db:test` (dev projekt)      |
 | DB – rýchly sandbox | pgTAP na PGlite                                  | to isté bez internetu a bez projektu                                                    | `npm run db:test:local`              |
+| API (anon)          | fetch na REST dev projektu                       | neprihlásený návštevník nedostane žiadne riadky, RPC ani zápis                          | `npm run db:test:api`                |
 | Súbežnosť           | Node + `pg` (súčasť `db:test`)                   | 2 súbežné transakcie čakajú na zámok; 10 paralelných relácií dá rôzne čísla bez medzier | `npm run db:test`                    |
 | CI                  | GitHub Actions                                   | lint, typecheck, Vitest, build, Playwright                                              | `.github/workflows/ci.yml`           |
 
@@ -27,5 +28,6 @@ Sandbox nenahrádza beh na skutočnom projekte (brána fázy): odlišnosti PGlit
 
 ## Stav (fáza 1)
 
-- Vitest: 26 testov. Playwright: 3 testy. pgTAP (sandbox): 91 asercií v 4 súboroch.
-- Beh proti dev projektu Supabase: čaká na založenie projektu (pozri `TODO.md`).
+- Vitest: 26 testov. Playwright: 3 testy. pgTAP: 91 asercií v 4 súboroch – sandbox aj dev projekt.
+- Dev projekt Supabase (26. 11. 2026): migrácia nasadená, `db:test` zelený vrátane súbežnosti (10 paralelných relácií, čísla 1..10 bez medzier), `db:test:api` (anon kľúč → HTTP 401 na všetkých tabuľkách, RPC aj zápise).
+- Ešte neotestované: skutočný aal1 token (potrebuje používateľa, fáza 2); v pgTAP je aal1 simulovaný cez JWT claims.

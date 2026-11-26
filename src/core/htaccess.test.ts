@@ -30,6 +30,9 @@ describe("public/.htaccess", () => {
     expect(csp).toContain("frame-ancestors 'none'");
     expect(csp).toContain("object-src 'none'");
     expect(csp).not.toMatch(/script-src[^;]*\*/);
-    expect(csp).not.toMatch(/https?:\/\/(?!\*\.supabase\.co)[a-z0-9.-]+/i);
+    // only our own Supabase project host is allowed – no wildcards, no other origins
+    const hosts = [...csp.matchAll(/(?:https|wss):\/\/([^\s;]+)/gi)].map((m) => m[1]);
+    expect(hosts.length).toBeGreaterThan(0);
+    for (const host of hosts) expect(host).toMatch(/^[a-z0-9]{20}\.supabase\.co$/);
   });
 });
