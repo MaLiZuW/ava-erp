@@ -28,7 +28,7 @@ const RESET_ERRORS: Record<number, string> = {
   404: "Používateľ neexistuje.",
 };
 
-function useUsers() {
+export function useUsers() {
   return useQuery({
     queryKey: keys.users,
     queryFn: async () => {

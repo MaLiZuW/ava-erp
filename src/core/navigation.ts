@@ -59,3 +59,177 @@ export function visibleNewActions(roles: readonly AppRole[]): NewAction[] {
 export function visibleNavItems(roles: readonly AppRole[]): NavItem[] {
   return NAV_ITEMS.filter((i) => !i.requiredRole || hasRole(roles, i.requiredRole));
 }
+
+// ---------------------------------------------------------------------------------------------
+// Settings sections – ONE place for the secondary menu, the overview tiles, the main-menu
+// sub-items and Ctrl+K (owner's point 20; pattern: Stripe / Linear / Vercel settings).
+// ---------------------------------------------------------------------------------------------
+export interface SettingsPage {
+  href: string;
+  label: string;
+  /** extra words for Ctrl+K (field names: IBAN, logo …) */
+  keywords: string[];
+  /** tables whose change history is shown at the bottom of the page */
+  historyTables: string[];
+}
+
+export interface SettingsGroup {
+  key: string;
+  label: string;
+  description: string;
+  pages: SettingsPage[];
+}
+
+export const SETTINGS_HOME = "/nastavenia/";
+
+export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
+  {
+    key: "firma",
+    label: "Firma",
+    description: "Údaje na doklady a logo.",
+    pages: [
+      {
+        href: "/nastavenia/firma/",
+        label: "Údaje firmy",
+        keywords: [
+          "obchodné meno",
+          "IČO",
+          "DIČ",
+          "IČ DPH",
+          "adresa",
+          "IBAN",
+          "SWIFT",
+          "banka",
+          "zápis v OR",
+          "e-mail",
+          "telefón",
+          "web",
+        ],
+        historyTables: ["companies"],
+      },
+      {
+        href: "/nastavenia/firma/logo/",
+        label: "Logo",
+        keywords: ["logo", "obrázok", "značka"],
+        historyTables: ["companies", "documents"],
+      },
+    ],
+  },
+  {
+    key: "pouzivatelia",
+    label: "Používatelia a bezpečnosť",
+    description: "Používatelia, roly a dvojfaktorové overenie.",
+    pages: [
+      {
+        href: "/nastavenia/pouzivatelia/",
+        label: "Používatelia a 2FA",
+        keywords: ["používatelia", "2FA", "TOTP", "záložný faktor", "reset", "roly"],
+        historyTables: ["user_roles", "profiles", "auth.mfa_factors"],
+      },
+    ],
+  },
+  {
+    key: "system",
+    label: "Systém",
+    description: "Systémové nastavenia, funkcie a notifikácie.",
+    pages: [
+      {
+        href: "/nastavenia/system/",
+        label: "Systémové nastavenia",
+        keywords: ["nečinnosť", "odhlásenie", "minúty"],
+        historyTables: ["system_settings"],
+      },
+      {
+        href: "/nastavenia/system/funkcie/",
+        label: "Funkcie",
+        keywords: ["feature flag", "service_cnc", "zapnúť funkciu"],
+        historyTables: ["feature_flags"],
+      },
+      {
+        href: "/nastavenia/system/notifikacie/",
+        label: "Notifikácie",
+        keywords: ["príjemcovia", "e-mail", "upozornenia"],
+        historyTables: ["notification_recipients"],
+      },
+    ],
+  },
+  {
+    key: "ai",
+    label: "AI",
+    description: "Poskytovateľ, kľúč, funkcie a rozpočet (pripravujeme – blok L).",
+    pages: [
+      {
+        href: "/nastavenia/ai/",
+        label: "AI",
+        keywords: ["Gemini", "API kľúč", "rozpočet", "umelá inteligencia"],
+        historyTables: [],
+      },
+    ],
+  },
+  {
+    key: "reporting",
+    label: "Reporting",
+    description: "Réžia, dane z príjmov, kapacity a ciele KPI.",
+    pages: [
+      {
+        href: "/nastavenia/reporting/rezia/",
+        label: "Réžia",
+        keywords: ["fixné náklady", "nájom", "réžia"],
+        historyTables: ["overhead_costs"],
+      },
+      {
+        href: "/nastavenia/reporting/dane/",
+        label: "Dane z príjmov",
+        keywords: ["daň", "pásma", "sadzba dane"],
+        historyTables: ["income_tax_brackets"],
+      },
+      {
+        href: "/nastavenia/reporting/kapacity/",
+        label: "Kapacity",
+        keywords: ["kalendár", "dovolenka", "týždenný vzor", "hodiny", "sviatky"],
+        historyTables: ["work_patterns", "calendar_exceptions"],
+      },
+      {
+        href: "/nastavenia/reporting/ciele-kpi/",
+        label: "Ciele KPI",
+        keywords: ["KPI", "ciele", "semafor"],
+        historyTables: ["kpi_targets"],
+      },
+    ],
+  },
+  {
+    key: "data",
+    label: "Dáta",
+    description: "Na overenie a číselníky (pripravujeme – bloky I, J, K).",
+    pages: [
+      {
+        href: "/nastavenia/data/",
+        label: "Na overenie a číselníky",
+        keywords: ["overenie", "aktuálnosť dát", "číselníky"],
+        historyTables: [],
+      },
+    ],
+  },
+  {
+    key: "historia",
+    label: "História zmien",
+    description: "Všetky zmeny nastavení – kto, kedy, čo.",
+    pages: [
+      {
+        href: "/nastavenia/historia/",
+        label: "História zmien",
+        keywords: ["audit", "zmeny", "kto zmenil"],
+        historyTables: [],
+      },
+    ],
+  },
+];
+
+export const SETTINGS_PAGES: readonly (SettingsPage & { group: SettingsGroup })[] =
+  SETTINGS_GROUPS.flatMap((g) => g.pages.map((p) => ({ ...p, group: g })));
+
+/** The settings page of a path (sub-pages with trailing slash or without). */
+export function findSettingsPage(pathname: string) {
+  const normalized = pathname.replace(/\/?$/, "/");
+  return SETTINGS_PAGES.find((p) => p.href === normalized);
+}

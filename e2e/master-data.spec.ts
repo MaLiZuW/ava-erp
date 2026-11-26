@@ -93,6 +93,10 @@ test.describe.serial("master data", () => {
     await page.getByRole("link", { name: "Položka katalógu" }).click();
     await page.getByLabel("Názov", { exact: true }).fill(goods);
     await page.getByLabel("Nákupná cena / jednotka", { exact: true }).fill("2,50");
+    // the units are loaded before saving (slow dev project when suites run in parallel)
+    await expect(
+      page.getByLabel("Jednotka", { exact: true }).locator('option[value="ks"]'),
+    ).toHaveCount(1);
     await page.getByRole("button", { name: "Uložiť" }).click();
     await expect(page.getByRole("button", { name: goods, exact: true })).toBeVisible({
       timeout: 15_000,
@@ -221,7 +225,7 @@ test.describe.serial("master data", () => {
     );
 
     // --- settings → reporting: overhead; a duplicate for the whole company is refused -----------
-    await page.goto("/nastavenia/");
+    await page.goto("/nastavenia/reporting/rezia/");
     const overhead = page.getByRole("region", { name: "Réžia – mesačné fixné náklady" });
     const category = `${E2E_NAME_PREFIX}réžia ${stamp}`;
     for (let i = 0; i < 2; i++) {
@@ -238,7 +242,9 @@ test.describe.serial("master data", () => {
     await expect(overhead.getByText(/už v danom mesiaci a divízii existuje/)).toBeVisible({
       timeout: 15_000,
     });
+    await page.goto("/nastavenia/reporting/dane/");
     await expect(page.getByTestId("tax-warning")).toContainText("overte ich s účtovníkom");
+    await page.goto("/nastavenia/reporting/kapacity/");
 
     // --- capacity calendar (block H): pattern → month total; vacation → 0 h; extra on a holiday ---
     const cal = page.getByRole("region", { name: "Kapacity – kalendár" });

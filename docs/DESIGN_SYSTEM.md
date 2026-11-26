@@ -127,6 +127,15 @@ Tlačový štýl A4 na výšku aj na šírku: biele pozadie, logo, názov report
 
 Tabuľkový editor ako v tabuľkovom procesore (klávesnica, Tab/Enter), napravo lepiaca dlaždica **Súhrn**: náklad, cena, zisk € a %, marža aj prirážka – prepočet okamžite.
 
+### 6.5 Nastavenia (vzor Stripe / Linear / Vercel) – pripomienka vlastníka 20
+
+- **Podstránky s vlastnou adresou** (`/nastavenia/firma/`, `/nastavenia/reporting/kapacity/` …), statický export; jedna konfigurácia sekcií `SETTINGS_GROUPS` v `src/core/navigation.ts` riadi sekundárne menu, úvod, hlavné menu aj Ctrl+K.
+- **Sekundárne menu vľavo** so skupinami: Firma · Používatelia a bezpečnosť · Systém · AI · Reporting · Dáta · História zmien; aktívna položka plná tmavomodrá. Na mobile namiesto menu výber „Sekcia nastavení“.
+- **Úvod `/nastavenia/`** = bento dlaždice sekcií (M) s popisom, stavom (štítky: „Logo chýba“, „Údaje neúplné“, „N bez záložného faktora“, neskôr „AI kľúč nenastavený“, „N na overenie“) a odkazmi na podstránky.
+- **Hlavné menu:** v rozbalenom menu sa pod „Nastavenia“ ukážu skupiny, keď je otvorená niektorá podstránka; v zbalenom menu vyskakovacie podmenu pri hover aj focus (klávesnica).
+- **Ctrl+K** nájde každú podstránku aj podľa názvov polí (IBAN, logo, dovolenka …).
+- Na každej podstránke: nadpis skupiny + stránky, obsah, **História zmien len tej sekcie naspodku** (princíp 8); celá história v sekcii História zmien.
+
 ## 7. Pohyb a odozva
 
 - Prechody 150–200 ms, `ease-out`; žiadne poskakovanie.

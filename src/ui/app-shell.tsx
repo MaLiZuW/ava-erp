@@ -19,9 +19,17 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { useAuth } from "@/core/auth/auth-provider";
-import { findNavItem, visibleNavItems, visibleNewActions, type NavItem } from "@/core/navigation";
+import {
+  findNavItem,
+  SETTINGS_GROUPS,
+  SETTINGS_HOME,
+  SETTINGS_PAGES,
+  visibleNavItems,
+  visibleNewActions,
+  type NavItem,
+} from "@/core/navigation";
 import { Button } from "./button";
 import { cn } from "./cn";
 import { CommandPalette } from "./command-palette";
@@ -54,14 +62,17 @@ function NavLink({
   item,
   active,
   expanded,
+  tooltip = true,
 }: {
   item: NavItem;
   active: boolean;
   expanded: boolean;
+  /** false when a fly-out menu replaces the tooltip (Nastavenia) */
+  tooltip?: boolean;
 }) {
   const Icon = ICONS[item.href];
   return (
-    <Tooltip label={item.label} enabled={!expanded}>
+    <Tooltip label={item.label} enabled={!expanded && tooltip}>
       {(tip) => (
         <Link
           href={item.href}
@@ -81,6 +92,102 @@ function NavLink({
   );
 }
 
+/** Groups of the settings shown under "Nastavenia" in the main menu (first page of each group). */
+const SETTINGS_SHORTCUTS = SETTINGS_GROUPS.map((g) => ({
+  key: g.key,
+  label: g.label,
+  href: g.pages[0].href,
+  hrefs: g.pages.map((p) => p.href),
+}));
+
+/**
+ * "Nastavenia" in the main menu (owner's point 20): expanded menu → its groups listed below
+ * while a settings page is open; collapsed menu → a fly-out with the groups on hover and on
+ * keyboard focus (position: fixed, so the menu never clips it; DOM order keeps Tab working).
+ */
+function SettingsNavItem({
+  item,
+  active,
+  expanded,
+  pathname,
+}: {
+  item: NavItem;
+  active: boolean;
+  expanded: boolean;
+  pathname: string;
+}) {
+  const [pos, setPos] = useState<{ left: number; bottom: number } | null>(null);
+  const wrap = useRef<HTMLDivElement>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const current = pathname.replace(/\/?$/, "/");
+  const show = () => {
+    if (expanded || !wrap.current) return;
+    if (timer.current) clearTimeout(timer.current);
+    const r = wrap.current.getBoundingClientRect();
+    setPos({ left: r.right + 8, bottom: window.innerHeight - r.bottom });
+  };
+  const hideSoon = () => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => setPos(null), 150);
+  };
+  const groupLink = (g: (typeof SETTINGS_SHORTCUTS)[number]) => {
+    const on = g.hrefs.includes(current);
+    return (
+      <Link
+        key={g.key}
+        href={g.href}
+        aria-current={on ? "page" : undefined}
+        onClick={() => setPos(null)}
+        className={cn(
+          "block rounded-lg px-3 text-[13px] leading-8 whitespace-nowrap focus-visible:outline-offset-[-3px]",
+          on ? "text-navy bg-canvas font-semibold" : "text-ink hover:bg-canvas",
+        )}
+      >
+        {g.label}
+      </Link>
+    );
+  };
+  return (
+    <div
+      ref={wrap}
+      className="flex flex-col gap-1"
+      onMouseEnter={show}
+      onMouseLeave={hideSoon}
+      onFocus={show}
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setPos(null);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") setPos(null);
+      }}
+    >
+      <NavLink item={item} active={active} expanded={expanded} tooltip={false} />
+      {expanded && active && (
+        <nav
+          aria-label="Podmenu Nastavenia"
+          data-testid="settings-subnav"
+          className="scrollbar-quiet flex max-h-[40vh] flex-col overflow-y-auto pl-8"
+        >
+          {SETTINGS_SHORTCUTS.map(groupLink)}
+        </nav>
+      )}
+      {!expanded && pos && (
+        <nav
+          aria-label="Podmenu Nastavenia"
+          data-testid="settings-flyout"
+          style={{ left: pos.left, bottom: pos.bottom }}
+          className="fixed z-50 flex min-w-56 flex-col rounded-xl border border-neutral-200 bg-white p-1"
+        >
+          <p className="px-3 pt-1 pb-1 text-[13px] font-semibold tracking-[0.04em] text-neutral-500 uppercase">
+            Nastavenia
+          </p>
+          {SETTINGS_SHORTCUTS.map(groupLink)}
+        </nav>
+      )}
+    </div>
+  );
+}
+
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { roles, fullName, email, signOut } = useAuth();
@@ -96,7 +203,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Logo and the bottom block are pinned; only the module list scrolls on short screens. */}
       <aside
         data-testid="sidebar"
-        className="no-print sticky top-0 flex h-dvh w-[72px] shrink-0 flex-col border-r border-neutral-200 bg-white xl:w-[240px]"
+        className="no-print sticky top-0 z-30 flex h-dvh w-[72px] shrink-0 flex-col border-r border-neutral-200 bg-white xl:w-[240px]"
       >
         <Link
           href="/"
@@ -141,9 +248,19 @@ export function AppShell({ children }: { children: ReactNode }) {
         >
           {items
             .filter((i) => i.group === "bottom")
-            .map((item) => (
-              <NavLink key={item.href} item={item} active={isActive(item)} expanded={expanded} />
-            ))}
+            .map((item) =>
+              item.href === SETTINGS_HOME ? (
+                <SettingsNavItem
+                  key={item.href}
+                  item={item}
+                  active={isActive(item)}
+                  expanded={expanded}
+                  pathname={pathname}
+                />
+              ) : (
+                <NavLink key={item.href} item={item} active={isActive(item)} expanded={expanded} />
+              ),
+            )}
         </nav>
       </aside>
 
@@ -181,6 +298,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         onOpenChange={setPaletteOpen}
         items={items}
         newActions={newActions}
+        settingsPages={items.some((i) => i.href === SETTINGS_HOME) ? SETTINGS_PAGES : []}
       />
     </div>
   );

@@ -3,7 +3,13 @@
 import { Command } from "cmdk";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { NAV_ITEMS, type NavItem, type NewAction } from "@/core/navigation";
+import {
+  NAV_ITEMS,
+  type NavItem,
+  type NewAction,
+  type SettingsGroup,
+  type SettingsPage,
+} from "@/core/navigation";
 
 const GROUP_CLASS =
   "[&_[cmdk-group-heading]]:px-4 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-[13px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:tracking-[0.04em] [&_[cmdk-group-heading]]:text-neutral-500 [&_[cmdk-group-heading]]:uppercase";
@@ -16,6 +22,7 @@ export function CommandPalette({
   onOpenChange,
   items = NAV_ITEMS,
   newActions = [],
+  settingsPages = [],
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -23,6 +30,8 @@ export function CommandPalette({
   items?: readonly NavItem[];
   /** "Nové" actions the user may use */
   newActions?: readonly NewAction[];
+  /** settings sub-pages with their search words (admin only) */
+  settingsPages?: readonly (SettingsPage & { group: SettingsGroup })[];
 }) {
   const router = useRouter();
 
@@ -68,6 +77,25 @@ export function CommandPalette({
             </Command.Item>
           ))}
         </Command.Group>
+        {settingsPages.length > 0 && (
+          <Command.Group heading="Nastavenia" className={GROUP_CLASS}>
+            {settingsPages.map((p) => (
+              <Command.Item
+                key={p.href}
+                value={`Nastavenia ${p.group.label} ${p.label}`}
+                keywords={p.keywords}
+                onSelect={() => {
+                  onOpenChange(false);
+                  router.push(p.href);
+                }}
+                className={ITEM_CLASS}
+              >
+                <span className="text-neutral-500">Nastavenia → </span>
+                {p.label}
+              </Command.Item>
+            ))}
+          </Command.Group>
+        )}
         {newActions.length > 0 && (
           <Command.Group heading="Nové" className={GROUP_CLASS}>
             {newActions.map((a) => (

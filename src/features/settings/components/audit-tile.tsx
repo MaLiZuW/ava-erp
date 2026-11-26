@@ -32,7 +32,7 @@ const FILTERS: { label: string; tables: string[] }[] = [
   { label: "Reporting", tables: [...REPORTING_TABLES] },
 ];
 
-function recordLabel(e: AuditEntry): string {
+export function recordLabel(e: AuditEntry): string {
   const table = TABLE_LABELS[e.table_name] ?? e.table_name;
   const data = (e.new_data ?? e.old_data) as Record<string, unknown> | null;
   const key =
