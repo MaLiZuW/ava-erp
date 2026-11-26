@@ -5,12 +5,12 @@
 - [x] Supabase projekt `ava-erp-dev` založený, `.env.local` hotový (session pooler).
 - [x] `db:push`, `db:seed`, `db:types`, `db:test`, `db:test:api` na dev projekte – zelené (26. 11. 2026).
 - [x] Databáza postavená od nuly na dev projekte `ava-erp-dev` z migrácií + seedu, všetky testy zelené (26. 11. 2026, so súhlasom vlastníka).
-- [ ] **BRÁNA FÁZY 1 – OTVORENÁ: nasadenie a kontrola hostingu.** Hosting `app.av-agency.sk` je od 26. 11. 2026 pozastavený zo strany WebSupportu, preto sa zatiaľ testuje lokálne (`npm run build` + `npm run test:e2e` proti `out/`). Po obnovení hostingu:
+- [ ] **BRÁNA FÁZY 2 (presunuté z fázy 1 so súhlasom vlastníka): nasadenie a kontrola hostingu.** Hosting `app.av-agency.sk` je od 26. 11. 2026 pozastavený zo strany WebSupportu, preto sa zatiaľ testuje lokálne (`npm run build` + `npm run test:e2e` proti `out/`; lokálna kontrola vlastníkom OK). Fáza 1 sa uzatvára bez tohto bodu. Po obnovení hostingu:
   - [ ] vlastník zapne/obnoví HTTPS certifikát pre `app.av-agency.sk` (O3 v `docs/DECISIONS.md`);
   - [ ] vlastník nahrá `out/` do `/av-agency.sk/sub/app` cez WinSCP (`DEPLOYMENT.md`, časť D; skryté súbory – `.htaccess` – musia ísť s ním);
   - [ ] kontrola `.htaccess` a HTTPS na ostrej doméne (`DEPLOYMENT.md`, časť E): HTTP → HTTPS (301), hlavičky (HSTS, CSP, X-Frame-Options DENY, Referrer-Policy, Permissions-Policy), obnovenie `/zakazky/` bez 404, neexistujúca adresa → 404.html;
   - [ ] overiť, že CSP nezablokuje Supabase ani vlastné skripty (konzola prehliadača bez CSP chýb).
-        Poznámka: `.htaccess` je zatiaľ overený len testom textu (`src/core/htaccess.test.ts`), nie na skutočnom Apache; brána fázy 1 sa nezatvára, kým sa to nepotvrdí na hostingu.
+        Poznámka: `.htaccess` je zatiaľ overený len testom textu (`src/core/htaccess.test.ts`), nie na skutočnom Apache; brána fázy 2 sa nezatvára, kým sa to nepotvrdí na hostingu.
 - [ ] **Prototyp IMAP/SMTP (posledný krok fázy 1, nezdržuje bránu):** potrebná testovacia schránka na WebSupport. Edge Function `email-check` v samostatnej vetve `proto-email-check`, vráti len „spojenie OK / chyba“, údaje cez `supabase secrets`. Riziko na overenie: Edge Functions blokujú odchádzajúce porty 25 a 587, preto sa SMTP testuje na 465. Výsledok sem zapísať. **Stav: otvorené – vlastník zatiaľ nemá testovaciu schránku; fáza 1 sa tým neblokuje.**
 
 ## Technický dlh a neskôr

@@ -16,6 +16,10 @@ Formát: [Keep a Changelog](https://keepachangelog.com/sk/1.1.0/).
 - `public/.htaccess` (HTTPS, 404, hlavičky vrátane CSP), CI v GitHub Actions.
 - Dokumenty v koreni.
 
+### Zmenené
+
+- Bod brány „statická verzia nahraná na `https://app.av-agency.sk`, HTTPS, obnovenie stránky bez 404“ sa presúva z brány fázy 1 do brány fázy 2 (hosting je pozastavený zo strany WebSupportu; so súhlasom vlastníka, 26/11/2026). Fáza 1 je overená lokálne.
+
 ### Poznámky
 
 - Pri tvorbe sa zistilo, že Supabase CLI v3 používa `--remote` namiesto `--linked`.
