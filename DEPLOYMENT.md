@@ -44,6 +44,8 @@ npm run db:seed
 npm run db:test
 ```
 
+> **Stav 26. 11. 2026:** hosting je pozastavený zo strany WebSupportu – časti D a E sú zatiaľ neoverené (pozri `TODO.md`, brána fázy 1).
+
 ## D. Zostavenie a nahranie na hosting (FTP, WinSCP)
 
 1. Zostavenie:
