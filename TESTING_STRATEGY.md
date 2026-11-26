@@ -30,4 +30,5 @@ Sandbox nenahrádza beh na skutočnom projekte (brána fázy): odlišnosti PGlit
 
 - Vitest: 26 testov. Playwright: 3 testy. pgTAP: 91 asercií v 4 súboroch – sandbox aj dev projekt.
 - Dev projekt Supabase (26. 11. 2026): migrácia nasadená, `db:test` zelený vrátane súbežnosti (10 paralelných relácií, čísla 1..10 bez medzier), `db:test:api` (anon kľúč → HTTP 401 na všetkých tabuľkách, RPC aj zápise).
+- Znovupostaviteľnosť (26. 11. 2026): reset dev databázy → `db:push` → `db:seed` → `db:test` + `db:test:api` bez chýb; vygenerované typy sa nezmenili.
 - Ešte neotestované: skutočný aal1 token (potrebuje používateľa, fáza 2); v pgTAP je aal1 simulovaný cez JWT claims.

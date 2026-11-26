@@ -4,10 +4,10 @@
 
 - [x] Supabase projekt `ava-erp-dev` založený, `.env.local` hotový (session pooler).
 - [x] `db:push`, `db:seed`, `db:types`, `db:test`, `db:test:api` na dev projekte – zelené (26. 11. 2026).
-- [ ] Súhlas s postavením DB od nuly na dev projekte (brána „databáza sa dá postaviť od nuly“).
-- [ ] Nahrať `out/` na `https://app.av-agency.sk` cez WinSCP (`DEPLOYMENT.md`, časť D, E).
+- [x] Databáza postavená od nuly na dev projekte `ava-erp-dev` z migrácií + seedu, všetky testy zelené (26. 11. 2026, so súhlasom vlastníka).
+- [ ] Zapnúť HTTPS certifikát pre `app.av-agency.sk` (vlastník) a potom nahrať `out/` na `https://app.av-agency.sk` cez WinSCP (`DEPLOYMENT.md`, časť D, E).
 - [ ] O3: overiť HTTPS certifikát `app.av-agency.sk`.
-- [ ] **Prototyp IMAP/SMTP (posledný krok fázy 1, nezdržuje bránu):** potrebná testovacia schránka na WebSupport. Edge Function `email-check` v samostatnej vetve `proto-email-check`, vráti len „spojenie OK / chyba“, údaje cez `supabase secrets`. Riziko na overenie: Edge Functions blokujú odchádzajúce porty 25 a 587, preto sa SMTP testuje na 465. Výsledok sem zapísať. **Stav: otvorené – čaká na schránku.**
+- [ ] **Prototyp IMAP/SMTP (posledný krok fázy 1, nezdržuje bránu):** potrebná testovacia schránka na WebSupport. Edge Function `email-check` v samostatnej vetve `proto-email-check`, vráti len „spojenie OK / chyba“, údaje cez `supabase secrets`. Riziko na overenie: Edge Functions blokujú odchádzajúce porty 25 a 587, preto sa SMTP testuje na 465. Výsledok sem zapísať. **Stav: otvorené – vlastník zatiaľ nemá testovaciu schránku; fáza 1 sa tým neblokuje.**
 
 ## Technický dlh a neskôr
 

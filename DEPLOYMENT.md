@@ -35,7 +35,14 @@ Prvý používateľ a rola administrátora (po pozvánke z dashboardu _Authentic
 `insert into public.user_roles (user_id, role) select id, 'admin' from public.profiles where email = '<e-mail>';`
 (profil sa vytvorí automaticky pri vzniku používateľa). Správa používateľov v aplikácii príde vo fáze 2.
 
-**Postaviť databázu od nuly** (brána fázy 1) je deštruktívne – robí sa len na dev projekte a len s tvojím výslovným súhlasom (Supabase dashboard → _Database → Migrations_ / alebo nový prázdny projekt, potom `db:push` + `db:seed`).
+**Postaviť databázu od nuly** (overené 26. 11. 2026) je deštruktívne – len na dev projekte a len s tvojím výslovným súhlasom:
+
+```powershell
+npm run db:reset:dev -- --confirm=hkfkdomslzvpxukzhlwc   # zmaže objekty projektu + históriu migrácií (poistky: ref projektu, prázdne auth.users, žiadne neznáme tabuľky)
+npm run db:push -- --yes
+npm run db:seed
+npm run db:test
+```
 
 ## D. Zostavenie a nahranie na hosting (FTP, WinSCP)
 
