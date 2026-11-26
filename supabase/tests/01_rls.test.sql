@@ -63,9 +63,9 @@ select isnt_empty(format('select 1 from public.%I', t), t || ': admin with aal2 
 from unnest(array['companies','divisions','profiles','user_roles','feature_flags','system_settings',
                   'number_series','status_transitions','activity_logs',
                   'notification_recipients','documents']) as t;
-select lives_ok($$insert into public.system_settings (key, value) values ('inactivity_minutes', '30')$$,
+select lives_ok($$insert into public.system_settings (key, value) values ('rls_probe_setting', '30')$$,
   'admin can insert a setting');
-select lives_ok($$update public.system_settings set value = '45' where key = 'inactivity_minutes'$$,
+select lives_ok($$update public.system_settings set value = '45' where key = 'rls_probe_setting'$$,
   'admin can update a setting');
 select lives_ok($$update public.feature_flags set enabled = true where key = 'test_flag'$$,
   'admin can toggle a feature flag');

@@ -93,6 +93,10 @@ select throws_ok($$insert into storage.objects (bucket_id, name)
                    on conflict (bucket_id, name collate "C") where archived_at is null do update set metadata = '{"upsert":true}'$$,
   '42501', null, 'upsert over an existing object is refused');
 
+-- checked right away (before any delete), as the admin who tried it
+select is_empty($$select 1 from storage.objects where metadata ? 'tampered' or metadata ? 'upsert'$$,
+  'no object was overwritten (update and upsert changed nothing)');
+
 -- locked object cannot be deleted; unlocked one can
 delete from storage.objects where name like '%10000000-0000-0000-0000-000000000001-locked.png';
 delete from storage.objects where name like '%10000000-0000-0000-0000-000000000002-free.png';
@@ -109,8 +113,6 @@ select lives_ok($$update public.documents set is_locked = true where id = 'd0000
   'admin can lock an unlocked document');
 reset role;
 
-select is_empty($$select 1 from storage.objects where metadata ? 'tampered' or metadata ? 'upsert'$$,
-  'no object was overwritten (update and upsert changed nothing)');
 select is((select count(*) from storage.objects
             where name like '%10000000-0000-0000-0000-000000000001-locked.png'), 1::bigint,
   'locked object survived the delete');
