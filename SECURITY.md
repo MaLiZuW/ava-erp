@@ -35,7 +35,8 @@ Poradie podľa situácie:
 
 - `anon` nemá prístup k žiadnej tabuľke ani pohľadu (test).
 - Role: `admin` všetko; `manager`, `accountant`, `external` sú pripravené, politiky pribudnú s modulmi. Bez roly používateľ nevidí nič okrem číselníkov (divízie, feature flagy, stavové prechody) a vlastného profilu. V UI sa skrýva, čo rola nesmie (`RequireRole`, `visibleNavItems`) – rozhoduje však vždy RLS.
-- **Nová tabuľka = RLS + `require_aal2` + `GRANT` + test.** Meta-test zlyhá, ak niektorá tabuľka v `public` nemá RLS alebo `require_aal2`.
+- **Nová tabuľka = RLS + `require_aal2` + `GRANT` + test.** Meta-test zlyhá, ak niektorá tabuľka v `public` nemá RLS alebo `require_aal2`. Od fázy 3 to robí jedna funkcia `private.setup_admin_table(tabuľka, povoliť_mazanie)` (audit triggery, RLS, aal2, admin politiky, granty); volať ju možno len v migrácii (žiadny `EXECUTE` pre API roly – test).
+- Kmeňové dáta sa nemažú (deaktivácia `is_active`); mazať smie admin len riadky bez histórie – nepoužité jednotky, riadky kusovníka, réžiu, kapacity a ciele KPI.
 - Audit: každá zmena a prechod stavu ide do `activity_logs` (append-only aj pre vlastníka). Obrazovka „História zmien“ v Nastaveniach.
 - Vystavené doklady sa nemenia ani nemažú (trigger `lock_issued` príde s prvým dokladom). Dokumenty: `documents.is_locked = true` → riadok sa nedá zmeniť ani zmazať (trigger aj pre vlastníka).
 - Číslovanie dokladov nejde volať cez API (`next_document_number` nemá `EXECUTE` pre `anon`/`authenticated`).
@@ -46,6 +47,7 @@ Poradie podľa situácie:
 - Fáza 2 (logo): povolené len **PNG, JPEG, WebP do 2 MB**, **SVG zakázané** (môže obsahovať skript). Kontrola v prehliadači (prípona, MIME typ a „magic bytes“ obsahu) aj na serveri (nastavenie bucketu – `allowed_mime_types`, `file_size_limit`).
 - Politiky `storage.objects`: čítanie, nahranie a zmazanie len admin s aal2; **žiadna UPDATE politika → prepis/upsert je vždy zakázaný** (nová verzia = nový objekt); objekt patriaci zamknutému dokumentu sa nedá zmazať ani nahrať znova na tú istú cestu (`private.is_locked_object`). Testy: `supabase/tests/05_documents_storage.test.sql` (overené aj mutáciou – pridaná UPDATE politika test zhodí).
 - Názov súboru v ceste sa normalizuje na ASCII (`safeFileName`), cesta má pevný tvar `RRRR/<tabuľka>/<id>/<uuid>-<názov>` (constraint v DB).
+- Fáza 3: obrázky knižnice obsahu (`documents.category = 'content_image'`) majú rovnaké pravidlo ako logo. Pravidlo „PNG/JPEG/WebP do 2 MB“ pre kategórie `logo` a `content_image` vynucuje aj **tabuľka `documents`** (constraint `documents_image_files`) – tri vrstvy: prehliadač, bucket, databáza. Nahrávanie aj mazanie ide cez jedno miesto `src/core/documents.ts`; odobratý obrázok sa zmaže aj zo Storage.
 
 ## Tajomstvá
 
@@ -54,6 +56,7 @@ Poradie podľa situácie:
 - `SUPABASE_SECRET_KEY` (fáza 2) je **len pre lokálne testovacie skripty** (`db:test:api`, Playwright): vytvára a maže dočasných používateľov `*@test.invalid` na **dev** projekte cez Admin API. Skripty odmietnu bežať proti inému projektu; heslá a TOTP tajomstvá sú náhodné pre každý beh a nikde sa nevypisujú. Na produkčnom projekte sa nepoužíva.
 - Edge Function dostáva `SUPABASE_SERVICE_ROLE_KEY` automaticky od Supabase – v kóde ani v repozitári nie je.
 - Supabase Free: len testovacie dáta. Výnimka so súhlasom vlastníka: verejné údaje firmy z obchodného registra (Nastavenia → Firma). Ostré dáta zákazníkov až na samostatnom projekte Pro.
+- **D22 (fáza 3):** na dev projekte smú byť reálne firmy (obchodné meno, IČO, adresa – verejné údaje z OR), katalóg, sadzby, zdroje a texty o firme; **osobné kontakty** (mená, osobné e-maily a telefóny konkrétnych ľudí) až na projekte Pro – na dev len všeobecné firemné kontakty (info@, objednávky@). Formulár kontaktu to pripomína textom o spracúvaní osobných údajov na účely plnenia zmluvy; úplná informačná povinnosť (GDPR) je úlohou fázy 8.
 
 ## Hlavičky servera (`public/.htaccess`)
 

@@ -2,6 +2,31 @@
 
 Formát: [Keep a Changelog](https://keepachangelog.com/sk/1.1.0/).
 
+## [Nevydané] – fáza 3: Kmeňové dáta a knižnica obsahu (`phase-03-master-data`)
+
+### Pridané
+
+- **Zákazníci a dodávatelia** (`src/features/parties` – jeden modul pre oboch): zoznam s vyhľadávaním (názov, mesto, IČO) a filtrom Aktívni/Všetci, detail cez `?id=`, formulár (IČO mod 11, DIČ, IČ DPH EÚ, PSČ podľa krajiny, splatnosť), kontakty s textom o osobných údajoch (D22), stroje zákazníka len pri `service_cnc`, upozornenie pri zahraničnom dodávateľovi (§ 7, § 7a – overiť s účtovníkom), deaktivácia namiesto mazania, história zmien záznamu aj jeho kontaktov.
+- **Katalóg** (`src/features/catalog`, záložky `?tab=`): položky (typ, jednotka, divízia, nákupná cena, predvolený dodávateľ, marža/prirážka), balíčky – kusovník **jednej úrovne**, jednotky, roly a hodinové sadzby s platnosťou od–do, vlastné zdroje s nákladovou sadzbou počítanou databázou (náhľad pri písaní rovnakým vzorcom), história zmien katalógu.
+- **Knižnica obsahu** (Dokumenty): O firme + služby podľa typu zákazky (SERVICE len pri `service_cnc`), text s verziami, obrázky PNG/JPEG/WebP do 2 MB.
+- **Nastavenia → Reporting:** réžia po mesiacoch a divíziách, pásma dane z príjmov (bez prednastavených hodnôt, s upozornením „overiť s účtovníkom“), kapacity (dostupné hodiny), ciele 11 procesných KPI pre Spolu/AVENG/Agentúra.
+- „+ Nové“ v hornej lište a skupina „Nové“ v `Ctrl+K`: Zákazník, Dodávateľ, Položka katalógu.
+- Spoločné časti: `core/form-fields.ts` (zod polia vrátane súm, percent a dátumov DD/MM/YYYY), `core/shared-queries.ts` (história, profily, feature flagy, divízie), `core/record-history.tsx`, `core/documents.ts` (nahrávanie obrázkov, podpísané URL), `core/calc/resource-rate.ts`; UI `DataTable`, `ChipGroup`, `MoneyInput`, `PercentInput`, `DateInput`, `Textarea`, `Checkbox`, `NewMenu`.
+- Databáza: 3 migrácie `20261128100000_phase3_parties.sql`, `20261128110000_phase3_catalog.sql`, `20261128120000_phase3_content_reporting.sql` (16 tabuliek, `private.setup_admin_table()`, `btree_gist`), pravidlo obrázkov v `documents`.
+- Testy: pgTAP `07_parties`, `08_catalog`, `09_content_reporting`; Vitest pre schémy, vzorce a komponenty; e2e `master-data.spec.ts` (zákazník, dodávateľ, katalóg, knižnica, réžia) s upratovaním dát `E2E …`; API test pokrýva nové tabuľky a nahrávanie cez Storage.
+
+### Opravené
+
+- Ľavé menu sa na nízkej obrazovke posúva, Nastavenia ostávajú pripnuté dole.
+- Pole TOTP prijme kód s medzerou, nezlomiteľnou medzerou aj pomlčkou („123 456“, „ 123 456 “, „123-456“) – predtým limit 7 znakov odrezal vložený kód.
+- Test `05_documents_storage` už nezávisí od reálnych súborov v buckete na dev projekte.
+
+### Zmenené
+
+- Logo sa nahráva cez spoločné jadro dokumentov; `LOGO_*` → `IMAGE_*`, `checkLogoFile` → `checkImageFile`.
+- `db:types` typy aj naformátuje; `purgeTestUsers` vie mazať len používateľov jednej testovacej sady.
+- Odchýlky od schémy schválené vlastníkom: `kpi_targets` má `id` PK + `unique nulls not distinct`, `overhead_costs` `unique nulls not distinct`, checky `>= 0` na sumách, `expected_life_hours > 0`.
+
 ## [Nevydané] – fáza 2: Prihlásenie, 2FA, roly, audit (`phase-02-security`)
 
 ### Pridané

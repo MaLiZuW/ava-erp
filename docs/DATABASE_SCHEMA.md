@@ -9,7 +9,7 @@ Procesy a stavy: pozri `BUSINESS_PROCESSES.md`.
 | Pravidlo | Hodnota |
 |---|---|
 | Primárny kľúč | `id uuid primary key default gen_random_uuid()` |
-| Peniaze | `bigint` v **centoch** (`*_cents`), mena `char(3) default 'EUR'` |
+| Peniaze | `bigint` v **centoch** (`*_cents`), mena `char(3) default 'EUR'`; od fázy 3 každá suma v kmeňových dátach a nastaveniach `check (>= 0)`, percentá `>= 0` (schválené vlastníkom) |
 | Percentá | `numeric(7,4)` (napr. 25.0000 = 25 %) |
 | Množstvá | `numeric(14,4)` |
 | Čas | `timestamptz`, dátumy `date`; zobrazenie DD/MM/YYYY |
@@ -133,7 +133,7 @@ Index: (table_name, record_id), (at). Zápis iba triggerom `private.log_change()
 | id | uuid PK | |
 | entity_table | text | napr. 'jobs', 'invoices' |
 | entity_id | uuid | |
-| category | text | 'quote_pdf', 'invoice_pdf', 'visual_preview', 'signed_delivery', 'supplier_invoice_xml', 'attachment', 'email_attachment', 'logo' … |
+| category | text | 'quote_pdf', 'invoice_pdf', 'visual_preview', 'signed_delivery', 'supplier_invoice_xml', 'attachment', 'email_attachment', 'logo', 'content_image' (fáza 3) … – pre `logo` a `content_image` constraint: PNG/JPEG/WebP, najviac 2 MB |
 | storage_bucket | text | 'documents' (súkromný) |
 | storage_path | text | `RRRR/<entity_table>/<entity_id>/<uuid>-<názov>` |
 | file_name, mime_type | text | |
@@ -198,14 +198,14 @@ Ako `customer_contacts`, FK `supplier_id`.
 | is_active | boolean | |
 
 ### package_components (kusovník balíčka)
-`package_item_id FK catalog_items on delete cascade`, `component_item_id FK catalog_items`, `quantity numeric(14,4) > 0`; PK (package_item_id, component_item_id). Check: komponent nesmie byť ten istý balíček.
+`package_item_id FK catalog_items on delete cascade`, `component_item_id FK catalog_items`, `quantity numeric(14,4) > 0`; PK (package_item_id, component_item_id). Check: komponent nesmie byť ten istý balíček. **Jedna úroveň** (rozhodnutie vlastníka, fáza 3): rodič musí mať `item_type = 'package'`, komponent nesmie byť balíček; trigger stráži aj zmenu typu položky.
 
 ### labor_roles a labor_rates
 - `labor_roles`: `id`, `name` (napr. 'Konzultant', 'Projektový manažér', 'Event koordinátor'), `is_active`.
 - `labor_rates`: `id`, `role_id FK`, `cost_rate_cents` (kalkulačná sadzba), `bill_rate_cents`, `valid_from date`, `valid_to date null`; exclusion constraint na prekrývajúce sa obdobia rovnakej roly.
 
 ### resources
-`id`, `name`, `kind text` ('zariadenie','vozidlo','technika'), `purchase_cost_cents`, `expected_life_hours numeric`, `operating_cost_per_hour_cents`, `cost_rate_cents` (vypočítaná uložená hodnota), `bill_rate_cents`, `is_active`.
+`id`, `name`, `kind text` ('zariadenie','vozidlo','technika'), `purchase_cost_cents`, `expected_life_hours numeric` (**check > 0**), `operating_cost_per_hour_cents`, `cost_rate_cents` (generovaný stĺpec: `round(purchase ÷ hodiny) + prevádzka/h`, centy, polovica nahor), `bill_rate_cents`, `is_active`.
 
 ## 5. Predaj
 
@@ -562,7 +562,7 @@ Pohľady s `security_invoker = true`, aby rešpektovali RLS.
 ## 18. Doplnok 26. 11. 2026 – reporting, hodnotenie partnerov, dokumenty
 
 ### overhead_costs (réžia)
-`id`, `month date` (1. deň mesiaca), `division_id FK null` (null = spoločná), `category text`, `amount_cents bigint`, `note`. Unique (month, division_id, category).
+`id`, `month date` (1. deň mesiaca), `division_id FK null` (null = spoločná), `category text`, `amount_cents bigint`, `note`. Unique **nulls not distinct** (month, division_id, category) – inak by sa dala vložiť duplicitná spoločná réžia.
 
 ### income_tax_brackets (sadzby dane z príjmov PO)
 `id`, `valid_from date`, `valid_to date null`, `revenue_from_cents bigint`, `revenue_to_cents bigint null`, `rate_pct numeric(7,4)`, `source_note text`. Hodnoty sa zadávajú migráciou/nastavením podľa aktuálneho zákona a overujú s účtovníkom – nikdy v kóde.
@@ -577,10 +577,10 @@ Pohľady s `security_invoker = true`, aby rešpektovali RLS.
 `id`, `party_type text` ('customer','supplier'), `customer_id FK null`, `supplier_id FK null`, `job_id FK null`, `rated_at`, `rated_by FK profiles`, `scores jsonb` (napr. `{"quality":4,"on_time":5,"price":3,"communication":4}` – kritériá podľa typu partnera), `note`. Check: práve jeden z customer_id/supplier_id.
 
 ### kpi_targets
-`kpi_key text`, `division_id FK null`, `target_value numeric`, `warning_value numeric`, `direction text` ('higher_better','lower_better'), `valid_from date`. PK (kpi_key, division_id, valid_from).
+`id uuid PK`, `kpi_key text`, `division_id FK null` (null = Spolu), `target_value numeric`, `warning_value numeric`, `direction text` ('higher_better','lower_better'), `valid_from date`. Unique **nulls not distinct** (kpi_key, division_id, valid_from). (Upresnené vo fáze 3: stĺpec s NULL nemôže byť v primárnom kľúči.) Hranica upozornenia leží na horšej strane cieľa.
 
 ### content_blocks (knižnica obsahu pre prezentácie)
-`id`, `key text` (napr. 'about_company', 'service_ENG', 'service_PROMO'), `division_id FK null`, `job_type job_type null`, `title`, `body text` (markdown), `image_document_ids uuid[]`, `language char(2) default 'sk'`, `is_active`, `version int`.
+`id`, `key text` (napr. 'about_company', 'service_ENG', 'service_PROMO'), `division_id FK null`, `job_type job_type null`, `title`, `body text` (markdown), `image_document_ids uuid[]` (len dokumenty kategórie `content_image`), `language char(2) default 'sk'`, `is_active`, `version int` (zvyšuje trigger pri zmene textu alebo obrázkov). Unique (key, language).
 
 ### references (referencie / case studies)
 `id`, `job_id FK`, `customer_id FK`, `title`, `challenge`, `solution`, `result`, `image_document_ids uuid[]`, `customer_consent boolean not null default false`, `consent_document_id FK documents null`, `is_publishable boolean generated always as (customer_consent) stored`.

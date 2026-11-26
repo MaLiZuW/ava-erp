@@ -1,5 +1,16 @@
 # TODO.md
 
+## Fáza 3 – čaká na vlastníka (brána)
+
+Podľa D22: na dev reálne firmy (verejné údaje z OR), katalóg, sadzby, zdroje a texty o firme; osobné kontakty až na Pro.
+
+- [ ] Zákazníci a dodávatelia – reálne firmy (názov, IČO, adresa), len všeobecné firemné kontakty.
+- [ ] Katalóg: položky, balíčky (napr. sezónne), jednotky podľa potreby.
+- [ ] Roly a hodinové sadzby (O5) – kalkulačná aj fakturovaná sadzba s platnosťou.
+- [ ] Vlastné zdroje (obstarávacia cena, životnosť v hodinách, prevádzka/h).
+- [ ] Knižnica obsahu: „O firme“ + popisy služieb (ENG, EVENT, PROMO, SEASON), prípadne obrázky (bod brány).
+- [ ] Nastavenia → Reporting: réžia, **pásma dane z príjmov overené s účtovníkom**, kapacity, ciele KPI (môžu prísť aj neskôr – dashboard ich využije vo fáze 7).
+
 ## Fáza 2 – čaká na vlastníka (brána)
 
 - [x] `SUPABASE_SECRET_KEY` v `.env.local`; `npm run db:test:api` – aal1 token = žiadne dáta (bod brány splnený 27/11/2026); Playwright 8/8.
@@ -31,13 +42,23 @@ Presunuté z brány fázy 1 do fázy 2 a so súhlasom vlastníka (27. 11. 2026) 
 
 - [ ] CSP: nahradiť `'unsafe-inline'` pre skripty hashmi generovanými po builde (fáza 8) – súvisí s rizikom tokenov v `localStorage` (`SECURITY.md`).
 - [ ] Logo a znak AV v `public/brand/`: nahradiť zástupné SVG súbormi od vlastníka (statické súbory aplikácie; logo firmy na doklady sa už nahráva v Nastaveniach).
-- [ ] Prepínač divízie (Všetko / AVENG / Agentúra) v hornej lište – `DESIGN_SYSTEM.md` §5 (po zavedení dát, fáza 3+).
+- [ ] Prepínač divízie (Všetko / AVENG / Agentúra) v hornej lište – `DESIGN_SYSTEM.md` §5; presunuté do fázy 4 (zmysel má až s dopytmi a zákazkami).
+- [ ] GDPR: informačná povinnosť ku kontaktom zákazníkov a dodávateľov (presné znenie, doba uchovania, práva dotknutých osôb) – fáza 8; vo formulári kontaktu je zatiaľ krátky text (D22).
+- [ ] História zmien kusovníka a jednotiek nie je viazaná na konkrétny záznam (tabuľky nemajú stĺpec `id`); v Katalógu sa zobrazuje história celej časti. Ak to bude prekážať, doplniť `id` alebo rozšíriť `log_change`.
+- [ ] Prettier hlási formát v ~20 starších súboroch (konce riadkov CRLF/LF po `core.autocrlf`) – zjednotiť `.gitattributes` (`* text=auto eol=lf`) v samostatnom malom PR.
 - [ ] Politiky pre role `manager`, `accountant`, `external` (s modulmi, ktoré ich potrebujú).
 - [ ] Trigger `lock_issued` a `status_transitions` naplniť podľa `BUSINESS_PROCESSES.md` kap. 4 (s prvými dokladmi).
 - [ ] Typy udalostí pre `notification_recipients.event_types` – až s notifikáciami (nevymýšľať vopred).
 - [ ] Bucket `documents`: rozšíriť povolené typy (PDF, prílohy) a limity s modulmi, ktoré ich potrebujú.
 - [ ] Na produkčnom projekte Pro: serverový limit nečinnosti relácie (Auth → Sessions) a overenie, či reset 2FA ukončí relácie cieľa.
 - [ ] Pred ostrými dátami: samostatný projekt Pro, zálohy, nezávislá bezpečnostná revízia (fáza 8).
+
+## Hotové vo fáze 3
+
+- [x] Ľavé menu sa posúva, Nastavenia pripnuté dole; TOTP kód s medzerou.
+- [x] Zákazníci, dodávatelia, kontakty, stroje (skryté), katalóg, kusovník, jednotky, roly a sadzby, zdroje.
+- [x] Knižnica obsahu, réžia, dane z príjmov (bez hodnôt), kapacity, ciele KPI.
+- [x] D22 zapísané v `docs/DECISIONS.md`.
 
 ## Hotové vo fáze 2
 

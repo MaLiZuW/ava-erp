@@ -54,3 +54,12 @@ TypeScript 5.9 a ESLint 9 sú zámerne nižšie než najnovšie (TS 7, ESLint 10
 - **Dokumenty a súbory:** tabuľka `documents` + súkromný bucket `documents` (jadro príloh pre ďalšie fázy). Prepis objektu je zakázaný vždy; zamknutý dokument sa nedá zmeniť ani zmazať (DB aj storage politika).
 - **Edge Function `admin-mfa-reset`:** logika v `handler.ts` so vstrekovanými závislosťami (testovaná vo Vitest), `index.ts` ju napája na Deno a Supabase. Prvý kód so `service_role` – výhradne na serveri.
 - **`v_open_items`:** zmluva pre dashboard (zatiaľ nuly), `security_invoker`, s aal1 nevráti nič.
+
+## Rozhodnutia fázy 3 (kmeňové dáta a knižnica obsahu)
+
+- **Moduly:** `features/parties` (zákazník aj dodávateľ – rovnaký tvar, parameter `kind`), `features/catalog`, `features/content`; reporting je súčasť `features/settings` (`reporting.ts`, `reporting-api.ts`). Moduly sa navzájom neimportujú – spoločné veci sú v `core/` (`form-fields`, `shared-queries`, `record-history`, `documents`, `calc/`) a `ui/` (`DataTable`, `ChipGroup`, vstupy pre sumy, percentá a dátumy).
+- **Detail cez query parameter** (`/zakaznici/detail/?id=…`, `?id=new` = nový záznam), záložky katalógu `?tab=`. `findNavItem` priradí podstránku k sekcii menu.
+- **Štandard tabuľky:** `private.setup_admin_table()` v migrácii; kmeňové dáta bez mazania (`is_active`).
+- **Pravidlá v databáze:** kusovník jednej úrovne (triggery), neprekrývajúce sa platnosti sadzieb a daňových pásiem (exclusion, `btree_gist`), sadzba zdroja ako generovaný stĺpec (rovnaký vzorec v TS celočíselne), verzia bloku obsahu triggerom, `unique nulls not distinct` tam, kde NULL znamená „celá firma“.
+- **Peniaze vo formulároch:** text „1 234,56“ → zod `moneyField` → centy; percentá `numeric(7,4)`; dátumy DD/MM/YYYY → ISO.
+- **Typy z DB:** `npm run db:types` (generuje a formátuje).

@@ -40,6 +40,18 @@ Sandbox nenahrádza beh na skutočnom projekte (brána fázy): odlišnosti PGlit
 - Heslo a TOTP tajomstvo sú náhodné pre každý beh a nikde sa nevypisujú. Skripty bežia len proti dev projektu (kontrola ref projektu).
 - Playwright `e2e/auth.spec.ts` sa bez týchto údajov (CI na GitHube) **preskočí** s jasnou správou; CI zostaví aplikáciu so zástupnými verejnými hodnotami, aby sa overili prihlasovacie obrazovky bez siete.
 
+## Testovacie dáta na dev projekte (fáza 3)
+
+- e2e test kmeňových dát (`e2e/master-data.spec.ts`) zakladá len fiktívne záznamy s názvom „E2E …“ a po behu ich zmaže (`purgeE2eMasterData` v `scripts/lib/test-users.ts`) – zákazníci, dodávatelia, katalóg, roly, zdroje, réžia. Do pevných slotov knižnice obsahu (reálne texty vlastníka) e2e **nezapisuje**; zápis, verzie a pravidlá obrázkov overuje pgTAP a API test.
+- Každá testovacia sada maže len svojich používateľov (`purgeTestUsers(env, "e2e-md")`), sady preto môžu bežať súbežne.
+
+## Stav (fáza 3)
+
+- Vitest: 170 testov. Playwright: 9 testov (vrátane prihlásenia kódom „123 456“, menu pri 1280×560 a 375×640 a toku kmeňových dát).
+- pgTAP: 306 asercií v 9 súboroch – dev projekt aj sandbox PGlite (sandbox načítava aj `btree_gist`).
+- `db:test:api`: anon/aal1 bez dát aj na všetkých nových tabuľkách; nahrávanie cez Storage s aal2 – PNG prejde, SVG a súbor nad 2 MB bucket odmietne.
+- Vzorec sadzby zdroja je overený rovnakými prípadmi v TypeScripte (`resource-rate.test.ts`) aj v databáze (`08_catalog`).
+
 ## Stav (fáza 2, 27. 11. 2026)
 
 - Vitest: 98 testov v 11 súboroch. Playwright: 5 testov bez prihlásenia zelených; 3 testy s TOTP čakajú na `SUPABASE_SECRET_KEY`.
