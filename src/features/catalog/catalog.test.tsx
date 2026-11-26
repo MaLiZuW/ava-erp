@@ -141,7 +141,7 @@ describe("ResourcesTab", () => {
   it("previews the cost rate with the database formula while typing", async () => {
     const user = userEvent.setup();
     render(wrap(<ResourcesTab />));
-    await user.click(screen.getByRole("button", { name: "+ Nový zdroj" }));
+    await user.click(screen.getByRole("button", { name: "+ Nová technika" }));
     const purchase = screen.getByLabelText("Obstarávacia cena");
     await user.clear(purchase);
     await user.type(purchase, "10 000");

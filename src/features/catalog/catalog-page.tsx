@@ -23,8 +23,10 @@ const TAB_TABLES: Record<CatalogTab, string[]> = {
   balicky: ["package_components", "catalog_items"],
   jednotky: ["units"],
   sadzby: ["labor_roles", "labor_rates"],
-  zdroje: ["resources"],
+  technika: ["resources"],
 };
+
+const LEGACY_TABS: Record<string, CatalogTab> = { zdroje: "technika" };
 
 function recordLabel(e: AuditEntry): string {
   const data = (e.new_data ?? e.old_data) as Record<string, unknown> | null;
@@ -38,10 +40,12 @@ function Catalog() {
   const params = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const raw = params.get("tab");
+  // old links (?tab=zdroje) lead to the renamed tab "Technika a vybavenie" (D24)
+  const raw = LEGACY_TABS[params.get("tab") ?? ""] ?? params.get("tab");
   const tab: CatalogTab = CATALOG_TABS.some((t) => t.value === raw)
     ? (raw as CatalogTab)
     : "polozky";
+  const openNew = params.get("nova") === "1";
 
   return (
     <div className="flex flex-col gap-4">
@@ -52,13 +56,11 @@ function Catalog() {
         onChange={(v) => router.replace(`${pathname}?tab=${v}`, { scroll: false })}
       />
       <BentoGrid className="md:auto-rows-[minmax(160px,auto)]">
-        {tab === "polozky" && (
-          <ItemsTab key={params.get("nova") ?? ""} openNew={params.get("nova") === "1"} />
-        )}
+        {tab === "polozky" && <ItemsTab key={params.get("nova") ?? ""} openNew={openNew} />}
         {tab === "balicky" && <PackagesTab />}
         {tab === "jednotky" && <UnitsTab />}
         {tab === "sadzby" && <RatesTab />}
-        {tab === "zdroje" && <ResourcesTab />}
+        {tab === "technika" && <ResourcesTab key={params.get("nova") ?? ""} openNew={openNew} />}
         <RecordHistoryTile
           key={tab}
           tables={TAB_TABLES[tab]}

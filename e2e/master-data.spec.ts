@@ -152,13 +152,26 @@ test.describe.serial("master data", () => {
     }
     await expect(roleTile.getByText(/prekrýva s inou sadzbou/)).toBeVisible({ timeout: 15_000 });
 
-    // resources: cost rate computed by the database matches the preview
+    // equipment ("Technika a vybavenie", formerly "Zdroje"): the old link still works
     await page.goto("/katalog/?tab=zdroje");
+    await expect(
+      page.getByRole("button", { name: "Technika a vybavenie", pressed: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("region", { name: "Technika a vybavenie", exact: true }),
+    ).toBeVisible();
+    // new equipment from "+ Nové"; cost rate computed by the database matches the preview
+    await page.getByRole("button", { name: "+ Nové" }).click();
+    await page.getByRole("link", { name: "Technika a vybavenie" }).click();
+    await expect(page).toHaveURL(/tab=technika&nova=1/);
     const resource = `${E2E_NAME_PREFIX}Plotter ${stamp}`;
-    await page.getByRole("button", { name: "+ Nový zdroj" }).click();
     await page.getByLabel("Názov", { exact: true }).fill(resource);
     await page.getByLabel("Obstarávacia cena", { exact: true }).fill("10 000");
-    await page.getByLabel("Predpokladaná životnosť", { exact: true }).fill("3000");
+    // life hours: step 100 h – "+" from 2900 gives 3000
+    const life = page.getByLabel("Predpokladaná životnosť", { exact: true });
+    await life.fill("2900");
+    await page.getByRole("button", { name: "Zvýšiť – Predpokladaná životnosť" }).click();
+    await expect(life).toHaveValue("3000");
     await page.getByLabel("Prevádzkové náklady / h", { exact: true }).fill("1,50");
     await expect(page.getByTestId("resource-rate-preview")).toHaveText("4,83 €");
     await page.getByRole("button", { name: "Uložiť" }).click();

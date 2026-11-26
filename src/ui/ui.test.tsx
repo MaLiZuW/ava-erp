@@ -131,6 +131,10 @@ describe("AppShell", () => {
       expect.stringMatching(/^\/zakaznici\/detail\/?\?id=new$/),
     );
     expect(within(menu).getByRole("link", { name: "Dodávateľ" })).toBeInTheDocument();
+    expect(within(menu).getByRole("link", { name: "Technika a vybavenie" })).toHaveAttribute(
+      "href",
+      expect.stringMatching(/\/katalog\/?\?tab=technika&nova=1$/),
+    );
     await userEvent.keyboard("{Escape}");
     expect(screen.queryByRole("list", { name: "Vytvoriť nový záznam" })).not.toBeInTheDocument();
     unmount();

@@ -61,7 +61,7 @@ function ResourceForm({ resource, onDone }: { resource: Resource | null; onDone:
   return (
     <Tile
       size="XL"
-      title={resource ? `Zdroj – ${resource.name}` : "Nový zdroj"}
+      title={resource ? `Technika – ${resource.name}` : "Nová technika"}
       action={
         <div className="flex gap-2">
           <Button variant="ghost" onClick={onDone}>
@@ -181,9 +181,9 @@ function ResourceForm({ resource, onDone }: { resource: Resource | null; onDone:
   );
 }
 
-export function ResourcesTab() {
+export function ResourcesTab({ openNew = false }: { openNew?: boolean }) {
   const [showInactive, setShowInactive] = useState(false);
-  const [editing, setEditing] = useState<Resource | "new" | null>(null);
+  const [editing, setEditing] = useState<Resource | "new" | null>(openNew ? "new" : null);
   const resources = useResources(showInactive);
   const setActive = useSetResourceActive();
 
@@ -248,10 +248,10 @@ export function ResourcesTab() {
       )}
       <Tile
         size="XL"
-        title="Vlastné zdroje"
+        title="Technika a vybavenie"
         action={
           editing === null ? (
-            <Button onClick={() => setEditing("new")}>+ Nový zdroj</Button>
+            <Button onClick={() => setEditing("new")}>+ Nová technika</Button>
           ) : undefined
         }
       >
@@ -268,13 +268,13 @@ export function ResourcesTab() {
         {resources.error && <FormMessage tone="error">{resources.error.message}</FormMessage>}
         {setActive.error && <FormMessage tone="error">{setActive.error.message}</FormMessage>}
         <DataTable
-          caption="Vlastné zdroje"
+          caption="Technika a vybavenie"
           columns={columns}
           rows={resources.data ?? []}
           rowKey={(r) => r.id}
           empty={
             <EmptyState
-              title="Zatiaľ žiadny zdroj"
+              title="Zatiaľ žiadna technika"
               description="Napr. plotter, vozidlo, ozvučenie – s nákladovou sadzbou na hodinu."
             />
           }

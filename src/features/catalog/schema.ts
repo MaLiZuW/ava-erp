@@ -17,7 +17,7 @@ export const ITEM_TYPE_LABELS: Record<ItemType, string> = {
   goods: "Materiál / tovar",
   external_service: "Externá služba",
   labor: "Vlastná práca",
-  resource: "Vlastný zdroj",
+  resource: "Technika a vybavenie",
   package: "Balíček",
   other: "Ostatné",
 };
@@ -33,7 +33,7 @@ export const CATALOG_TABS = [
   { value: "balicky", label: "Balíčky" },
   { value: "jednotky", label: "Jednotky" },
   { value: "sadzby", label: "Roly a sadzby" },
-  { value: "zdroje", label: "Zdroje" },
+  { value: "technika", label: "Technika a vybavenie" },
 ] as const;
 export type CatalogTab = (typeof CATALOG_TABS)[number]["value"];
 
@@ -189,5 +189,5 @@ export const CATALOG_TABLE_LABELS: Record<string, string> = {
   units: "Jednotka",
   labor_roles: "Rola",
   labor_rates: "Sadzba",
-  resources: "Zdroj",
+  resources: "Technika",
 };
