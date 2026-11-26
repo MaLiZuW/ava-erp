@@ -27,6 +27,27 @@ export const CONTENT_SLOTS: readonly ContentSlot[] = [
     jobType: null,
   },
   {
+    key: "why_us",
+    title: "Prečo my",
+    hint: "Čím sa líšime a čo zákazník získa – argumenty pre prezentáciu k ponuke.",
+    division: null,
+    jobType: null,
+  },
+  {
+    key: "how_we_work",
+    title: "Ako pracujeme",
+    hint: "Postup spolupráce od dopytu po odovzdanie – kroky, termíny, komunikácia.",
+    division: null,
+    jobType: null,
+  },
+  {
+    key: "contact",
+    title: "Kontakt",
+    hint: "Kontakt na záver prezentácie. Len firemné údaje (info@, telefón firmy) – D22.",
+    division: null,
+    jobType: null,
+  },
+  {
     key: "service_ENG",
     title: "Inžinierske služby",
     hint: "AVENG – projekty s cieľom, míľnikmi a hodinami.",

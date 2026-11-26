@@ -161,10 +161,21 @@ test.describe.serial("master data", () => {
     //     hold the owner's real texts on dev) ----------------------------------------------------
     await page.goto("/dokumenty/");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Dokumenty");
-    for (const title of ["O firme", "Inžinierske služby", "Reklamné predmety"]) {
-      await expect(page.getByRole("region", { name: title, exact: true })).toBeVisible({ timeout: 15_000 });
+    for (const title of [
+      "O firme",
+      "Prečo my",
+      "Ako pracujeme",
+      "Kontakt",
+      "Inžinierske služby",
+      "Reklamné predmety",
+    ]) {
+      await expect(page.getByRole("region", { name: title, exact: true })).toBeVisible({
+        timeout: 15_000,
+      });
     }
-    await expect(page.getByRole("region", { name: "Diely a servis CNC", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("region", { name: "Diely a servis CNC", exact: true })).toHaveCount(
+      0,
+    );
 
     // --- settings → reporting: overhead; a duplicate for the whole company is refused -----------
     await page.goto("/nastavenia/");

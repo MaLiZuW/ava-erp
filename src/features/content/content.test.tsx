@@ -23,7 +23,14 @@ const wrap = (ui: ReactNode) => (
 describe("content slots", () => {
   it("have unique keys matching the database check and the job types of chapter 2", () => {
     const keys = CONTENT_SLOTS.map((s) => s.key);
+    expect(keys).toHaveLength(9);
     expect(new Set(keys).size).toBe(keys.length);
+    // company-wide blocks for the presentation (phase 3 addition)
+    for (const k of ["about_company", "why_us", "how_we_work", "contact"]) {
+      const slot = CONTENT_SLOTS.find((s) => s.key === k);
+      expect(slot).toMatchObject({ division: null, jobType: null });
+      expect(slot?.flag).toBeUndefined();
+    }
     for (const k of keys) expect(k).toMatch(/^[a-z][a-zA-Z0-9_]{1,59}$/);
     expect(CONTENT_SLOTS.find((s) => s.jobType === "ENG")?.division).toBe("AVENG");
     for (const jt of ["EVENT", "PROMO", "SEASON"] as const) {
