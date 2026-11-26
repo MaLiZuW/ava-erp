@@ -1,0 +1,52 @@
+# =====================================================================
+# Add Value Agency – Apache config for the static export (WebSupport shared hosting)
+# Deployed to: /av-agency.sk/sub/app  →  https://app.av-agency.sk
+# =====================================================================
+
+Options -Indexes
+DirectoryIndex index.html
+
+# --- HTTPS only ------------------------------------------------------
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# --- Routing ---------------------------------------------------------
+# trailingSlash export: /zakazky/ → /zakazky/index.html (Apache adds the slash itself).
+# Unknown URLs get the exported 404 page. Detail pages use query strings (?id=…), not path segments.
+ErrorDocument 404 /404.html
+
+# --- Security headers ------------------------------------------------
+<IfModule mod_headers.c>
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+  Header always set X-Frame-Options "DENY"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
+  Header always set Cross-Origin-Opener-Policy "same-origin"
+
+  # CSP: own domain + Supabase only. 'unsafe-inline' for scripts/styles is required by the Next.js
+  # static export (inline bootstrap scripts); tightening with hashes is tracked in TODO.md.
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://hkfkdomslzvpxukzhlwc.supabase.co; font-src 'self'; connect-src 'self' https://hkfkdomslzvpxukzhlwc.supabase.co wss://hkfkdomslzvpxukzhlwc.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
+
+  # --- Caching: hashed assets are immutable, pages are always revalidated ---
+  <FilesMatch "\.(html|txt)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  <If "%{REQUEST_URI} =~ m#^/_next/static/#">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </If>
+</IfModule>
+
+# --- Compression -------------------------------------------------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain application/javascript application/json image/svg+xml
+</IfModule>
+
+# --- Never serve dotfiles (.env, .git …) -----------------------------------
+<FilesMatch "^\.(?!well-known)">
+  Require all denied
+</FilesMatch>

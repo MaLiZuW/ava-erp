@@ -1,0 +1,616 @@
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+
+export type Database = {
+  graphql_public: {
+    Tables: {
+      [_ in never]: never;
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      graphql: {
+        Args: { extensions?: Json; operationName?: string; query?: string; variables?: Json };
+        Returns: Json;
+      };
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
+  };
+  public: {
+    Tables: {
+      activity_logs: {
+        Row: {
+          action: string;
+          actor: string | null;
+          at: string;
+          from_status: string | null;
+          id: number;
+          new_data: Json | null;
+          note: string | null;
+          old_data: Json | null;
+          record_id: string | null;
+          table_name: string;
+          to_status: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          action: string;
+          actor?: string | null;
+          at?: string;
+          from_status?: string | null;
+          id?: never;
+          new_data?: Json | null;
+          note?: string | null;
+          old_data?: Json | null;
+          record_id?: string | null;
+          table_name: string;
+          to_status?: string | null;
+        };
+        Update: {
+          action?: string;
+          actor?: string | null;
+          at?: string;
+          from_status?: string | null;
+          id?: never;
+          new_data?: Json | null;
+          note?: string | null;
+          old_data?: Json | null;
+          record_id?: string | null;
+          table_name?: string;
+          to_status?: string | null;
+        };
+        Relationships: [];
+      };
+      companies: {
+        Row: {
+          bank_name: string | null;
+          brand_name: string;
+          city: string | null;
+          country: string | null;
+          created_at: string;
+          created_by: string | null;
+          dic: string | null;
+          email: string | null;
+          iban: string | null;
+          ic_dph: string | null;
+          ico: string | null;
+          id: string;
+          legal_name: string;
+          logo_document_id: string | null;
+          phone: string | null;
+          registry_entry: string | null;
+          street: string | null;
+          swift: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          vat_payer: boolean;
+          web: string | null;
+          zip: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          bank_name?: string | null;
+          brand_name?: string;
+          city?: string | null;
+          country?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          dic?: string | null;
+          email?: string | null;
+          iban?: string | null;
+          ic_dph?: string | null;
+          ico?: string | null;
+          id?: string;
+          legal_name: string;
+          logo_document_id?: string | null;
+          phone?: string | null;
+          registry_entry?: string | null;
+          street?: string | null;
+          swift?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          vat_payer?: boolean;
+          web?: string | null;
+          zip?: string | null;
+        };
+        Update: {
+          bank_name?: string | null;
+          brand_name?: string;
+          city?: string | null;
+          country?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          dic?: string | null;
+          email?: string | null;
+          iban?: string | null;
+          ic_dph?: string | null;
+          ico?: string | null;
+          id?: string;
+          legal_name?: string;
+          logo_document_id?: string | null;
+          phone?: string | null;
+          registry_entry?: string | null;
+          street?: string | null;
+          swift?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          vat_payer?: boolean;
+          web?: string | null;
+          zip?: string | null;
+        };
+        Relationships: [];
+      };
+      divisions: {
+        Row: {
+          code: Database["public"]["Enums"]["division_code"];
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          is_active: boolean;
+          name: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          code: Database["public"]["Enums"]["division_code"];
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          is_active?: boolean;
+          name: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          code?: Database["public"]["Enums"]["division_code"];
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          is_active?: boolean;
+          name?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [];
+      };
+      feature_flags: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          enabled: boolean;
+          key: string;
+          note: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          enabled?: boolean;
+          key: string;
+          note?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          enabled?: boolean;
+          key?: string;
+          note?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [];
+      };
+      number_series: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          doc_type: Database["public"]["Enums"]["doc_type"];
+          next_number: number;
+          prefix: string;
+          updated_at: string;
+          updated_by: string | null;
+          year: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          doc_type: Database["public"]["Enums"]["doc_type"];
+          next_number?: number;
+          prefix: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          year: number;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          doc_type?: Database["public"]["Enums"]["doc_type"];
+          next_number?: number;
+          prefix?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          year?: number;
+        };
+        Relationships: [];
+      };
+      profiles: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          email: string | null;
+          full_name: string | null;
+          id: string;
+          is_active: boolean;
+          phone: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          email?: string | null;
+          full_name?: string | null;
+          id: string;
+          is_active?: boolean;
+          phone?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          email?: string | null;
+          full_name?: string | null;
+          id?: string;
+          is_active?: boolean;
+          phone?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [];
+      };
+      status_transitions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          entity_table: string;
+          from_status: string;
+          guard_fn: string | null;
+          is_primary: boolean;
+          label_sk: string;
+          required_role: Database["public"]["Enums"]["app_role"];
+          to_status: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          entity_table: string;
+          from_status: string;
+          guard_fn?: string | null;
+          is_primary?: boolean;
+          label_sk: string;
+          required_role?: Database["public"]["Enums"]["app_role"];
+          to_status: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          entity_table?: string;
+          from_status?: string;
+          guard_fn?: string | null;
+          is_primary?: boolean;
+          label_sk?: string;
+          required_role?: Database["public"]["Enums"]["app_role"];
+          to_status?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [];
+      };
+      system_settings: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          description: string | null;
+          key: string;
+          updated_at: string;
+          updated_by: string | null;
+          value: NonNullable<Json>;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          description?: string | null;
+          key: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          value: NonNullable<Json>;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          description?: string | null;
+          key?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          value?: NonNullable<Json>;
+        };
+        Relationships: [];
+      };
+      user_roles: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          role: Database["public"]["Enums"]["app_role"];
+          updated_at: string;
+          updated_by: string | null;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          role: Database["public"]["Enums"]["app_role"];
+          updated_at?: string;
+          updated_by?: string | null;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          role?: Database["public"]["Enums"]["app_role"];
+          updated_at?: string;
+          updated_by?: string | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      next_document_number: {
+        Args: { p_doc_type: Database["public"]["Enums"]["doc_type"]; p_year?: number };
+        Returns: string;
+      };
+      transition: {
+        Args: { p_entity_table: string; p_id: string; p_note?: string; p_to_status: string };
+        Returns: Json;
+      };
+    };
+    Enums: {
+      app_role: "admin" | "manager" | "accountant" | "external";
+      delivery_doc_kind: "delivery_note" | "handover_protocol" | "service_report";
+      delivery_doc_status: "draft" | "issued" | "confirmed" | "cancelled";
+      division_code: "AVENG" | "AGENCY";
+      doc_type: "DOP" | "CP" | "ZAK" | "OD" | "PRI" | "DL" | "FA" | "ZF" | "DB" | "RFQ" | "NZ";
+      email_direction: "inbound" | "outbound";
+      inquiry_source: "email" | "phone" | "web" | "personal" | "other";
+      inquiry_status:
+        "new" | "in_progress" | "waiting_customer" | "ready_for_costing" | "closed" | "rejected";
+      invoice_kind: "invoice" | "proforma" | "credit_note";
+      invoice_status:
+        "draft" | "issued" | "sent" | "partially_paid" | "paid" | "overdue" | "cancelled";
+      item_type: "goods" | "external_service" | "labor" | "resource" | "package" | "other";
+      job_status:
+        | "received"
+        | "confirmed"
+        | "planning"
+        | "in_progress"
+        | "ready_for_delivery"
+        | "delivered"
+        | "invoiced"
+        | "closed"
+        | "cancelled";
+      job_type: "ENG" | "EVENT" | "PROMO" | "SEASON" | "SERVICE";
+      party_kind: "company" | "person";
+      payment_direction: "incoming" | "outgoing";
+      po_status: "draft" | "sent" | "confirmed" | "partially_received" | "received" | "cancelled";
+      pricing_mode: "none" | "margin" | "markup";
+      quote_version_status:
+        | "draft"
+        | "pending_approval"
+        | "approved"
+        | "sent"
+        | "accepted"
+        | "rejected"
+        | "expired"
+        | "superseded";
+      received_inv_source: "manual_pdf" | "xml_import" | "peppol_api";
+      received_inv_status: "received" | "verified" | "approved_for_payment" | "paid" | "disputed";
+      supplier_rfq_status: "draft" | "sent" | "quoted" | "selected" | "closed";
+      task_status: "todo" | "in_progress" | "done" | "blocked";
+      visual_status: "draft" | "sent" | "approved" | "rejected";
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
+  };
+};
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">;
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">];
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R;
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] & DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R;
+      }
+      ? R
+      : never
+    : never;
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    keyof DefaultSchema["Tables"] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I;
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I;
+      }
+      ? I
+      : never
+    : never;
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    keyof DefaultSchema["Tables"] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U;
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U;
+      }
+      ? U
+      : never
+    : never;
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    keyof DefaultSchema["Enums"] | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never) = never,
+> = DefaultSchemaEnumNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never;
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    keyof DefaultSchema["CompositeTypes"] | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never) = never,
+> = PublicCompositeTypeNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never;
+
+export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
+  public: {
+    Enums: {
+      app_role: ["admin", "manager", "accountant", "external"],
+      delivery_doc_kind: ["delivery_note", "handover_protocol", "service_report"],
+      delivery_doc_status: ["draft", "issued", "confirmed", "cancelled"],
+      division_code: ["AVENG", "AGENCY"],
+      doc_type: ["DOP", "CP", "ZAK", "OD", "PRI", "DL", "FA", "ZF", "DB", "RFQ", "NZ"],
+      email_direction: ["inbound", "outbound"],
+      inquiry_source: ["email", "phone", "web", "personal", "other"],
+      inquiry_status: [
+        "new",
+        "in_progress",
+        "waiting_customer",
+        "ready_for_costing",
+        "closed",
+        "rejected",
+      ],
+      invoice_kind: ["invoice", "proforma", "credit_note"],
+      invoice_status: ["draft", "issued", "sent", "partially_paid", "paid", "overdue", "cancelled"],
+      item_type: ["goods", "external_service", "labor", "resource", "package", "other"],
+      job_status: [
+        "received",
+        "confirmed",
+        "planning",
+        "in_progress",
+        "ready_for_delivery",
+        "delivered",
+        "invoiced",
+        "closed",
+        "cancelled",
+      ],
+      job_type: ["ENG", "EVENT", "PROMO", "SEASON", "SERVICE"],
+      party_kind: ["company", "person"],
+      payment_direction: ["incoming", "outgoing"],
+      po_status: ["draft", "sent", "confirmed", "partially_received", "received", "cancelled"],
+      pricing_mode: ["none", "margin", "markup"],
+      quote_version_status: [
+        "draft",
+        "pending_approval",
+        "approved",
+        "sent",
+        "accepted",
+        "rejected",
+        "expired",
+        "superseded",
+      ],
+      received_inv_source: ["manual_pdf", "xml_import", "peppol_api"],
+      received_inv_status: ["received", "verified", "approved_for_payment", "paid", "disputed"],
+      supplier_rfq_status: ["draft", "sent", "quoted", "selected", "closed"],
+      task_status: ["todo", "in_progress", "done", "blocked"],
+      visual_status: ["draft", "sent", "approved", "rejected"],
+    },
+  },
+} as const;

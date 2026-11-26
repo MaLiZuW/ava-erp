@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 48" width="320" height="48" role="img" aria-label="Add Value Agency – Viac, ako očakávate">
+  <!-- PLACEHOLDER – replace with the official logo supplied by the owner -->
+  <rect width="40" height="40" y="4" rx="10" fill="#00384C"/>
+  <path d="M8 33 L16 15 L24 33 M11.5 27 H20.5" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="square"/>
+  <path d="M24 15 L29 29 L34 15" fill="none" stroke="#00B0EF" stroke-width="3" stroke-linecap="square"/>
+  <text x="52" y="24" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#00384C">Add Value Agency</text>
+  <text x="52" y="42" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#231E1F">Viac, ako očakávate</text>
+</svg>
