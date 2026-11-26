@@ -3,8 +3,8 @@
 import { useMemo, useState } from "react";
 import { AuditTimeline, type AuditEntry } from "@/ui/audit-timeline";
 import { FormMessage } from "@/ui/field";
+import { ChipGroup } from "@/ui/chips";
 import { Tile } from "@/ui/tile";
-import { cn } from "@/ui/cn";
 import { useAuditLog, useProfiles } from "../api";
 import { FIELD_LABELS, TABLE_LABELS } from "../schema";
 
@@ -48,24 +48,13 @@ export function AuditTile() {
 
   return (
     <Tile size="XL" title="História zmien">
-      <div role="group" aria-label="Filter histórie" className="mb-3 flex flex-wrap gap-2">
-        {FILTERS.map((f, i) => (
-          <button
-            key={f.label}
-            type="button"
-            aria-pressed={i === filter}
-            onClick={() => setFilter(i)}
-            className={cn(
-              "h-8 rounded-full border px-3 text-[13px] font-medium transition-colors duration-150 ease-out",
-              i === filter
-                ? "bg-navy border-navy text-white"
-                : "hover:bg-canvas text-ink border-neutral-200",
-            )}
-          >
-            {f.label}
-          </button>
-        ))}
-      </div>
+      <ChipGroup
+        label="Filter histórie"
+        className="mb-3"
+        options={FILTERS.map((f, i) => ({ value: i, label: f.label }))}
+        value={filter}
+        onChange={setFilter}
+      />
       {log.error && <FormMessage tone="error">{log.error.message}</FormMessage>}
       {log.isPending ? (
         <div aria-hidden className="flex animate-pulse flex-col gap-2">

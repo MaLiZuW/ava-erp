@@ -29,7 +29,7 @@ test.describe.serial("sign-in with TOTP", () => {
   let lastCode = "";
 
   test.beforeAll(async () => {
-    await purgeTestUsers(env!);
+    await purgeTestUsers(env!, "e2e");
     user = await createTestUser(env!, "e2e", { admin: true });
   });
 

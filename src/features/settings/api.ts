@@ -5,7 +5,6 @@ import { throwDb } from "@/core/supabase/errors";
 import { getSupabase } from "@/core/supabase/client";
 import type { Json, Tables } from "@/core/supabase/database.types";
 import { checkLogoFile, safeFileName } from "@/core/validation";
-import type { AuditEntry } from "@/ui/audit-timeline";
 import type { CompanyOutput, SystemSettingKey } from "./schema";
 
 export const keys = {
@@ -13,8 +12,6 @@ export const keys = {
   settings: ["system_settings"] as const,
   flags: ["feature_flags"] as const,
   recipients: ["notification_recipients"] as const,
-  audit: (tables: readonly string[]) => ["activity_logs", ...tables] as const,
-  profiles: ["profiles"] as const,
   logoUrl: (path: string | null) => ["logo_url", path] as const,
   users: ["admin_list_users"] as const,
 };
@@ -248,30 +245,5 @@ export function useSetRecipientActive() {
   });
 }
 
-// --- change history -----------------------------------------------------------------------------------------
-export function useAuditLog(tables: readonly string[], limit = 30) {
-  return useQuery({
-    queryKey: keys.audit(tables),
-    queryFn: async () => {
-      const { data, error } = await sb()
-        .from("activity_logs")
-        .select("*")
-        .in("table_name", [...tables])
-        .order("at", { ascending: false })
-        .limit(limit);
-      if (error) throwDb(error);
-      return (data ?? []) as AuditEntry[];
-    },
-  });
-}
-
-export function useProfiles() {
-  return useQuery({
-    queryKey: keys.profiles,
-    queryFn: async () => {
-      const { data, error } = await sb().from("profiles").select("id, full_name, email");
-      if (error) throwDb(error);
-      return data ?? [];
-    },
-  });
-}
+// --- change history (shared with other modules, lives in core) ---------------------------------------------
+export { useAuditLog, useProfiles } from "@/core/shared-queries";

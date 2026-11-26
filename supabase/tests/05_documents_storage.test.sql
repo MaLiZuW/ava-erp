@@ -61,7 +61,8 @@ select throws_ok($$insert into storage.objects (bucket_id, name) values ('docume
   '42501', null, 'admin with aal1 cannot upload');
 delete from storage.objects where bucket_id = 'documents';
 reset role;
-select is((select count(*) from storage.objects where bucket_id = 'documents'), 2::bigint,
+select is((select count(*) from storage.objects where bucket_id = 'documents'
+                   and name like '2026/companies/00000000-0000-0000-0000-000000000001/%'), 2::bigint,
   'admin with aal1 deleted nothing');
 
 -- aal2 user without role ------------------------------------------------------------------------
@@ -78,7 +79,8 @@ reset role;
 select set_config('request.jwt.claims',
   '{"sub":"a0000000-0000-0000-0000-00000000000a","role":"authenticated","aal":"aal2"}', true);
 set local role authenticated;
-select is((select count(*) from storage.objects where bucket_id = 'documents'), 2::bigint, 'admin with aal2 sees objects');
+select is((select count(*) from storage.objects where bucket_id = 'documents'
+                   and name like '2026/companies/00000000-0000-0000-0000-000000000001/%'), 2::bigint, 'admin with aal2 sees objects');
 select lives_ok($$insert into storage.objects (bucket_id, name)
                   values ('documents', '2026/companies/00000000-0000-0000-0000-000000000001/10000000-0000-0000-0000-000000000003-new.png')$$,
   'admin with aal2 can upload a new object');

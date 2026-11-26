@@ -21,10 +21,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { useAuth } from "@/core/auth/auth-provider";
-import { findNavItem, visibleNavItems, type NavItem } from "@/core/navigation";
+import { findNavItem, visibleNavItems, visibleNewActions, type NavItem } from "@/core/navigation";
 import { Button } from "./button";
 import { cn } from "./cn";
 import { CommandPalette } from "./command-palette";
+import { NewMenu } from "./new-menu";
 
 const ICONS: Record<string, LucideIcon> = {
   "/": LayoutDashboard,
@@ -65,6 +66,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { roles, fullName, email, signOut } = useAuth();
   const items = visibleNavItems(roles);
+  const newActions = visibleNewActions(roles);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const current = findNavItem(pathname);
   const isActive = (item: NavItem) => current?.href === item.href;
@@ -129,9 +131,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 Ctrl+K
               </kbd>
             </Button>
-            <Button disabled title="Pripravujeme">
-              + Nové
-            </Button>
+            <NewMenu actions={newActions} />
             <span
               className="hidden text-[13px] leading-5 text-neutral-700 lg:inline"
               data-testid="current-user"
@@ -148,7 +148,12 @@ export function AppShell({ children }: { children: ReactNode }) {
         </main>
       </div>
 
-      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} items={items} />
+      <CommandPalette
+        open={paletteOpen}
+        onOpenChange={setPaletteOpen}
+        items={items}
+        newActions={newActions}
+      />
     </div>
   );
 }

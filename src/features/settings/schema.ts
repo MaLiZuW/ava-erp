@@ -1,39 +1,24 @@
 import { z } from "zod";
 import {
-  compact,
-  formatIban,
-  isValidDic,
-  isValidIban,
-  isValidIco,
-  isValidSwift,
-} from "@/core/validation";
+  countryField,
+  dicField,
+  emailField,
+  icoField,
+  optChecked,
+  optText,
+  phoneField,
+  webField,
+  zipField,
+} from "@/core/form-fields";
+import { compact, formatIban, isValidIban, isValidSwift } from "@/core/validation";
 import { IDLE_MAX_MINUTES, IDLE_MIN_MINUTES } from "@/core/auth/idle";
-
-/** Optional text: trimmed, empty → null. */
-const optText = (max: number) =>
-  z
-    .string()
-    .trim()
-    .max(max, `Najviac ${max} znakov.`)
-    .transform((v) => (v === "" ? null : v));
-
-const optChecked = (
-  check: (v: string) => boolean,
-  message: string,
-  normalize: (v: string) => string,
-) =>
-  z
-    .string()
-    .trim()
-    .refine((v) => v === "" || check(v), message)
-    .transform((v) => (v === "" ? null : normalize(v)));
 
 /** Company form (companies, 1 row). vat_payer / ic_dph: the company is NOT a VAT payer (D2). */
 export const companySchema = z.object({
   legal_name: z.string().trim().min(1, "Zadajte obchodné meno.").max(200),
   brand_name: z.string().trim().min(1, "Zadajte značku.").max(200),
-  ico: optChecked(isValidIco, "IČO nie je platné (8 číslic s kontrolnou číslicou).", compact),
-  dic: optChecked(isValidDic, "DIČ má 10 číslic.", compact),
+  ico: icoField(),
+  dic: dicField(),
   // optional and normally empty – the company is not a VAT payer
   ic_dph: optChecked(
     (v) => /^SK\d{10}$/.test(compact(v).toUpperCase()),
@@ -42,40 +27,17 @@ export const companySchema = z.object({
   ),
   street: optText(200),
   city: optText(100),
-  zip: optChecked(
-    (v) => /^\d{3}\s?\d{2}$/.test(v),
-    "PSČ má 5 číslic (napr. 811 01).",
-    (v) => {
-      const c = compact(v);
-      return `${c.slice(0, 3)} ${c.slice(3)}`;
-    },
-  ),
-  country: z
-    .string()
-    .trim()
-    .toUpperCase()
-    .regex(/^[A-Z]{2}$/, "Kód krajiny má 2 písmená (SK)."),
+  zip: zipField(true),
+  country: countryField(),
   registry_entry: optText(300),
   iban: optChecked(isValidIban, "IBAN nie je platný.", formatIban),
   bank_name: optText(100),
   swift: optChecked(isValidSwift, "SWIFT/BIC má 8 alebo 11 znakov.", (v) =>
     compact(v).toUpperCase(),
   ),
-  email: optChecked(
-    (v) => z.email().safeParse(v).success,
-    "Zadajte platný e-mail.",
-    (v) => v,
-  ),
-  phone: optChecked(
-    (v) => /^\+?[0-9 ()/-]{6,20}$/.test(v),
-    "Zadajte platné telefónne číslo.",
-    (v) => v,
-  ),
-  web: optChecked(
-    (v) => /^(https?:\/\/)?[a-z0-9.-]+\.[a-z]{2,}(\/\S*)?$/i.test(v),
-    "Zadajte platnú adresu webu.",
-    (v) => v,
-  ),
+  email: emailField(),
+  phone: phoneField(),
+  web: webField(),
 });
 export type CompanyInput = z.input<typeof companySchema>;
 export type CompanyOutput = z.output<typeof companySchema>;

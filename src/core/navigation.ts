@@ -26,9 +26,31 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { href: "/nastavenia/", label: "Nastavenia", group: "bottom", requiredRole: "admin" },
 ];
 
+/** Exact match, or the section a sub-page belongs to (e.g. /zakaznici/detail/ → Zákazníci). */
 export function findNavItem(pathname: string): NavItem | undefined {
   const normalized = pathname === "/" ? "/" : pathname.replace(/\/?$/, "/");
-  return NAV_ITEMS.find((i) => i.href === normalized);
+  return (
+    NAV_ITEMS.find((i) => i.href === normalized) ??
+    NAV_ITEMS.filter((i) => i.href !== "/" && normalized.startsWith(i.href)).sort(
+      (x, y) => y.href.length - x.href.length,
+    )[0]
+  );
+}
+
+/** "+ Nové" menu and the "Nové" group of the command palette. */
+export interface NewAction {
+  href: string;
+  label: string;
+  requiredRole?: AppRole;
+}
+
+export const NEW_ACTIONS: readonly NewAction[] = [
+  { href: "/zakaznici/detail/?id=new", label: "Zákazník", requiredRole: "admin" },
+  { href: "/dodavatelia/detail/?id=new", label: "Dodávateľ", requiredRole: "admin" },
+];
+
+export function visibleNewActions(roles: readonly AppRole[]): NewAction[] {
+  return NEW_ACTIONS.filter((a) => !a.requiredRole || hasRole(roles, a.requiredRole));
 }
 
 /** Items the user may see (role-based hiding). */

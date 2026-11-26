@@ -26,6 +26,7 @@ Zmenu rozhodnutia zapisuje vlastník; Claude Code ich iba číta.
 | D20 | Schválenie návrhu | BUSINESS_PROCESSES.md, DATABASE_SCHEMA.md, ARCHITECTURE_CORE.md, DESIGN_SYSTEM.md vrátane všetkých [NÁVRH] bodov (kroky podľa typu zákazky, schválenie CP aj autorom, číslovanie PREFIX-RRRR-NNNN, VS = číslo faktúry bez pomlčiek, vzhľad podľa návrhu obrazoviek) | 26. 11. 2026 |
 | D21 | Supabase pri vývoji | najprv online Supabase Free (cloud), bez lokálneho Dockeru; len testovacie dáta; ostré dáta až na Pro | 26. 11. 2026 |
 | D15 | Postup | najprv analýza a návrh, implementácia po fázach so schválením | z prm.txt |
+| D22 | Osobné údaje na dev projekte (brána fázy 3) | na dev projekte (Free) sa zadávajú reálne firmy – obchodné meno, IČO, adresa (verejné údaje z OR) –, katalóg, sadzby, zdroje a texty o firme; **osobné kontakty** (mená, osobné e-maily a telefóny konkrétnych ľudí) sa na dev **nezadávajú**, len všeobecné firemné kontakty (napr. info@); osobné kontakty až na projekte Pro. Pri kontaktoch je vo formulári krátky text o spracúvaní osobných údajov na účely plnenia zmluvy (detail GDPR vo fáze 8) | 26. 11. 2026 |
 
 ## Otvorené
 

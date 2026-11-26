@@ -14,7 +14,7 @@
     "format": "prettier --write .",
     "db:test": "tsx scripts/db-test.ts",
     "db:push": "node --env-file=.env.local scripts/supabase-remote.mjs db push",
-    "db:types": "node --env-file=.env.local scripts/supabase-remote.mjs gen types --lang typescript --out src/core/supabase/database.types.ts",
+    "db:types": "node --env-file=.env.local scripts/supabase-remote.mjs gen types --lang typescript --out src/core/supabase/database.types.ts && prettier --write src/core/supabase/database.types.ts",
     "db:test:local": "tsx scripts/db-test-local.ts",
     "db:seed": "tsx scripts/db-seed.ts",
     "db:test:api": "tsx scripts/api-test.ts",

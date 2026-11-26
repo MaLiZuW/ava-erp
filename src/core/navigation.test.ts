@@ -22,4 +22,9 @@ describe("navigation", () => {
     expect(findNavItem("/")?.label).toBe("Prehľad");
     expect(findNavItem("/neexistuje/")).toBeUndefined();
   });
+  it("maps sub-pages to their section", () => {
+    expect(findNavItem("/zakaznici/detail/")?.label).toBe("Zákazníci");
+    expect(findNavItem("/dodavatelia/detail")?.label).toBe("Dodávatelia");
+    expect(findNavItem("/zakaznicix/")).toBeUndefined();
+  });
 });

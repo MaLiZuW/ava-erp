@@ -3,18 +3,26 @@
 import { Command } from "cmdk";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { NAV_ITEMS, type NavItem } from "@/core/navigation";
+import { NAV_ITEMS, type NavItem, type NewAction } from "@/core/navigation";
 
-/** Ctrl+K command palette. Phase 1: navigation only. */
+const GROUP_CLASS =
+  "[&_[cmdk-group-heading]]:px-4 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-[13px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:tracking-[0.04em] [&_[cmdk-group-heading]]:text-neutral-500 [&_[cmdk-group-heading]]:uppercase";
+const ITEM_CLASS =
+  "data-[selected=true]:bg-canvas data-[selected=true]:text-navy cursor-pointer rounded-xl px-4 py-3 text-[15px]";
+
+/** Ctrl+K command palette: navigation + creating new records. */
 export function CommandPalette({
   open,
   onOpenChange,
   items = NAV_ITEMS,
+  newActions = [],
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** navigation items the user may see */
   items?: readonly NavItem[];
+  /** "Nové" actions the user may use */
+  newActions?: readonly NewAction[];
 }) {
   const router = useRouter();
 
@@ -45,10 +53,7 @@ export function CommandPalette({
         <Command.Empty className="px-4 py-6 text-[15px] text-neutral-700">
           Nič sa nenašlo.
         </Command.Empty>
-        <Command.Group
-          heading="Navigácia"
-          className="[&_[cmdk-group-heading]]:px-4 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-[13px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:tracking-[0.04em] [&_[cmdk-group-heading]]:text-neutral-500 [&_[cmdk-group-heading]]:uppercase"
-        >
+        <Command.Group heading="Navigácia" className={GROUP_CLASS}>
           {items.map((item) => (
             <Command.Item
               key={item.href}
@@ -57,12 +62,29 @@ export function CommandPalette({
                 onOpenChange(false);
                 router.push(item.href);
               }}
-              className="data-[selected=true]:bg-canvas data-[selected=true]:text-navy cursor-pointer rounded-xl px-4 py-3 text-[15px]"
+              className={ITEM_CLASS}
             >
               {item.label}
             </Command.Item>
           ))}
         </Command.Group>
+        {newActions.length > 0 && (
+          <Command.Group heading="Nové" className={GROUP_CLASS}>
+            {newActions.map((a) => (
+              <Command.Item
+                key={a.href}
+                value={`Nový ${a.label}`}
+                onSelect={() => {
+                  onOpenChange(false);
+                  router.push(a.href);
+                }}
+                className={ITEM_CLASS}
+              >
+                + {a.label}
+              </Command.Item>
+            ))}
+          </Command.Group>
+        )}
       </Command.List>
     </Command.Dialog>
   );

@@ -121,6 +121,24 @@ describe("AppShell", () => {
     expect(screen.queryByRole("link", { name: "Nastavenia" })).not.toBeInTheDocument();
   });
 
+  it("+ Nové offers new records to an admin and is disabled without a role", async () => {
+    pathname = "/";
+    const { unmount } = render(withAuth(<AppShell>obsah</AppShell>));
+    await userEvent.click(screen.getByRole("button", { name: "+ Nové" }));
+    const menu = screen.getByRole("list", { name: "Vytvoriť nový záznam" });
+    expect(within(menu).getByRole("link", { name: "Zákazník" })).toHaveAttribute(
+      "href",
+      expect.stringMatching(/^\/zakaznici\/detail\/?\?id=new$/),
+    );
+    expect(within(menu).getByRole("link", { name: "Dodávateľ" })).toBeInTheDocument();
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("list", { name: "Vytvoriť nový záznam" })).not.toBeInTheDocument();
+    unmount();
+
+    render(withAuth(<AppShell>obsah</AppShell>, []));
+    expect(screen.getByRole("button", { name: "+ Nové" })).toBeDisabled();
+  });
+
   it("pins Nastavenia below the scrollable module list", () => {
     pathname = "/";
     render(withAuth(<AppShell>obsah</AppShell>));

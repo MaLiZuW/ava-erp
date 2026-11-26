@@ -66,15 +66,23 @@ export function anonClient(env: TestEnv): SupabaseClient {
   return createClient(env.url, env.anonKey, NO_SESSION);
 }
 
-/** Deletes every user on the test domain (leftovers of interrupted runs). Returns the count. */
-export async function purgeTestUsers(env: TestEnv): Promise<number> {
+/**
+ * Deletes users on the test domain (leftovers of interrupted runs). Returns the count.
+ * `prefix` limits it to one suite (e.g. "e2e" → e2e+…@test.invalid), so suites running in
+ * parallel do not delete each other's user.
+ */
+export async function purgeTestUsers(env: TestEnv, prefix?: string): Promise<number> {
+  // a full purge first removes e2e master data (created_by references auth.users)
+  if (!prefix) await purgeE2eMasterData(env);
   const admin = adminClient(env);
   let removed = 0;
   for (let page = 1; page < 50; page++) {
     const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 200 });
     if (error) throw new Error(`listUsers failed: ${error.message}`);
     for (const u of data.users) {
-      if (u.email?.toLowerCase().endsWith(`@${TEST_EMAIL_DOMAIN}`)) {
+      const email = u.email?.toLowerCase() ?? "";
+      const ours = prefix ? email.startsWith(`${prefix}+`) : true;
+      if (ours && email.endsWith(`@${TEST_EMAIL_DOMAIN}`)) {
         const del = await admin.auth.admin.deleteUser(u.id);
         if (del.error) throw new Error(`deleteUser failed: ${del.error.message}`);
         removed++;
@@ -124,6 +132,26 @@ export async function createTestUser(
     }
   }
   return { id: data.user.id, email, password };
+}
+
+/** Name prefix of master data created by e2e tests – only such rows are ever removed. */
+export const E2E_NAME_PREFIX = "E2E ";
+
+/**
+ * Removes master data created by e2e tests on the DEV project (names starting with "E2E ").
+ * Needed before deleting the test user: created_by references auth.users.
+ */
+export async function purgeE2eMasterData(env: TestEnv): Promise<void> {
+  const db = new Client({ connectionString: env.dbUrl });
+  await db.connect();
+  try {
+    const like = `${E2E_NAME_PREFIX}%`;
+    // contacts are removed by "on delete cascade"
+    await db.query("delete from public.customers where name like $1", [like]);
+    await db.query("delete from public.suppliers where name like $1", [like]);
+  } finally {
+    await db.end();
+  }
 }
 
 export async function deleteTestUser(

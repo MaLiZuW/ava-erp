@@ -34,6 +34,12 @@ const TABLES = [
   "notification_recipients",
   "documents",
   "v_open_items",
+  // phase 3 – master data
+  "customers",
+  "customer_contacts",
+  "customer_machines",
+  "suppliers",
+  "supplier_contacts",
 ];
 /** tables an aal2 admin must see rows in (seeded / always present) */
 const ADMIN_VISIBLE = [

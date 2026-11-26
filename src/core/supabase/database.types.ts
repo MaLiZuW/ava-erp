@@ -153,6 +153,190 @@ export type Database = {
           },
         ];
       };
+      customer_contacts: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          customer_id: string;
+          email: string | null;
+          full_name: string;
+          id: string;
+          is_active: boolean;
+          is_primary: boolean;
+          phone: string | null;
+          position: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          customer_id: string;
+          email?: string | null;
+          full_name: string;
+          id?: string;
+          is_active?: boolean;
+          is_primary?: boolean;
+          phone?: string | null;
+          position?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          customer_id?: string;
+          email?: string | null;
+          full_name?: string;
+          id?: string;
+          is_active?: boolean;
+          is_primary?: boolean;
+          phone?: string | null;
+          position?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "customer_contacts_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      customer_machines: {
+        Row: {
+          control_system: string | null;
+          created_at: string;
+          created_by: string | null;
+          customer_id: string;
+          id: string;
+          is_active: boolean;
+          location: string | null;
+          manufacturer: string | null;
+          model: string | null;
+          note: string | null;
+          serial_number: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          year_built: number | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          control_system?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          customer_id: string;
+          id?: string;
+          is_active?: boolean;
+          location?: string | null;
+          manufacturer?: string | null;
+          model?: string | null;
+          note?: string | null;
+          serial_number?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          year_built?: number | null;
+        };
+        Update: {
+          control_system?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          customer_id?: string;
+          id?: string;
+          is_active?: boolean;
+          location?: string | null;
+          manufacturer?: string | null;
+          model?: string | null;
+          note?: string | null;
+          serial_number?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          year_built?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "customer_machines_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      customers: {
+        Row: {
+          billing_email: string | null;
+          city: string | null;
+          country: string;
+          created_at: string;
+          created_by: string | null;
+          dic: string | null;
+          ic_dph: string | null;
+          ico: string | null;
+          id: string;
+          is_active: boolean;
+          kind: Database["public"]["Enums"]["party_kind"];
+          name: string;
+          note: string | null;
+          payment_terms_days: number | null;
+          peppol_id: string | null;
+          street: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          vat_payer: boolean;
+          zip: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          billing_email?: string | null;
+          city?: string | null;
+          country?: string;
+          created_at?: string;
+          created_by?: string | null;
+          dic?: string | null;
+          ic_dph?: string | null;
+          ico?: string | null;
+          id?: string;
+          is_active?: boolean;
+          kind?: Database["public"]["Enums"]["party_kind"];
+          name: string;
+          note?: string | null;
+          payment_terms_days?: number | null;
+          peppol_id?: string | null;
+          street?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          vat_payer?: boolean;
+          zip?: string | null;
+        };
+        Update: {
+          billing_email?: string | null;
+          city?: string | null;
+          country?: string;
+          created_at?: string;
+          created_by?: string | null;
+          dic?: string | null;
+          ic_dph?: string | null;
+          ico?: string | null;
+          id?: string;
+          is_active?: boolean;
+          kind?: Database["public"]["Enums"]["party_kind"];
+          name?: string;
+          note?: string | null;
+          payment_terms_days?: number | null;
+          peppol_id?: string | null;
+          street?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          vat_payer?: boolean;
+          zip?: string | null;
+        };
+        Relationships: [];
+      };
       divisions: {
         Row: {
           code: Database["public"]["Enums"]["division_code"];
@@ -424,6 +608,136 @@ export type Database = {
           to_status?: string;
           updated_at?: string;
           updated_by?: string | null;
+        };
+        Relationships: [];
+      };
+      supplier_contacts: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          email: string | null;
+          full_name: string;
+          id: string;
+          is_active: boolean;
+          is_primary: boolean;
+          phone: string | null;
+          position: string | null;
+          supplier_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          email?: string | null;
+          full_name: string;
+          id?: string;
+          is_active?: boolean;
+          is_primary?: boolean;
+          phone?: string | null;
+          position?: string | null;
+          supplier_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          email?: string | null;
+          full_name?: string;
+          id?: string;
+          is_active?: boolean;
+          is_primary?: boolean;
+          phone?: string | null;
+          position?: string | null;
+          supplier_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "supplier_contacts_supplier_id_fkey";
+            columns: ["supplier_id"];
+            isOneToOne: false;
+            referencedRelation: "suppliers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      suppliers: {
+        Row: {
+          billing_email: string | null;
+          categories: string[];
+          city: string | null;
+          country: string;
+          created_at: string;
+          created_by: string | null;
+          dic: string | null;
+          ic_dph: string | null;
+          ico: string | null;
+          id: string;
+          is_active: boolean;
+          is_foreign: boolean | null;
+          kind: Database["public"]["Enums"]["party_kind"];
+          name: string;
+          note: string | null;
+          payment_terms_days: number | null;
+          peppol_id: string | null;
+          street: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          vat_payer: boolean;
+          zip: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          billing_email?: string | null;
+          categories?: string[];
+          city?: string | null;
+          country?: string;
+          created_at?: string;
+          created_by?: string | null;
+          dic?: string | null;
+          ic_dph?: string | null;
+          ico?: string | null;
+          id?: string;
+          is_active?: boolean;
+          is_foreign?: never;
+          kind?: Database["public"]["Enums"]["party_kind"];
+          name: string;
+          note?: string | null;
+          payment_terms_days?: number | null;
+          peppol_id?: string | null;
+          street?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          vat_payer?: boolean;
+          zip?: string | null;
+        };
+        Update: {
+          billing_email?: string | null;
+          categories?: string[];
+          city?: string | null;
+          country?: string;
+          created_at?: string;
+          created_by?: string | null;
+          dic?: string | null;
+          ic_dph?: string | null;
+          ico?: string | null;
+          id?: string;
+          is_active?: boolean;
+          is_foreign?: never;
+          kind?: Database["public"]["Enums"]["party_kind"];
+          name?: string;
+          note?: string | null;
+          payment_terms_days?: number | null;
+          peppol_id?: string | null;
+          street?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          vat_payer?: boolean;
+          zip?: string | null;
         };
         Relationships: [];
       };
