@@ -15,6 +15,7 @@ Interpretácia [NÁVRH]: **švajčiarsky (Swiss) štýl** – prísna mriežka, 
 6. **Klávesnica prvá.** Globálne vyhľadávanie a príkazy cez `Ctrl+K`, skratky na hlavné akcie.
 7. **Prístupnosť WCAG 2.1 AA** minimum: kontrast textu ≥ 4,5 : 1, viditeľné zameranie (focus), stav vždy aj textom/ikonou, nie len farbou.
 8. **História zmien je vždy posledná.** Poradie stránky: obsah a formuláre → **História zmien** ako posledná dlaždica na celú šírku, nikdy medzi formulármi (Nastavenia, detaily zákazníka/dodávateľa, katalóg, dokumenty, neskôr všetky doklady). Hodnoty v histórii sú v slovenskom formáte (čiarka, sumy €, DD/MM/YYYY, áno/nie) a odkazy sa zobrazujú ako názvy záznamov, nie UUID. *(Pripomienka vlastníka, fáza 3.)*
+9. **Lepiaca hlavička stránky – nadpis modulu vždy viditeľný.** Horná lišta (nadpis, v režime nastavení navigačná cesta a popis, hlavné tlačidlo stránky, Hľadať, + Nové) ostáva pri rolovaní hore v celej aplikácii. *(Pripomienka vlastníka 21.)*
 
 ## 2. Mriežka a rozmery
 
@@ -127,14 +128,16 @@ Tlačový štýl A4 na výšku aj na šírku: biele pozadie, logo, názov report
 
 Tabuľkový editor ako v tabuľkovom procesore (klávesnica, Tab/Enter), napravo lepiaca dlaždica **Súhrn**: náklad, cena, zisk € a %, marža aj prirážka – prepočet okamžite.
 
-### 6.5 Nastavenia (vzor Stripe / Linear / Vercel) – pripomienka vlastníka 20
+### 6.5 Režim nastavení (vzor Linear / Vercel / GitHub) – pripomienky vlastníka 20–22
 
-- **Podstránky s vlastnou adresou** (`/nastavenia/firma/`, `/nastavenia/reporting/kapacity/` …), statický export; jedna konfigurácia sekcií `SETTINGS_GROUPS` v `src/core/navigation.ts` riadi sekundárne menu, úvod, hlavné menu aj Ctrl+K.
-- **Sekundárne menu vľavo** so skupinami: Firma · Používatelia a bezpečnosť · Systém · AI · Reporting · Dáta · História zmien; aktívna položka plná tmavomodrá. Na mobile namiesto menu výber „Sekcia nastavení“.
-- **Úvod `/nastavenia/`** = bento dlaždice sekcií (M) s popisom, stavom (štítky: „Logo chýba“, „Údaje neúplné“, „N bez záložného faktora“, neskôr „AI kľúč nenastavený“, „N na overenie“) a odkazmi na podstránky.
-- **Hlavné menu:** v rozbalenom menu sa pod „Nastavenia“ ukážu skupiny, keď je otvorená niektorá podstránka; v zbalenom menu vyskakovacie podmenu pri hover aj focus (klávesnica).
-- **Ctrl+K** nájde každú podstránku aj podľa názvov polí (IBAN, logo, dovolenka …).
-- Na každej podstránke: nadpis skupiny + stránky, obsah, **História zmien len tej sekcie naspodku** (princíp 8); celá história v sekcii História zmien.
+- **Ľavý panel sa prepne:** po vstupe do Nastavení nahradí hlavné menu menu Nastavení. Hore „← Späť do aplikácie“ (posledná stránka aplikácie) a nadpis „Nastavenia“, pod tým skupiny: Firma · Bezpečnosť · Systém · AI · Reporting · Dáta · História zmien. Žiadne podpoložky v hlavnom menu, žiadne druhé menu vedľa hlavného.
+- **Položky:** ikona + krátky názov na jeden riadok; nadpisy skupín malé sivé. **Aktívna položka:** jemné pozadie `canvas`, 2 px linka `brand-blue` vľavo, tučný text `navy` – nie plný tmavý blok. **Stav pri položke:** bodka (prípadne číslo), celý text v popise a pre čítačky (napr. „Logo chýba“, „Na overenie N“).
+- **Podstránky s vlastnou adresou** (`/nastavenia/firma/logo/` …); jedna konfigurácia `SETTINGS_GROUPS` (`src/core/navigation.ts`) riadi menu, úvod a Ctrl+K (aj podľa názvov polí).
+- **Hlavička podstránky (lepiaca):** navigačná cesta „Nastavenia / Skupina“, nadpis, jeden riadok popisu, hlavné tlačidlo sekcie vpravo. Titulok okna „Stránka · Nastavenia · Add Value Agency“. Dlaždica pod hlavičkou **nemá vlastný nadpis** (žiadna duplicita).
+- **Obsah má jednotnú šírku** (max. 960 px): dlaždice na celú šírku obsahu alebo vzor „nadpis a popis vľavo, polia vpravo“.
+- **Úvod `/nastavenia/`:** dlaždice skupín v poradí menu s popisom, stavom a odkazmi; „V poriadku“ až po načítaní dát.
+- **Mobil:** zoznam sekcií (úvod) ako prvá obrazovka; sekcia samostatne s „← Nastavenia“ v hlavičke.
+- **História zmien** sekcie naspodku (princíp 8), len jej záznamy, ako ľudské vety bez technických polí; celá v skupine História zmien.
 
 ## 7. Pohyb a odozva
 

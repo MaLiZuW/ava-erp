@@ -31,13 +31,14 @@ describe("navigation", () => {
 
 describe("settings sections (owner's point 20)", () => {
   it("every page has a unique address under /nastavenia/ and belongs to one group", async () => {
-    const { SETTINGS_GROUPS, SETTINGS_PAGES, findSettingsPage, findNavItem } = await import("./navigation");
+    const { SETTINGS_GROUPS, SETTINGS_PAGES, findSettingsPage, findNavItem } =
+      await import("./navigation");
     const hrefs = SETTINGS_PAGES.map((p) => p.href);
     expect(new Set(hrefs).size).toBe(hrefs.length);
     for (const h of hrefs) expect(h).toMatch(/^\/nastavenia\/[a-z0-9/-]+\/$/);
     expect(SETTINGS_GROUPS.map((g) => g.label)).toEqual([
       "Firma",
-      "Používatelia a bezpečnosť",
+      "Bezpečnosť",
       "Systém",
       "AI",
       "Reporting",

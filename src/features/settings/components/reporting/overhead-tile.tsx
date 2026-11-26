@@ -9,7 +9,7 @@ import { Button } from "@/ui/button";
 import { EmptyState } from "@/ui/empty-state";
 import { describedBy, Field, FormMessage, Input, Select } from "@/ui/field";
 import { MoneyInput } from "@/ui/inputs";
-import { Tile } from "@/ui/tile";
+import { SettingsTile } from "../settings-tile";
 import {
   monthOptions,
   overheadSchema,
@@ -125,7 +125,7 @@ export function OverheadTile() {
   const total = (rows.data ?? []).reduce((s, r) => s + r.amount_cents, 0);
 
   return (
-    <Tile
+    <SettingsTile
       size="XL"
       title="Réžia – mesačné fixné náklady"
       action={
@@ -226,6 +226,6 @@ export function OverheadTile() {
           </table>
         )}
       </div>
-    </Tile>
+    </SettingsTile>
   );
 }

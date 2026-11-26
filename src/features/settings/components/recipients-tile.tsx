@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { Button } from "@/ui/button";
 import { describedBy, Field, FormMessage, Input } from "@/ui/field";
 import { StatusBadge } from "@/ui/status-badge";
-import { Tile } from "@/ui/tile";
+import { SettingsTile } from "./settings-tile";
 import { useAddRecipient, useRecipients, useSetRecipientActive } from "../api";
 import { recipientSchema, type RecipientInput } from "../schema";
 
@@ -34,7 +34,7 @@ export function RecipientsTile() {
   const err = errors.email?.message;
 
   return (
-    <Tile
+    <SettingsTile
       size="L"
       title="Notifikácie – príjemcovia"
       action={
@@ -84,6 +84,6 @@ export function RecipientsTile() {
       <p className="mt-3 text-[13px] text-neutral-500">
         Typy udalostí sa priradia, keď pribudnú notifikácie v ďalších fázach.
       </p>
-    </Tile>
+    </SettingsTile>
   );
 }

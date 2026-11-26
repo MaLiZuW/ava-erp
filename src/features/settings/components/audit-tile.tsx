@@ -4,11 +4,13 @@ import { useMemo, useState } from "react";
 import { AuditTimeline, type AuditEntry } from "@/ui/audit-timeline";
 import { FormMessage } from "@/ui/field";
 import { ChipGroup } from "@/ui/chips";
-import { Tile } from "@/ui/tile";
+import { SettingsTile } from "./settings-tile";
+import { describeAuditEntry } from "@/core/audit-describe";
 import { useAuditRefs } from "@/core/audit-refs";
 import { useAuditLog, useProfiles } from "../api";
 import { FIELD_LABELS, TABLE_LABELS } from "../schema";
 import { REPORTING_TABLES } from "../reporting";
+import { isSettingsEntry } from "../history-filters";
 
 const FILTERS: { label: string; tables: string[] }[] = [
   {
@@ -43,16 +45,17 @@ export function recordLabel(e: AuditEntry): string {
 /** Change history of the settings (who, when, what) – activity_logs, admin only (RLS). */
 export function AuditTile() {
   const [filter, setFilter] = useState(0);
-  const log = useAuditLog(FILTERS[filter].tables);
+  const log = useAuditLog(FILTERS[filter].tables, { limit: 150 });
+  const entries = useMemo(() => (log.data ?? []).filter(isSettingsEntry).slice(0, 50), [log.data]);
   const profiles = useProfiles();
-  const resolve = useAuditRefs(log.data);
+  const resolve = useAuditRefs(entries);
   const names = useMemo(
     () => new Map((profiles.data ?? []).map((p) => [p.id, p.full_name || p.email || "Používateľ"])),
     [profiles.data],
   );
 
   return (
-    <Tile size="XL" title="História zmien">
+    <SettingsTile size="XL" title="História zmien">
       <ChipGroup
         label="Filter histórie"
         className="mb-3"
@@ -68,13 +71,14 @@ export function AuditTile() {
         </div>
       ) : (
         <AuditTimeline
-          entries={log.data ?? []}
+          entries={entries}
           actorName={(id) => (id ? (names.get(id) ?? "Neznámy používateľ") : "Systém")}
           fieldLabel={(t, f) => FIELD_LABELS[t]?.[f] ?? f}
           recordLabel={recordLabel}
           resolveRef={resolve}
+          describe={(e) => describeAuditEntry(e, resolve, recordLabel)}
         />
       )}
-    </Tile>
+    </SettingsTile>
   );
 }

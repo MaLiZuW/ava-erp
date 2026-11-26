@@ -18,14 +18,12 @@ import { KpiTargetsTile } from "./components/reporting/kpi-targets-tile";
 import { OverheadTile } from "./components/reporting/overhead-tile";
 import { TaxBracketsTile } from "./components/reporting/tax-brackets-tile";
 import { SystemSettingsTile } from "./components/system-settings-tile";
-import { UsersTile, useUsers } from "./components/users-tile";
-import { useTaxBrackets } from "./reporting-api";
+import { UsersTile } from "./components/users-tile";
+import { useSettingsStatus } from "./settings-status";
 
-/** Settings pages: forms grow with their content (rows are not fixed to 160 px). */
-const GRID = "md:auto-rows-[minmax(160px,auto)]";
-
+/** Settings pages: one column of full-width tiles inside the 960 px content (point 21). */
 function Grid({ children }: { children: ReactNode }) {
-  return <BentoGrid className={GRID}>{children}</BentoGrid>;
+  return <div className="flex flex-col gap-4">{children}</div>;
 }
 
 /** The company record is needed by the company data and the logo. */
@@ -144,65 +142,46 @@ export const DataSection = () => (
   />
 );
 
-/** Status badges of a group on the overview (what needs attention). */
-function useGroupStatus(): Record<string, { label: string; tone: StatusTone }[]> {
-  const company = useCompany();
-  const users = useUsers();
-  const tax = useTaxBrackets();
-  const c = company.data;
-  const firma: { label: string; tone: StatusTone }[] = [];
-  if (company.data !== undefined) {
-    if (!c?.logo_document_id) firma.push({ label: "Logo chýba", tone: "warning" });
-    if (!c?.ico || c.ico === "TODO" || !c?.iban)
-      firma.push({ label: "Údaje neúplné", tone: "warning" });
-    if (firma.length === 0) firma.push({ label: "V poriadku", tone: "success" });
-  }
-  const weak = (users.data ?? []).filter((u) => u.verified_totp_factors < 2).length;
-  return {
-    firma,
-    pouzivatelia: users.data
-      ? [
-          { label: `${users.data.length} používatelia`, tone: "neutral" },
-          ...(weak > 0
-            ? [{ label: `${weak} bez záložného faktora`, tone: "warning" as StatusTone }]
-            : []),
-        ]
-      : [],
-    ai: [{ label: "Pripravujeme", tone: "neutral" }],
-    reporting:
-      tax.data && tax.data.length === 0 ? [{ label: "Pásma dane nezadané", tone: "warning" }] : [],
-    data: [{ label: "Pripravujeme", tone: "neutral" }],
-  };
-}
-
-/** /nastavenia/ – bento tiles of the sections with a description and their state. */
+/** /nastavenia/ – tiles of the sections in the order of the menu, with their state (point 21). */
 export function SettingsOverview() {
-  const status = useGroupStatus();
+  const status = useSettingsStatus();
+  const prepared = new Set(["ai", "data"]);
   return (
-    <Grid>
-      {SETTINGS_GROUPS.map((g) => (
-        <Tile key={g.key} size="M" title={g.label}>
-          <div className="flex h-full flex-col gap-2">
-            <p className="text-[15px] text-neutral-700">{g.description}</p>
-            {(status[g.key] ?? []).length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {status[g.key].map((s) => (
-                  <StatusBadge key={s.label} label={s.label} tone={s.tone} />
+    <BentoGrid className="md:auto-rows-[minmax(160px,auto)]">
+      {SETTINGS_GROUPS.map((g) => {
+        const badges = g.pages
+          .filter((p) => status[p.href])
+          .map((p) => ({ label: `${p.label}: ${status[p.href].text}`, tone: status[p.href].tone }));
+        if (prepared.has(g.key))
+          badges.push({ label: "Pripravujeme", tone: "neutral" as StatusTone });
+        return (
+          <Tile key={g.key} size="M" title={g.label}>
+            <div className="flex h-full flex-col gap-2">
+              <p className="text-[15px] text-neutral-700">{g.description}</p>
+              <div className="flex min-h-6 flex-wrap gap-2">
+                {badges.map((b) => (
+                  <StatusBadge key={b.label} label={b.label} tone={b.tone} />
                 ))}
+                {badges.length === 0 && status.loaded && !prepared.has(g.key) && (
+                  <StatusBadge label="V poriadku" tone="success" />
+                )}
               </div>
-            )}
-            <ul className="mt-auto flex flex-wrap gap-x-4 gap-y-1">
-              {g.pages.map((p) => (
-                <li key={p.href}>
-                  <Link href={p.href} className="text-navy text-[15px] font-medium hover:underline">
-                    {p.label} →
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </Tile>
-      ))}
-    </Grid>
+              <ul className="mt-auto flex flex-wrap gap-x-4 gap-y-1">
+                {g.pages.map((p) => (
+                  <li key={p.href}>
+                    <Link
+                      href={p.href}
+                      className="text-navy text-[15px] font-medium hover:underline"
+                    >
+                      {p.label} →
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </Tile>
+        );
+      })}
+    </BentoGrid>
   );
 }

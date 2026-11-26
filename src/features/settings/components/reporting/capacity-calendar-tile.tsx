@@ -9,7 +9,7 @@ import { Field, FormMessage, Input, Select } from "@/ui/field";
 import { DateInput } from "@/ui/inputs";
 import { NumberStepper } from "@/ui/number-stepper";
 import { StatusBadge } from "@/ui/status-badge";
-import { Tile } from "@/ui/tile";
+import { SettingsTile } from "../settings-tile";
 import {
   EXCEPTION_KINDS,
   hoursText,
@@ -328,7 +328,7 @@ export function CapacityCalendarTile() {
   const weekTotal = sumHours(capacity.data ?? [], selWeek, addDays(selWeek, 6));
 
   return (
-    <Tile size="XL" title="Kapacity – kalendár">
+    <SettingsTile size="XL" title="Kapacity – kalendár">
       <div className="flex flex-col gap-6">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <Field id="capacity-person" label="Osoba" className="w-64">
@@ -471,6 +471,6 @@ export function CapacityCalendarTile() {
           )}
         </section>
       </div>
-    </Tile>
+    </SettingsTile>
   );
 }

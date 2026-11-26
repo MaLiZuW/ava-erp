@@ -8,7 +8,7 @@ import { Button } from "@/ui/button";
 import { EmptyState } from "@/ui/empty-state";
 import { describedBy, Field, FormMessage, Input } from "@/ui/field";
 import { DateInput, MoneyInput, PercentInput } from "@/ui/inputs";
-import { Tile } from "@/ui/tile";
+import { SettingsTile } from "../settings-tile";
 import { taxBracketSchema, type TaxBracketInput, type TaxBracketOutput } from "../../reporting";
 import { useSaveTaxBracket, useTaxBrackets, type TaxBracket } from "../../reporting-api";
 
@@ -110,7 +110,7 @@ export function TaxBracketsTile() {
   const rows = useTaxBrackets();
   const [editing, setEditing] = useState<TaxBracket | "new" | null>(null);
   return (
-    <Tile
+    <SettingsTile
       size="L"
       title="Daň z príjmov – pásma"
       className="md:row-span-3"
@@ -165,6 +165,6 @@ export function TaxBracketsTile() {
           </ul>
         )}
       </div>
-    </Tile>
+    </SettingsTile>
   );
 }

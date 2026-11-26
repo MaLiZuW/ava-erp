@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { Button } from "@/ui/button";
 import { describedBy, Field, FormMessage, Input } from "@/ui/field";
 import { StatusBadge } from "@/ui/status-badge";
-import { Tile } from "@/ui/tile";
+import { SettingsTile } from "./settings-tile";
 import { useSaveCompany, type Company } from "../api";
 import { COMPANY_FIELDS, companySchema, type CompanyInput, type CompanyOutput } from "../schema";
 
@@ -57,7 +57,7 @@ export function CompanyTile({ company }: { company: Company | null }) {
   });
 
   return (
-    <Tile
+    <SettingsTile
       size="XL"
       title="Firma – údaje na doklady"
       action={
@@ -97,6 +97,6 @@ export function CompanyTile({ company }: { company: Company | null }) {
         {save.error && <FormMessage tone="error">{save.error.message}</FormMessage>}
         {saved && !isDirty && <FormMessage tone="success">Údaje firmy sú uložené.</FormMessage>}
       </form>
-    </Tile>
+    </SettingsTile>
   );
 }

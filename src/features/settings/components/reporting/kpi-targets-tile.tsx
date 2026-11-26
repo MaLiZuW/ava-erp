@@ -9,7 +9,7 @@ import { Button } from "@/ui/button";
 import { ChipGroup } from "@/ui/chips";
 import { describedBy, Field, FormMessage, Select } from "@/ui/field";
 import { DateInput, SuffixInput } from "@/ui/inputs";
-import { Tile } from "@/ui/tile";
+import { SettingsTile } from "../settings-tile";
 import {
   DIRECTION_LABELS,
   KPI_DEFINITIONS,
@@ -180,7 +180,7 @@ export function KpiTargetsTile() {
   const rows = targets.data ?? [];
 
   return (
-    <Tile size="XL" title="Ciele procesných KPI">
+    <SettingsTile size="XL" title="Ciele procesných KPI">
       <div className="flex flex-col gap-4">
         <ChipGroup
           label="Pre"
@@ -260,6 +260,6 @@ export function KpiTargetsTile() {
           })}
         </ul>
       </div>
-    </Tile>
+    </SettingsTile>
   );
 }

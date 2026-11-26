@@ -67,6 +67,8 @@ export function visibleNavItems(roles: readonly AppRole[]): NavItem[] {
 export interface SettingsPage {
   href: string;
   label: string;
+  /** one line under the title in the sticky header */
+  description: string;
   /** extra words for Ctrl+K (field names: IBAN, logo …) */
   keywords: string[];
   /** tables whose change history is shown at the bottom of the page */
@@ -91,6 +93,7 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
       {
         href: "/nastavenia/firma/",
         label: "Údaje firmy",
+        description: "Obchodné meno, IČO, adresa a bankové spojenie – tlačia sa na všetky doklady.",
         keywords: [
           "obchodné meno",
           "IČO",
@@ -110,6 +113,7 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
       {
         href: "/nastavenia/firma/logo/",
         label: "Logo",
+        description: "Logo na dokladoch a v prezentáciách – PNG, JPEG alebo WebP do 2 MB.",
         keywords: ["logo", "obrázok", "značka"],
         historyTables: ["companies", "documents"],
       },
@@ -117,12 +121,13 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
   },
   {
     key: "pouzivatelia",
-    label: "Používatelia a bezpečnosť",
+    label: "Bezpečnosť",
     description: "Používatelia, roly a dvojfaktorové overenie.",
     pages: [
       {
         href: "/nastavenia/pouzivatelia/",
         label: "Používatelia a 2FA",
+        description: "Kto má prístup, jeho rola a dvojfaktorové overenie (TOTP).",
         keywords: ["používatelia", "2FA", "TOTP", "záložný faktor", "reset", "roly"],
         historyTables: ["user_roles", "profiles", "auth.mfa_factors"],
       },
@@ -136,18 +141,21 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
       {
         href: "/nastavenia/system/",
         label: "Systémové nastavenia",
+        description: "Odhlásenie po nečinnosti a ďalšie systémové hodnoty.",
         keywords: ["nečinnosť", "odhlásenie", "minúty"],
         historyTables: ["system_settings"],
       },
       {
         href: "/nastavenia/system/funkcie/",
         label: "Funkcie",
+        description: "Zapnutie a vypnutie voliteľných častí systému.",
         keywords: ["feature flag", "service_cnc", "zapnúť funkciu"],
         historyTables: ["feature_flags"],
       },
       {
         href: "/nastavenia/system/notifikacie/",
         label: "Notifikácie",
+        description: "Kam sa posielajú e-mailové upozornenia.",
         keywords: ["príjemcovia", "e-mail", "upozornenia"],
         historyTables: ["notification_recipients"],
       },
@@ -161,6 +169,7 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
       {
         href: "/nastavenia/ai/",
         label: "AI",
+        description: "Poskytovateľ, API kľúč, funkcie a rozpočet s poistkou.",
         keywords: ["Gemini", "API kľúč", "rozpočet", "umelá inteligencia"],
         historyTables: [],
       },
@@ -174,24 +183,28 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
       {
         href: "/nastavenia/reporting/rezia/",
         label: "Réžia",
+        description: "Mesačné fixné náklady firmy a divízií pre prehľad zisku.",
         keywords: ["fixné náklady", "nájom", "réžia"],
         historyTables: ["overhead_costs"],
       },
       {
         href: "/nastavenia/reporting/dane/",
         label: "Dane z príjmov",
+        description: "Pásma dane z príjmov pre informatívny odhad – overiť s účtovníkom.",
         keywords: ["daň", "pásma", "sadzba dane"],
         historyTables: ["income_tax_brackets"],
       },
       {
         href: "/nastavenia/reporting/kapacity/",
         label: "Kapacity",
+        description: "Týždenný vzor, dovolenky a výnimky – dostupné hodiny pre utilizáciu.",
         keywords: ["kalendár", "dovolenka", "týždenný vzor", "hodiny", "sviatky"],
         historyTables: ["work_patterns", "calendar_exceptions"],
       },
       {
         href: "/nastavenia/reporting/ciele-kpi/",
         label: "Ciele KPI",
+        description: "Ciele a hranice upozornenia procesných KPI.",
         keywords: ["KPI", "ciele", "semafor"],
         historyTables: ["kpi_targets"],
       },
@@ -205,6 +218,7 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
       {
         href: "/nastavenia/data/",
         label: "Na overenie a číselníky",
+        description: "Periodické overenie aktuálnosti dát a číselníky.",
         keywords: ["overenie", "aktuálnosť dát", "číselníky"],
         historyTables: [],
       },
@@ -218,6 +232,7 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
       {
         href: "/nastavenia/historia/",
         label: "História zmien",
+        description: "Všetky zmeny nastavení – kto, kedy a čo zmenil.",
         keywords: ["audit", "zmeny", "kto zmenil"],
         historyTables: [],
       },
@@ -232,4 +247,10 @@ export const SETTINGS_PAGES: readonly (SettingsPage & { group: SettingsGroup })[
 export function findSettingsPage(pathname: string) {
   const normalized = pathname.replace(/\/?$/, "/");
   return SETTINGS_PAGES.find((p) => p.href === normalized);
+}
+
+/** Window title of a settings page: "Logo · Nastavenia · Add Value Agency" (point 21). */
+export function settingsTitle(href: string): string {
+  const page = SETTINGS_PAGES.find((p) => p.href === href);
+  return page ? `${page.label} · Nastavenia · Add Value Agency` : "Nastavenia · Add Value Agency";
 }

@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { AuditTimeline, type AuditEntry, type RefResolver } from "@/ui/audit-timeline";
+import { describeAuditEntry } from "./audit-describe";
 import { useAuditRefs } from "./audit-refs";
 import { FormMessage } from "@/ui/field";
 import { Tile, type TileSize } from "@/ui/tile";
@@ -17,6 +18,7 @@ export function RecordHistoryTile({
   fieldLabels,
   recordLabel,
   size = "XL",
+  filter,
 }: {
   tables: readonly string[];
   /** omitted = whole tables (e.g. the catalog) */
@@ -25,10 +27,17 @@ export function RecordHistoryTile({
   /** short name of the changed record; `resolve` turns referenced ids into names */
   recordLabel: (e: AuditEntry, resolve: RefResolver) => string;
   size?: TileSize;
+  /** narrows the entries of shared tables (e.g. documents → only the logo) */
+  filter?: (e: AuditEntry) => boolean;
 }) {
-  const log = useAuditLog(tables, { recordIds });
+  // more rows are read when a filter narrows them; 30 are shown
+  const log = useAuditLog(tables, { recordIds, limit: filter ? 150 : 30 });
+  const entries = useMemo(
+    () => (filter ? (log.data ?? []).filter(filter).slice(0, 30) : (log.data ?? [])),
+    [log.data, filter],
+  );
   const profiles = useProfiles();
-  const resolve = useAuditRefs(log.data);
+  const resolve = useAuditRefs(entries);
   const names = useMemo(
     () => new Map((profiles.data ?? []).map((p) => [p.id, p.full_name || p.email || "Používateľ"])),
     [profiles.data],
@@ -45,10 +54,11 @@ export function RecordHistoryTile({
       ) : (
         <div className="max-h-[420px] overflow-y-auto">
           <AuditTimeline
-            entries={log.data ?? []}
+            entries={entries}
             actorName={(id) => (id ? (names.get(id) ?? "Neznámy používateľ") : "Systém")}
             fieldLabel={(t, f) => fieldLabels[t]?.[f] ?? f}
             recordLabel={(e) => recordLabel(e, resolve)}
+            describe={(e) => describeAuditEntry(e, resolve, (x) => recordLabel(x, resolve))}
             resolveRef={resolve}
           />
         </div>

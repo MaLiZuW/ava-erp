@@ -1,3 +1,4 @@
+import { HIDDEN_AUDIT_FIELDS, humanFieldValue } from "@/core/audit-describe";
 import { formatDate, formatDateTime, formatMoney } from "@/core/format";
 
 /** One row of public.activity_logs. */
@@ -31,7 +32,8 @@ export interface AuditChange {
   to: string;
 }
 
-const HIDDEN_FIELDS = new Set(["id", "created_at", "created_by", "updated_at", "updated_by"]);
+// technical fields and human values live in ONE place: src/core/audit-describe.ts (point 22)
+const HIDDEN_FIELDS = HIDDEN_AUDIT_FIELDS;
 const MAX_VALUE = 80;
 
 function asRecord(v: unknown): Record<string, unknown> {
@@ -60,6 +62,8 @@ export function displayValue(
   if (v === null || v === undefined || v === "") return "—";
   const named = resolve?.(field, v, row);
   if (named !== undefined) return clip(named);
+  const human = humanFieldValue(field, v);
+  if (human !== undefined) return human;
   if (Array.isArray(v)) {
     if (v.length === 0) return "—";
     return clip(v.map((x) => resolve?.(field, x, row) ?? displayValue(x, field)).join(", "));
@@ -117,9 +121,10 @@ const ACTION_LABEL: Record<string, string> = {
 export function AuditTimeline({
   entries,
   actorName,
-  fieldLabel = (_t, f) => f,
+  fieldLabel: fieldLabelProp,
   recordLabel,
   resolveRef,
+  describe,
   emptyText = "Zatiaľ bez zmien.",
 }: {
   entries: AuditEntry[];
@@ -128,24 +133,32 @@ export function AuditTimeline({
   recordLabel?: (entry: AuditEntry) => string;
   /** names instead of UUIDs – see src/core/audit-refs.ts */
   resolveRef?: RefResolver;
+  /** main line as a sentence (src/core/audit-describe.ts); default: action · record */
+  describe?: (entry: AuditEntry) => string;
   emptyText?: string;
 }) {
+  const givenLabels = !!fieldLabelProp;
+  const fieldLabel = fieldLabelProp ?? ((_t: string, f: string) => f);
   if (entries.length === 0) return <p className="text-neutral-700">{emptyText}</p>;
   return (
     <ol className="flex flex-col" aria-label="História zmien">
       {entries.map((e) => {
-        const changes = auditChanges(e, resolveRef);
+        // details show human fields only: with a label map, unlabelled (technical) fields are left out
+        const changes = auditChanges(e, resolveRef).filter(
+          (c) => !givenLabels || fieldLabel(e.table_name, c.field) !== c.field,
+        );
+        const sentence = describe
+          ? describe(e)
+          : `${ACTION_LABEL[e.action] ?? e.action}${recordLabel ? ` · ${recordLabel(e)}` : ""}`;
         return (
           <li key={e.id} className="border-b border-neutral-200 py-3 last:border-b-0">
+            <p className="text-ink text-[15px] leading-6 font-medium break-words">{sentence}</p>
             <p className="text-[13px] leading-5 text-neutral-700">
+              <span className="text-ink">{actorName(e.actor)}</span>
+              {" · "}
               <time dateTime={e.at} className="tabular-nums">
                 {formatDateTime(e.at)}
               </time>
-              {" · "}
-              <span className="text-ink font-medium">{actorName(e.actor)}</span>
-              {" · "}
-              {ACTION_LABEL[e.action] ?? e.action}
-              {recordLabel && <> · {recordLabel(e)}</>}
             </p>
             {e.action === "transition" ? (
               <p className="text-[15px]">
@@ -154,22 +167,28 @@ export function AuditTimeline({
               </p>
             ) : (
               changes.length > 0 && (
-                <dl className="mt-1 grid grid-cols-[minmax(120px,auto)_1fr] gap-x-4 gap-y-0.5 text-[13px] leading-5">
-                  {changes.map((c) => (
-                    <div key={c.field} className="contents">
-                      <dt className="text-neutral-700">{fieldLabel(e.table_name, c.field)}</dt>
-                      <dd className="text-ink break-words">
-                        {e.action === "update" ? (
-                          <>
-                            <span className="text-neutral-500 line-through">{c.from}</span> → {c.to}
-                          </>
-                        ) : (
-                          c.to || c.from
-                        )}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
+                <details className="mt-1 text-[13px] leading-5">
+                  <summary className="text-navy w-fit cursor-pointer font-medium">
+                    Zobraziť podrobnosti
+                  </summary>
+                  <dl className="mt-1 grid grid-cols-[minmax(120px,auto)_1fr] gap-x-4 gap-y-0.5">
+                    {changes.map((c) => (
+                      <div key={c.field} className="contents">
+                        <dt className="text-neutral-700">{fieldLabel(e.table_name, c.field)}</dt>
+                        <dd className="text-ink break-words">
+                          {e.action === "update" ? (
+                            <>
+                              <span className="text-neutral-500 line-through">{c.from}</span> →{" "}
+                              {c.to}
+                            </>
+                          ) : (
+                            c.to || c.from
+                          )}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                </details>
               )
             )}
           </li>

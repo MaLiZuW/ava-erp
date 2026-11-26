@@ -4,7 +4,7 @@ import { useId, useRef, useState } from "react";
 import { checkImageFile, IMAGE_ACCEPT } from "@/core/validation";
 import { Button } from "@/ui/button";
 import { FormMessage } from "@/ui/field";
-import { Tile } from "@/ui/tile";
+import { SettingsTile } from "./settings-tile";
 import { useLogoDocument, useSignedUrl, useUploadLogo, type Company } from "../api";
 
 export function LogoTile({ company }: { company: Company | null }) {
@@ -40,7 +40,7 @@ export function LogoTile({ company }: { company: Company | null }) {
   };
 
   return (
-    <Tile
+    <SettingsTile
       size="L"
       title="Logo"
       action={
@@ -90,6 +90,6 @@ export function LogoTile({ company }: { company: Company | null }) {
         )}
         {done && <FormMessage tone="success">Logo je nahrané.</FormMessage>}
       </div>
-    </Tile>
+    </SettingsTile>
   );
 }

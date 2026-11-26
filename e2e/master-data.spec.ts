@@ -226,10 +226,14 @@ test.describe.serial("master data", () => {
 
     // --- settings → reporting: overhead; a duplicate for the whole company is refused -----------
     await page.goto("/nastavenia/reporting/rezia/");
-    const overhead = page.getByRole("region", { name: "Réžia – mesačné fixné náklady" });
+    // settings tiles have no own title on their page; the primary button sits in the sticky header
+    const overhead = page.locator("main");
     const category = `${E2E_NAME_PREFIX}réžia ${stamp}`;
     for (let i = 0; i < 2; i++) {
-      await overhead.getByRole("button", { name: "Pridať náklad" }).click();
+      await page
+        .getByTestId("header-action")
+        .getByRole("button", { name: "Pridať náklad" })
+        .click();
       await overhead.getByLabel("Kategória", { exact: true }).fill(category);
       await overhead.getByLabel("Suma za mesiac", { exact: true }).fill("123,45");
       await overhead.getByRole("button", { name: "Uložiť", exact: true }).click();
@@ -247,7 +251,7 @@ test.describe.serial("master data", () => {
     await page.goto("/nastavenia/reporting/kapacity/");
 
     // --- capacity calendar (block H): pattern → month total; vacation → 0 h; extra on a holiday ---
-    const cal = page.getByRole("region", { name: "Kapacity – kalendár" });
+    const cal = page.locator("main");
     await cal.getByLabel("Osoba", { exact: true }).selectOption({ label: "Test e2e-md" });
     // default pattern for a new person is 8 h Mon–Fri; it is valid from today
     await cal.getByRole("button", { name: "Uložiť vzor" }).click();
@@ -332,9 +336,11 @@ test.describe.serial("master data", () => {
         // the whole stepper (− field +) fits into the tile, nothing cut off on the right
         const fits = await field.evaluate((el) => {
           const group = el.closest('[role="group"]')!.getBoundingClientRect();
-          const tile = el
-            .closest('section[aria-label="Kapacity – kalendár"]')!
-            .getBoundingClientRect();
+          // the outer tile (sections inside it carry labels; the tile itself is the last <section>)
+          const sections = [...document.querySelectorAll("main section")].filter((s) =>
+            s.contains(el),
+          );
+          const tile = sections[0]!.getBoundingClientRect();
           return group.right <= tile.right + 0.5;
         });
         expect(fits, `stepper fits at ${width} px`).toBe(true);
