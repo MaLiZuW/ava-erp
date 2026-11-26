@@ -3,7 +3,8 @@
 /*
  * Design tokens – docs/DESIGN_SYSTEM.md §3, §4.
  * Brand-blue (#00B0EF) has 2.5:1 contrast on white → accents/focus only, NEVER text.
- * Status colours and neutrals are proposals (NÁVRH) – contrast to be re-verified in phase 2.
+ * Text colours (ink, navy, neutrals, success/warning/danger) have ≥ 4.5:1 on white and canvas –
+ * verified by src/core/contrast.test.ts (phase 2).
  */
 :root {
   --brand-navy: #00384c;
