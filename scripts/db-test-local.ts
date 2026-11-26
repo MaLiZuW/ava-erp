@@ -7,6 +7,7 @@
 import { PGlite } from "@electric-sql/pglite";
 import { pgcrypto } from "@electric-sql/pglite/contrib/pgcrypto";
 import { pg_trgm } from "@electric-sql/pglite/contrib/pg_trgm";
+import { btree_gist } from "@electric-sql/pglite/contrib/btree_gist";
 import { pgtap } from "@electric-sql/pglite-pgtap";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -59,7 +60,7 @@ const SUPABASE_STUB = `
 `;
 
 async function main() {
-  const db = new PGlite({ extensions: { pgcrypto, pg_trgm, pgtap } });
+  const db = new PGlite({ extensions: { pgcrypto, pg_trgm, btree_gist, pgtap } });
   const exec: SqlExec = async (sql) => {
     const results = await db.exec(sql);
     return results.flatMap((r) =>

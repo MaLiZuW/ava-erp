@@ -3,6 +3,7 @@
  * Optional fields: trimmed, empty string → null (the database stores NULL, not "").
  */
 import { z } from "zod";
+import { parseDate, parseDecimal, parseMoneyToCents, parsePercent } from "./format";
 import { compact, isValidDic, isValidIco } from "./validation";
 
 /** Optional text: trimmed, empty → null. */
@@ -89,3 +90,79 @@ export const optInt = (min: number, max: number, message: string) =>
     .trim()
     .refine((v) => v === "" || (/^\d+$/.test(v) && Number(v) >= min && Number(v) <= max), message)
     .transform((v) => (v === "" ? null : Number(v)));
+
+// --- money, percentages, dates (inputs are text; values are stored as cents / numeric / ISO date) ---
+
+const MAX_CENTS = 100_000_000_000; // 1 000 000 000,00 € – far above any real amount
+
+/** Amount in euros ("1 234,56") → integer cents >= 0. Required. */
+export const moneyField = (message = "Zadajte sumu v eurách, napr. 1 234,56.") =>
+  z.string().transform((v, ctx) => {
+    const cents = parseMoneyToCents(v);
+    if (cents == null || cents < 0 || cents > MAX_CENTS) {
+      ctx.addIssue({ code: "custom", message });
+      return z.NEVER;
+    }
+    return cents;
+  });
+
+/** Optional amount: "" → null. */
+export const optMoneyField = (message = "Zadajte sumu v eurách, napr. 1 234,56.") =>
+  z.string().transform((v, ctx) => {
+    if (v.trim() === "") return null;
+    const cents = parseMoneyToCents(v);
+    if (cents == null || cents < 0 || cents > MAX_CENTS) {
+      ctx.addIssue({ code: "custom", message });
+      return z.NEVER;
+    }
+    return cents;
+  });
+
+/** Optional percentage 0–max ("12,5") → number; "" → null. */
+export const optPercentField = (max = 999.9999) =>
+  z.string().transform((v, ctx) => {
+    if (v.trim() === "") return null;
+    const n = parsePercent(v);
+    if (n == null || n < 0 || n > max) {
+      ctx.addIssue({
+        code: "custom",
+        message: `Zadajte percentá 0–${String(max).replace(".", ",")}.`,
+      });
+      return z.NEVER;
+    }
+    return n;
+  });
+
+/** Date DD/MM/YYYY → "YYYY-MM-DD". Required. */
+export const dateField = () =>
+  z.string().transform((v, ctx) => {
+    const iso = parseDate(v);
+    if (!iso) {
+      ctx.addIssue({ code: "custom", message: "Zadajte dátum v tvare DD/MM/YYYY." });
+      return z.NEVER;
+    }
+    return iso;
+  });
+
+/** Optional date DD/MM/YYYY; "" → null. */
+export const optDateField = () =>
+  z.string().transform((v, ctx) => {
+    if (v.trim() === "") return null;
+    const iso = parseDate(v);
+    if (!iso) {
+      ctx.addIssue({ code: "custom", message: "Zadajte dátum v tvare DD/MM/YYYY." });
+      return z.NEVER;
+    }
+    return iso;
+  });
+
+/** Positive decimal number (e.g. hours, quantity) with at most `decimals` digits after the comma. */
+export const positiveDecimalField = (decimals: number, message: string) =>
+  z.string().transform((v, ctx) => {
+    const n = parseDecimal(v, decimals);
+    if (n == null || n <= 0) {
+      ctx.addIssue({ code: "custom", message });
+      return z.NEVER;
+    }
+    return n;
+  });

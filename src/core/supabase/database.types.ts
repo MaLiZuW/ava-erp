@@ -66,6 +66,86 @@ export type Database = {
         };
         Relationships: [];
       };
+      catalog_items: {
+        Row: {
+          code: string | null;
+          created_at: string;
+          created_by: string | null;
+          default_cost_cents: number;
+          default_pricing_mode: Database["public"]["Enums"]["pricing_mode"];
+          default_pricing_pct: number | null;
+          default_supplier_id: string | null;
+          description: string | null;
+          division_id: string | null;
+          id: string;
+          is_active: boolean;
+          item_type: Database["public"]["Enums"]["item_type"];
+          name: string;
+          unit_code: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          code?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          default_cost_cents?: number;
+          default_pricing_mode?: Database["public"]["Enums"]["pricing_mode"];
+          default_pricing_pct?: number | null;
+          default_supplier_id?: string | null;
+          description?: string | null;
+          division_id?: string | null;
+          id?: string;
+          is_active?: boolean;
+          item_type: Database["public"]["Enums"]["item_type"];
+          name: string;
+          unit_code: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          code?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          default_cost_cents?: number;
+          default_pricing_mode?: Database["public"]["Enums"]["pricing_mode"];
+          default_pricing_pct?: number | null;
+          default_supplier_id?: string | null;
+          description?: string | null;
+          division_id?: string | null;
+          id?: string;
+          is_active?: boolean;
+          item_type?: Database["public"]["Enums"]["item_type"];
+          name?: string;
+          unit_code?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "catalog_items_default_supplier_id_fkey";
+            columns: ["default_supplier_id"];
+            isOneToOne: false;
+            referencedRelation: "suppliers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "catalog_items_division_id_fkey";
+            columns: ["division_id"];
+            isOneToOne: false;
+            referencedRelation: "divisions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "catalog_items_unit_code_fkey";
+            columns: ["unit_code"];
+            isOneToOne: false;
+            referencedRelation: "units";
+            referencedColumns: ["code"];
+          },
+        ];
+      };
       companies: {
         Row: {
           bank_name: string | null;
@@ -463,6 +543,85 @@ export type Database = {
         };
         Relationships: [];
       };
+      labor_rates: {
+        Row: {
+          bill_rate_cents: number;
+          cost_rate_cents: number;
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          role_id: string;
+          updated_at: string;
+          updated_by: string | null;
+          valid_from: string;
+          valid_to: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          bill_rate_cents: number;
+          cost_rate_cents: number;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          role_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from: string;
+          valid_to?: string | null;
+        };
+        Update: {
+          bill_rate_cents?: number;
+          cost_rate_cents?: number;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          role_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from?: string;
+          valid_to?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "labor_rates_role_id_fkey";
+            columns: ["role_id"];
+            isOneToOne: false;
+            referencedRelation: "labor_roles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      labor_roles: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          is_active: boolean;
+          name: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          is_active?: boolean;
+          name: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          is_active?: boolean;
+          name?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [];
+      };
       notification_recipients: {
         Row: {
           created_at: string;
@@ -531,6 +690,52 @@ export type Database = {
         };
         Relationships: [];
       };
+      package_components: {
+        Row: {
+          component_item_id: string;
+          created_at: string;
+          created_by: string | null;
+          package_item_id: string;
+          quantity: number;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          component_item_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          package_item_id: string;
+          quantity: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          component_item_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          package_item_id?: string;
+          quantity?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "package_components_component_item_id_fkey";
+            columns: ["component_item_id"];
+            isOneToOne: false;
+            referencedRelation: "catalog_items";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "package_components_package_item_id_fkey";
+            columns: ["package_item_id"];
+            isOneToOne: false;
+            referencedRelation: "catalog_items";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       profiles: {
         Row: {
           created_at: string;
@@ -563,6 +768,55 @@ export type Database = {
           id?: string;
           is_active?: boolean;
           phone?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [];
+      };
+      resources: {
+        Row: {
+          bill_rate_cents: number | null;
+          cost_rate_cents: number | null;
+          created_at: string;
+          created_by: string | null;
+          expected_life_hours: number;
+          id: string;
+          is_active: boolean;
+          kind: string | null;
+          name: string;
+          operating_cost_per_hour_cents: number;
+          purchase_cost_cents: number;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          bill_rate_cents?: number | null;
+          cost_rate_cents?: never;
+          created_at?: string;
+          created_by?: string | null;
+          expected_life_hours: number;
+          id?: string;
+          is_active?: boolean;
+          kind?: string | null;
+          name: string;
+          operating_cost_per_hour_cents?: number;
+          purchase_cost_cents?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          bill_rate_cents?: number | null;
+          cost_rate_cents?: never;
+          created_at?: string;
+          created_by?: string | null;
+          expected_life_hours?: number;
+          id?: string;
+          is_active?: boolean;
+          kind?: string | null;
+          name?: string;
+          operating_cost_per_hour_cents?: number;
+          purchase_cost_cents?: number;
           updated_at?: string;
           updated_by?: string | null;
         };
@@ -769,6 +1023,34 @@ export type Database = {
           updated_at?: string;
           updated_by?: string | null;
           value?: NonNullable<Json>;
+        };
+        Relationships: [];
+      };
+      units: {
+        Row: {
+          code: string;
+          created_at: string;
+          created_by: string | null;
+          name: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          code: string;
+          created_at?: string;
+          created_by?: string | null;
+          name: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          code?: string;
+          created_at?: string;
+          created_by?: string | null;
+          name?: string;
+          updated_at?: string;
+          updated_by?: string | null;
         };
         Relationships: [];
       };

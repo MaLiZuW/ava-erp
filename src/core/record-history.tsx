@@ -7,7 +7,7 @@ import { Tile, type TileSize } from "@/ui/tile";
 import { useAuditLog, useProfiles } from "./shared-queries";
 
 /**
- * "História zmien" tile of one record (and its child records, e.g. contacts) – who, when, what.
+ * "História zmien" tile of one record (and its child records, e.g. contacts) or of whole tables.
  * activity_logs is admin-only (RLS).
  */
 export function RecordHistoryTile({
@@ -18,7 +18,8 @@ export function RecordHistoryTile({
   size = "L",
 }: {
   tables: readonly string[];
-  recordIds: readonly string[];
+  /** omitted = whole tables (e.g. the catalog) */
+  recordIds?: readonly string[];
   fieldLabels: Record<string, Record<string, string>>;
   recordLabel: (e: AuditEntry) => string;
   size?: TileSize;

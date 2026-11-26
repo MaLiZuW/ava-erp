@@ -40,6 +40,12 @@ const TABLES = [
   "customer_machines",
   "suppliers",
   "supplier_contacts",
+  "units",
+  "catalog_items",
+  "package_components",
+  "labor_roles",
+  "labor_rates",
+  "resources",
 ];
 /** tables an aal2 admin must see rows in (seeded / always present) */
 const ADMIN_VISIBLE = [

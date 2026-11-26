@@ -47,6 +47,7 @@ export interface NewAction {
 export const NEW_ACTIONS: readonly NewAction[] = [
   { href: "/zakaznici/detail/?id=new", label: "Zákazník", requiredRole: "admin" },
   { href: "/dodavatelia/detail/?id=new", label: "Dodávateľ", requiredRole: "admin" },
+  { href: "/katalog/?tab=polozky&nova=1", label: "Položka katalógu", requiredRole: "admin" },
 ];
 
 export function visibleNewActions(roles: readonly AppRole[]): NewAction[] {

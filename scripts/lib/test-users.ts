@@ -146,7 +146,19 @@ export async function purgeE2eMasterData(env: TestEnv): Promise<void> {
   await db.connect();
   try {
     const like = `${E2E_NAME_PREFIX}%`;
-    // contacts are removed by "on delete cascade"
+    // order matters (foreign keys); contacts and BOM rows of a package go by "on delete cascade"
+    await db.query(
+      `delete from public.package_components
+        where component_item_id in (select id from public.catalog_items where name like $1)`,
+      [like],
+    );
+    await db.query("delete from public.catalog_items where name like $1", [like]);
+    await db.query(
+      "delete from public.labor_rates where role_id in (select id from public.labor_roles where name like $1)",
+      [like],
+    );
+    await db.query("delete from public.labor_roles where name like $1", [like]);
+    await db.query("delete from public.resources where name like $1", [like]);
     await db.query("delete from public.customers where name like $1", [like]);
     await db.query("delete from public.suppliers where name like $1", [like]);
   } finally {
