@@ -15,6 +15,20 @@ Formát: [Keep a Changelog](https://keepachangelog.com/sk/1.1.0/).
 - Databáza: 3 migrácie `20261128100000_phase3_parties.sql`, `20261128110000_phase3_catalog.sql`, `20261128120000_phase3_content_reporting.sql` (16 tabuliek, `private.setup_admin_table()`, `btree_gist`), pravidlo obrázkov v `documents`.
 - Testy: pgTAP `07_parties`, `08_catalog`, `09_content_reporting`; Vitest pre schémy, vzorce a komponenty; e2e `master-data.spec.ts` (zákazník, dodávateľ, katalóg, knižnica, réžia) s upratovaním dát `E2E …`; API test pokrýva nové tabuľky a nahrávanie cez Storage.
 
+### Pridané – doplnenie pred zlúčením
+
+- `NumberStepper` (`src/ui/number-stepper.tsx`): tlačidlá −/+ (40 px, aj na dotyk), šípky ↑/↓, Shift = krok ×10, krok podľa jednotky (ks/bal 1, hod 0,5, kg/m/m2 0,1) alebo cez prop, minimum/maximum (aj „menej ako“ pre maržu < 100 %), desatinná čiarka. Použitý pre množstvo v kusovníku (−/+ uloží hneď), maržu/prirážku, dni splatnosti, kapacity a životnosť techniky (krok 100 h, Shift 1000 h).
+- `MoneyInput`: šípky ↑/↓ ± 1,00 € (Shift ± 10,00 €), bez tlačidiel.
+- Knižnica obsahu: bloky „Prečo my“, „Ako pracujeme“, „Kontakt“ (pre prezentáciu k CP vo fáze 4).
+- Rozhodnutia D23 (prílohy – implementácia na začiatku fázy 4) a D24 (riadenie projektov a zdrojov podľa schválenej analýzy `docs/analyzy/ANALYZA-RIADENIE-PROJEKTOV-A-ZDROJOV.md`).
+- `DATABASE_SCHEMA.md` §19 – plánovanie zdrojov ako **návrh** pre fázu 5a (neimplementované); potvrdené pravidlá: neprekrývajúce sa daňové pásma, hranica upozornenia KPI na horšej strane cieľa.
+
+### Zmenené – doplnenie pred zlúčením
+
+- Katalóg: záložka „Zdroje“ → **„Technika a vybavenie“** (`?tab=technika`, starý odkaz `?tab=zdroje` funguje), texty, typ položky `resource`, „+ Nové“ / `Ctrl+K`. Databáza ani názvy tabuliek sa nemenili.
+- `STEP-03-az-08-prehlad.md`: STEP-05 rozdelený na STEP-05a (projekty a zdroje) a STEP-05b (vizuál, nákup, dodanie, e-mail, nezhody); STEP-04 a STEP-07 doplnené o zdroje (D24) a prílohy (D23).
+- `BUSINESS_PROCESSES.md`: Q18 odkazuje na D24; nový krok „Scenár dňa eventu“ (EVENT).
+
 ### Opravené
 
 - Ľavé menu sa na nízkej obrazovke posúva, Nastavenia ostávajú pripnuté dole.

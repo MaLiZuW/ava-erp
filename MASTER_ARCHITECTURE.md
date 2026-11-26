@@ -62,4 +62,6 @@ TypeScript 5.9 a ESLint 9 sú zámerne nižšie než najnovšie (TS 7, ESLint 10
 - **Štandard tabuľky:** `private.setup_admin_table()` v migrácii; kmeňové dáta bez mazania (`is_active`).
 - **Pravidlá v databáze:** kusovník jednej úrovne (triggery), neprekrývajúce sa platnosti sadzieb a daňových pásiem (exclusion, `btree_gist`), sadzba zdroja ako generovaný stĺpec (rovnaký vzorec v TS celočíselne), verzia bloku obsahu triggerom, `unique nulls not distinct` tam, kde NULL znamená „celá firma“.
 - **Peniaze vo formulároch:** text „1 234,56“ → zod `moneyField` → centy; percentá `numeric(7,4)`; dátumy DD/MM/YYYY → ISO.
+- **Čísla vo formulároch:** množstvá, hodiny, percentá a dni cez `NumberStepper` (`src/ui/number-stepper.tsx`; −/+, ↑/↓, Shift ×10, krok podľa jednotky `stepForUnit`, min/max). Hodnota ostáva text, zod ju parsuje ako predtým; vo formulároch cez `Controller`. Peňažné polia (`MoneyInput`) majú len šípky (± 1 €).
+- **Názvoslovie (D24):** tabuľka `resources` sa v UI volá „Technika a vybavenie“; slovo „zdroj“ je vyhradené pre plánovanie zdrojov vo fáze 5a (ľudia, dodávatelia, technika – DATABASE_SCHEMA §19).
 - **Typy z DB:** `npm run db:types` (generuje a formátuje).

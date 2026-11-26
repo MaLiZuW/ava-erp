@@ -69,8 +69,8 @@ Počas práce zachytené a opravené: delenie nulou v generovanom stĺpci (nula 
 
 ## 5. Otvorené problémy a riziká
 
-- **Doplnil som dve pravidlá, ktoré priamo nie sú v `docs/`** (logická konzistencia, nie podnikové pravidlo – prosím potvrď): pásma dane platné v rovnakom období sa nesmú prekrývať; hranica upozornenia KPI musí byť na „horšej“ strane cieľa.
-- **Knižnica obsahu má len sloty zo schémy** (O firme + služby). Ak chceš ďalšie bloky (napr. „Prečo my“, kontakt, tím), povedz – nevymýšľal som ich.
+- ~~Dve doplnené pravidlá na potvrdenie~~ → **potvrdené vlastníkom** a zapísané v `DATABASE_SCHEMA.md` (pozri „Doplnenie“).
+- ~~Knižnica obsahu len so slotmi zo schémy~~ → doplnené „Prečo my“, „Ako pracujeme“, „Kontakt“ (pozri „Doplnenie“).
 - Smer KPI (vyššie/nižšie je lepšie) je predvolený podľa významu ukazovateľa, dá sa zmeniť vo formulári.
 - História kusovníka a jednotiek sa zobrazuje za celú časť katalógu, nie pri konkrétnej položke (tabuľky nemajú `id`) – zapísané v `TODO.md`.
 - Vzhľad obrazoviek som overil testami a podľa `DESIGN_SYSTEM.md`, nie očami na obrazovke – prosím pozri sa na ne (bod 7).
@@ -95,7 +95,59 @@ Spusti `npm run dev` → `http://localhost:3000` a prihlás sa.
 6. **Dodávatelia → + Nový dodávateľ** → do Krajina napíš `CZ` → hneď sa zobrazí žlté upozornenie o DPH (§ 7, § 7a).
 7. **Katalóg → Položky** → pridaj tovar (napr. hrnček, nákup 2,50) a položku typu **Balíček** → záložka **Balíčky** → vyber balíček → v ponuke komponentov **nie je** žiadny balíček → pridaj hrnček × 2 → „Náklad 1 balíčka“ 5,00 €.
 8. **Roly a sadzby** → Pridať rolu → Nová sadzba od 01/01/2026 → druhá sadzba od 01/06/2026 bez „Platí do“ → hláška o prekrytí. Prvú sadzbu uprav (Platí do 31/05/2026) → druhá už prejde.
-9. **Zdroje** → + Nový zdroj → 10 000 € / 3000 h / 1,50 € → náhľad aj zoznam ukážu **4,83 €/h**.
+9. **Technika a vybavenie** (pôvodne „Zdroje“) → + Nová technika → 10 000 € / 3000 h / 1,50 € → náhľad aj zoznam ukážu **4,83 €/h**.
 10. **Dokumenty** → „O firme“ → napíš text → Uložiť (Verzia 1) → zmeň text → Uložiť (Verzia 2) → Pridať obrázok (PNG) → zobrazí sa; skús SVG → odmietnuté.
 11. **Nastavenia → Reporting** → Réžia: pridaj „Nájom“ ako spoločnú → pridaj ju druhýkrát → hláška o duplicite. Dane: všimni si upozornenie (hodnoty zadaj až po overení s účtovníkom). Ciele KPI: prepni Spolu/AVENG/Agentúra a nastav jeden cieľ.
 12. **Vzhľad:** prejdi obrazovky Zákazníci, Katalóg, Dokumenty a Nastavenia → Reporting a povedz, čo nesedí so štýlom (bento dlaždice, jedna hlavná akcia, čistota).
+
+---
+
+## Doplnenie (pred zlúčením PR)
+
+Zadanie vlastníka v 12 bodoch so schváleným plánom. **Databáza sa nemenila** – žiadna nová migrácia ani `db:push`.
+
+### Čo pribudlo
+
+| # | Bod | Výsledok |
+|---|---|---|
+| 1 | Potvrdené pravidlá | `DATABASE_SCHEMA.md` §18: daňové pásma platné v rovnakom období sa neprekrývajú; hranica upozornenia KPI je na horšej strane cieľa (schválené vlastníkom) |
+| 2 | Knižnica obsahu | bloky **Prečo my** (`why_us`), **Ako pracujeme** (`how_we_work`), **Kontakt** (`contact`) – verzie, obrázky, jazyk ako ostatné bloky |
+| 3 | NumberStepper | `src/ui/number-stepper.tsx` – −/+ (40 px), ↑/↓, Shift ×10, krok podľa jednotky, min/max, čiarka, ručné písanie, aria-label; použitý v kusovníku (uloží hneď), pri marži/prirážke (marža < 100 %), dňoch splatnosti, kapacitách, životnosti techniky (100 h / Shift 1000 h). `MoneyInput` len šípky ± 1,00 € (Shift ± 10,00 €) |
+| 4 | Prílohy | **D23** v `DECISIONS.md` (len rozhodnutie); úlohy v `TODO.md` → začiatok fázy 4 |
+| 5 | Konce riadkov | `TODO.md`: samostatný malý PR po zlúčení fázy 3 |
+| 7 | „Zdroje“ → „Technika a vybavenie“ | záložka (`?tab=technika`, starý odkaz funguje), texty, typ položky, „+ Nové“ / `Ctrl+K`; DB a názvy tabuliek bez zmeny |
+| 8 | D24 | `DECISIONS.md` podľa kap. 4 analýzy vrátane rozšíriteľnosti o externú osobu a AI agenta; analýza pridaná do repozitára |
+| 9 | Schéma §19 | `DATABASE_SCHEMA.md` §19 „Doplnok – plánovanie zdrojov (F5a)“ ako **návrh**; v §7 poznámka, že `assignee_*` nahradí `task_assignments` |
+| 10 | Prehľad fáz | STEP-05 → **STEP-05a** (projekty a zdroje) a **STEP-05b** (vizuál, nákup, dodanie, e-mail, nezhody); STEP-04 + `resource_requirements`, kontrola kapacity, prílohy D23; STEP-07 + kapacita vs. pipeline, utilizácia, EAC, KPI termínov dodávateľov |
+| 11 | Procesy | Q18 odkazuje na D24 a analýzu; nový krok „Scenár dňa eventu“ (EVENT ✔, ostatné –) |
+| 12 | Dokumenty | `TODO.md` (fáza 4 a 5a), `CHANGELOG.md`, `MASTER_ARCHITECTURE.md`, `TESTING_STRATEGY.md`, tento report |
+
+Brána STEP-05a je v prehľade označená **[NÁVRH]** (zákazka EVENT zo šablóny so scenárom, bez konfliktu techniky) – potvrď alebo uprav pri plánovaní fázy 5a. Názvy stĺpcov v §19 sú orientačné.
+
+### Commity doplnenia
+
+`e3ad638` pravidlá · `dc3e94c` bloky obsahu · `bf65d50` NumberStepper · `54ba604` Technika a vybavenie · `c8d42ce` D23, D24, §19, STEP, procesy, TODO · záverečný commit s CHANGELOG a reportom.
+
+### Testy
+
+| Sada | Výsledok |
+|---|---|
+| lint, typecheck, build | bez chýb (po každom bode) |
+| Vitest | **180/180** (+10 testov NumberStepper / MoneyInput) |
+| Playwright | **9/9** – navyše −/+ v kusovníku (2 → 3 ks = 7,50 € → späť 5,00 €), starý odkaz `?tab=zdroje`, „+ Nové → Technika a vybavenie“, krok životnosti 2900 → 3000 h, nové bloky obsahu |
+| pgTAP dev / sandbox | **306/306** (kontrola – DB bez zmeny) |
+| `db:test:api` | **ALL PASSED** |
+
+### Čo mám preklikať
+
+1. **Katalóg → Balíčky** → pri komponente klikni **+** → množstvo sa zvýši o 1 a „Náklad 1 balíčka“ sa hneď prepočíta; **−** vráti späť. Pri množstve 1 je − zašedené.
+2. **Katalóg → Položky** → Upraviť položku → Navýšenie „Marža %“ → v poli percent stláčaj **↑** (o 1), **Shift+↑** (o 10) → pri 99 je **+ zašedené** (marža musí byť < 100 %). Pri „Prirážka %“ limit nie je.
+3. V tej istej položke v poli **Nákupná cena** stlač ↑ → +1,00 €, Shift+↑ → +10,00 €; tlačidlá −/+ tam nie sú.
+4. **Zákazník → Upraviť údaje → Splatnosť** → − je pri 0 zašedené; + až do 365.
+5. **Nastavenia → Reporting → Kapacity** → +/− mení hodiny po 0,5 a hneď uloží („Uložené.“).
+6. **Katalóg → Technika a vybavenie** (záložka sa volá takto, aj „+ Nové → Technika a vybavenie“) → Predpokladaná životnosť: + pridá 100 h, Shift+↑ 1000 h. Odkaz `…/katalog/?tab=zdroje` otvorí tú istú záložku.
+7. **Dokumenty** → nové dlaždice **Prečo my**, **Ako pracujeme**, **Kontakt** → napíš text → Uložiť → Verzia 1; pridaj obrázok.
+8. Na mobile (alebo F12 → zobrazenie telefónu) skús −/+ prstom – tlačidlá majú 40 × 40 px.
+9. Prečítaj `docs/DECISIONS.md` (D23, D24), `DATABASE_SCHEMA.md` §19 a `docs/steps/STEP-03-az-08-prehlad.md` (STEP-05a/05b) – či sedia s tvojím zámerom.
+
+PR nie je zlúčený – čaká na tvoj súhlas.

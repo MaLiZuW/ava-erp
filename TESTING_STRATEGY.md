@@ -47,7 +47,7 @@ Sandbox nenahrádza beh na skutočnom projekte (brána fázy): odlišnosti PGlit
 
 ## Stav (fáza 3)
 
-- Vitest: 170 testov. Playwright: 9 testov (vrátane prihlásenia kódom „123 456“, menu pri 1280×560 a 375×640 a toku kmeňových dát).
+- Vitest: 180 testov (doplnenie: `number-stepper.test.tsx` – logika kroku, tlačidlá, šípky, MoneyInput s react-hook-form). Playwright: 9 testov (vrátane prihlásenia kódom „123 456“, menu pri 1280×560 a 375×640, toku kmeňových dát, −/+ v kusovníku a starého odkazu `?tab=zdroje`).
 - pgTAP: 306 asercií v 9 súboroch – dev projekt aj sandbox PGlite (sandbox načítava aj `btree_gist`).
 - `db:test:api`: anon/aal1 bez dát aj na všetkých nových tabuľkách; nahrávanie cez Storage s aal2 – PNG prejde, SVG a súbor nad 2 MB bucket odmietne.
 - Vzorec sadzby zdroja je overený rovnakými prípadmi v TypeScripte (`resource-rate.test.ts`) aj v databáze (`08_catalog`).
