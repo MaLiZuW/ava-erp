@@ -2,6 +2,14 @@
 
 Formát: [Keep a Changelog](https://keepachangelog.com/sk/1.1.0/).
 
+## [Nevydané] – údržba: konce riadkov (`chore-line-endings`)
+
+### Zmenené
+
+- `.gitattributes`: `* text=auto eol=lf` – súbory majú LF v repozitári aj v pracovnej kópii (aj na Windows s `core.autocrlf=true`); obrázky, PDF, XLSX, DOCX a písma označené ako binárne; testovacie cenníky `e2e/fixtures/**` ostávajú bajt po bajte (Windows-1250, CRLF). Obsah súborov v repozitári sa nezmenil – už bol v LF.
+- Prettier: jednorazovo naformátované `.prettierrc.json`, `DEPLOYMENT.md`, `MIGRATION_TO_SELF_HOSTED.md`; `supabase/config.jsonc` vylúčený (`.prettierignore`), aby Prettier nepridal čiarky, ktoré Supabase CLI nemusí prečítať. `prettier --check .` je teraz čistý.
+- Na inom, už existujúcom klone stačí raz obnoviť pracovnú kópiu na čistom strome: `git rm -r --cached . ; git reset --hard` (na tomto počítači už urobené).
+
 ## [Nevydané] – fáza 3: Kmeňové dáta a knižnica obsahu (`phase-03-master-data`)
 
 ### Pridané

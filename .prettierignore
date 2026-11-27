@@ -5,3 +5,5 @@ package-lock.json
 docs
 CLAUDE.md
 README-BALIK.md
+# Supabase CLI config: kept exactly as the CLI writes it (no trailing commas)
+supabase/config.jsonc
