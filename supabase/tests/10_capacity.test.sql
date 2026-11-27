@@ -26,6 +26,15 @@ select is((select is_day_off from public.public_holidays where date = '2026-09-1
 select is((select is_day_off from public.public_holidays where date = '2027-05-08'), true, '8 May 2027 is a day of rest again');
 select is((select is_day_off from public.public_holidays where date = '2025-09-01'), false, '1 September is a holiday, not a day of rest');
 select is((select is_day_off from public.public_holidays where date = '2025-11-17'), false, '17 November is a holiday, not a day of rest');
+-- O7 confirmed by the owner (Act 241/1993 in force from 29. 10. 2026, amendment 261/2025)
+select is((select (name, is_day_off)::text from public.public_holidays where date = '2026-10-28'),
+  '("Deň vzniku samostatného česko-slovenského štátu",f)', '28 October is a state holiday, not a day of rest');
+select is((select count(*) from public.public_holidays where to_char(date, 'MM-DD') = '10-28'
+            and extract(year from date) between 2025 and 2030), 6::bigint, '28 October in every filled year');
+select is((select is_day_off from public.public_holidays where date = '2030-09-15'), true, '15 September 2030 is a day of rest');
+select ok((select bool_and(source like 'Zákon č. 241/1993 Z. z. v znení účinnom od 29. 10. 2026 (Slov-Lex) a novela č. 261/2025 Z. z.%')
+             from public.public_holidays where extract(year from date) between 2025 and 2030),
+  'the confirmed source is written to every filled row');
 select is((select count(*) from public.public_holidays where extract(year from date) = 2027 and is_day_off), 13::bigint,
   '2027: 13 days of rest');
 select is((select count(*) from public.public_holidays where extract(year from date) = 2026 and is_day_off), 11::bigint,

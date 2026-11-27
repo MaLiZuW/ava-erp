@@ -219,12 +219,12 @@ Po každom behu na dev nezostali testovacie dáta (overené dotazom): žiadne �
 
 ### 5. Otvorené problémy a riziká
 
-- **Sviatky (O7 v `DECISIONS.md`) – na tvoje potvrdenie.** Slov-Lex sa mi nepodarilo strojovo prečítať; pravidlá sú podľa NIP a odborných zdrojov:
-  - 2026: 8. 5. a 15. 9. **nie sú** dňom pracovného pokoja (NIP);
-  - 2027–2030: 8. 5. a 15. 9. **sú** dňom pracovného pokoja – opiera sa len o vyhlásenie ministerstva o návrate od 2027;
-  - 1. 9. a 17. 11. ostávajú štátnymi sviatkami, ale nie sú dňom pracovného pokoja;
-  - 28. 10. v zozname nie je (jeden zdroj uvádza nový štátny sviatok, ktorý nie je dňom pracovného pokoja);
-  - oprava jedného riadku v `public_holidays` má prednosť, doplnenie roka nič neprepíše.
+- ~~**Sviatky (O7)** – na potvrdenie~~ → **uzavreté 27. 11. 2026.** Vlastník overil **zákon č. 241/1993 Z. z. (Slov-Lex, znenie účinné od 29. 10. 2026) a novelu č. 261/2025 Z. z.**:
+  - 28. 10. (Deň vzniku samostatného česko-slovenského štátu) = štátny sviatok, **nie** deň pracovného pokoja (§ 2 ods. 3) – **doplnený** (migrácia `20261129150000_phase3_holidays_confirmed.sql`, roky 2025–2030 a funkcia `fill_sk_holidays`);
+  - 1. 9. a 17. 11. = štátne sviatky, nie dni pracovného pokoja natrvalo;
+  - 8. 5. a 15. 9. = nie sú dňom pracovného pokoja len v roku 2026 (§ 4b), od 2027 opäť sú – pôvodná tabuľka bola správna;
+  - zdroj je zapísaný v `public_holidays.source` pri všetkých 96 riadkoch na dev; pgTAP `10_capacity` to overuje (587/587 na dev aj v sandboxe, e2e 10/10, `db:test:api` zelený);
+  - F8: sledovanie zákona 241/1993 vo watchliste a ročná kontrola sviatkov (`TODO.md`).
 - **Kurz meny** sa zadáva ako na kurzovom lístku ECB/NBS (jednotky meny za 1 EUR); automatický kurz je v TODO.
 - **AI:** žiadny skutočný kľúč ani volanie Gemini som nerobil – spojenie overíš ty podľa `DEPLOYMENT.md` G. Odosielanie notifikácií (overenie dát, rozpočet AI) je fáza 8.
 - **Prettier** hlási staršie súbory (napr. `admin-mfa-reset`) kvôli koncom riadkov – samostatný malý PR po zlúčení (`TODO.md`).
@@ -232,7 +232,7 @@ Po každom behu na dev nezostali testovacie dáta (overené dotazom): žiadne �
 
 ### 6. Odporúčaný ďalší krok
 
-1. Prekliknúť bod 7, potvrdiť sviatky (O7) a prípadne zadať kľúč AI.
+1. Prekliknúť bod 7 a prípadne zadať kľúč AI (sviatky O7 sú potvrdené).
 2. Po tvojom súhlase **zlúčiť PR #3** (nezlučujem bez súhlasu), potom malý PR s koncami riadkov.
 3. Plán fázy 4 podľa `STEP-03-az-08-prehlad.md` (CP + PDF, O2C tabuľa s `BoardView`, e-mailové schránky bez AI) – predtým založiť testovaciu schránku test@av-agency.sk (D27).
 

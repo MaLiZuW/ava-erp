@@ -43,5 +43,5 @@ Zmenu rozhodnutia zapisuje vlastník; Claude Code ich iba číta.
 | O3 | HTTPS certifikát app.av-agency.sk | overiť pred koncom fázy 1 |
 | O4 | Registračné povinnosti DPH pri nákupe zo zahraničia (§ 7, § 7a) | overiť s účtovníkom |
 | O5 | Hodnoty sadzieb rolí | zadá vlastník vo fáze 3 |
-| O7 | Sviatky 2027+ a 28. 10. (blok H) | návrat 8. 5. a 15. 9. ako dní pracovného pokoja od 2027 je zatiaľ len vyhlásenie ministerstva; 28. 10. nie je v zozname – overiť znenie zákona č. 241/1993 Z. z. (Slov-Lex) a potvrdiť |
+| O7 | Sviatky 2027+ a 28. 10. (blok H) | **uzavretá 27. 11. 2026** – vlastník overil zákon č. 241/1993 Z. z. (Slov-Lex, znenie účinné od 29. 10. 2026) a novelu č. 261/2025 Z. z.: 28. 10. je štátny sviatok, nie deň pracovného pokoja (§ 2 ods. 3); 1. 9. a 17. 11. natrvalo štátne sviatky, nie dni pracovného pokoja; 8. 5. a 15. 9. nie sú dňom pracovného pokoja len v roku 2026 (§ 4b), od 2027 opäť sú. Zapísané v `public_holidays` (migrácia `20261129150000`) vrátane zdroja |
 | O6 | Návrhy [NÁVRH] | schválené 26. 11. 2026 (D20) |
