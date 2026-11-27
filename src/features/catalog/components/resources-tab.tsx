@@ -1,5 +1,6 @@
 "use client";
 
+import { ReviewControl } from "@/core/data-review";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
@@ -224,6 +225,7 @@ export function ResourcesTab({ openNew = false }: { openNew?: boolean }) {
           ) : (
             <StatusBadge label="Neaktívny" />
           )}
+          {r.is_active && <ReviewControl entityTable="resources" entityId={r.id} />}
           <Button
             variant="ghost"
             className="h-8 px-2 text-[13px]"

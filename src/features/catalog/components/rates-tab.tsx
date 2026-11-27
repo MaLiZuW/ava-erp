@@ -1,5 +1,6 @@
 "use client";
 
+import { ReviewControl } from "@/core/data-review";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -217,7 +218,8 @@ function RoleCard({ role, rates }: { role: LaborRole; rates: LaborRate[] }) {
                   </td>
                   <td className="px-3 text-right tabular-nums">{formatMoney(r.cost_rate_cents)}</td>
                   <td className="px-3 text-right tabular-nums">{formatMoney(r.bill_rate_cents)}</td>
-                  <td className="text-right">
+                  <td className="text-right whitespace-nowrap">
+                    {!r.valid_to && <ReviewControl entityTable="labor_rates" entityId={r.id} />}
                     <Button variant="ghost" onClick={() => setEditing(r)}>
                       Upraviť
                     </Button>

@@ -196,5 +196,22 @@ export function useSetRecipientActive() {
   });
 }
 
+export function useSetRecipientEvents() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, event_types }: { id: string; event_types: string[] }) => {
+      const { error } = await sb()
+        .from("notification_recipients")
+        .update({ event_types })
+        .eq("id", id);
+      if (error) throwDb(error);
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: keys.recipients });
+      void qc.invalidateQueries({ queryKey: ["activity_logs"] });
+    },
+  });
+}
+
 // --- change history (shared with other modules, lives in core) ---------------------------------------------
 export { useAuditLog, useProfiles } from "@/core/shared-queries";

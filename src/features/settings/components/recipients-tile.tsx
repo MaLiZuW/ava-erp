@@ -6,19 +6,26 @@ import { Button } from "@/ui/button";
 import { describedBy, Field, FormMessage, Input } from "@/ui/field";
 import { StatusBadge } from "@/ui/status-badge";
 import { SettingsTile } from "./settings-tile";
-import { useAddRecipient, useRecipients, useSetRecipientActive } from "../api";
+import { NOTIFICATION_EVENTS } from "@/core/notification-events";
+import {
+  useAddRecipient,
+  useRecipients,
+  useSetRecipientActive,
+  useSetRecipientEvents,
+} from "../api";
 import { recipientSchema, type RecipientInput } from "../schema";
 
 const FORM_ID = "recipient-form";
 
 /**
- * Who receives system notifications by e-mail. Event types are assigned when the notifications
- * themselves arrive (later phases) – no business rules are invented here.
+ * Who receives system notifications by e-mail and which events. The list of events is in core
+ * (NOTIFICATION_EVENTS, checked by the DB); sending arrives in phase 8.
  */
 export function RecipientsTile() {
   const list = useRecipients();
   const add = useAddRecipient();
   const setActive = useSetRecipientActive();
+  const setEvents = useSetRecipientEvents();
   const {
     register,
     handleSubmit,
@@ -54,17 +61,49 @@ export function RecipientsTile() {
           />
         </Field>
       </form>
-      {(add.error || setActive.error) && (
-        <FormMessage tone="error">{(add.error ?? setActive.error)?.message}</FormMessage>
+      {(add.error || setActive.error || setEvents.error) && (
+        <FormMessage tone="error">
+          {(add.error ?? setActive.error ?? setEvents.error)?.message}
+        </FormMessage>
       )}
       {list.data && list.data.length === 0 && <p className="text-neutral-700">Zatiaľ nikto.</p>}
       <ul className="flex flex-col">
         {(list.data ?? []).map((r) => (
           <li
             key={r.id}
-            className="flex items-center justify-between gap-4 border-b border-neutral-200 py-2 last:border-b-0"
+            className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-b border-neutral-200 py-2 last:border-b-0"
           >
-            <span className="break-all">{r.email}</span>
+            <span className="flex min-w-0 flex-col gap-1">
+              <span className="break-all">{r.email}</span>
+              {NOTIFICATION_EVENTS.map((ev) => {
+                const id = `recipient-${r.id}-${ev.value}`;
+                const on = (r.event_types ?? []).includes(ev.value);
+                return (
+                  <label
+                    key={ev.value}
+                    htmlFor={id}
+                    className="flex items-center gap-2 text-[13px] text-neutral-700"
+                  >
+                    <input
+                      id={id}
+                      type="checkbox"
+                      className="accent-navy size-4"
+                      checked={on}
+                      disabled={setEvents.isPending}
+                      onChange={() =>
+                        setEvents.mutate({
+                          id: r.id,
+                          event_types: on
+                            ? (r.event_types ?? []).filter((e) => e !== ev.value)
+                            : [...(r.event_types ?? []), ev.value],
+                        })
+                      }
+                    />
+                    {ev.label}
+                  </label>
+                );
+              })}
+            </span>
             <span className="flex items-center gap-2">
               <StatusBadge
                 label={r.is_active ? "Aktívny" : "Vypnutý"}
@@ -82,7 +121,7 @@ export function RecipientsTile() {
         ))}
       </ul>
       <p className="mt-3 text-[13px] text-neutral-500">
-        Typy udalostí sa priradia, keď pribudnú notifikácie v ďalších fázach.
+        Odosielanie e-mailov pribudne vo fáze 8; teraz sa ukladá, kto čo chce dostávať.
       </p>
     </SettingsTile>
   );

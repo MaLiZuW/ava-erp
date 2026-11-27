@@ -210,6 +210,22 @@ export function monthOptions(today = new Date()): { value: string; label: string
 }
 
 export const REPORTING_FIELD_LABELS: Record<string, Record<string, string>> = {
+  recurring_overheads: {
+    category: "Kategória",
+    division_id: "Divízia",
+    amount_cents: "Suma (centy)",
+    frequency: "Frekvencia",
+    valid_from: "Platí od",
+    valid_to: "Platí do",
+    note: "Poznámka",
+  },
+  data_reviews: {
+    entity_id: "Záznam",
+    last_reviewed_at: "Overené",
+    last_reviewed_by: "Overil(a)",
+    next_review_at: "Ďalšie overenie",
+    interval_months: "Interval (mesiace)",
+  },
   overhead_costs: {
     month: "Mesiac",
     division_id: "Divízia",
@@ -256,6 +272,8 @@ export const REPORTING_FIELD_LABELS: Record<string, Record<string, string>> = {
 };
 
 export const REPORTING_TABLES = [
+  "recurring_overheads",
+  "data_reviews",
   "overhead_costs",
   "income_tax_brackets",
   "work_patterns",

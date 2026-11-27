@@ -26,6 +26,7 @@ const NAME_COLUMNS: Record<string, string[]> = {
   documents: ["file_name"],
   resources: ["name"],
   companies: ["legal_name"],
+  recurring_overheads: ["category"],
   content_blocks: ["title"],
   customer_contacts: ["full_name"],
   supplier_contacts: ["full_name"],

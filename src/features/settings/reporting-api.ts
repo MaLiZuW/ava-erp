@@ -13,6 +13,7 @@ export type TaxBracket = Tables<"income_tax_brackets">;
 export type KpiTarget = Tables<"kpi_targets">;
 
 const done = (qc: ReturnType<typeof useQueryClient>, table: string) => {
+  void qc.invalidateQueries({ queryKey: ["overhead_monthly"] });
   void qc.invalidateQueries({ queryKey: [table] });
   void qc.invalidateQueries({ queryKey: ["activity_logs"] });
 };
@@ -312,4 +313,115 @@ export function currentTarget(
   return rows
     .filter((r) => r.kpi_key === key && r.division_id === divisionId && r.valid_from <= day)
     .sort((a, b) => (a.valid_from < b.valid_from ? 1 : -1))[0];
+}
+
+// --- recurring overhead (block I) ------------------------------------------------------------------
+export type RecurringOverhead = Tables<"recurring_overheads">;
+export type OverheadMonthRow = {
+  month: string;
+  division_id: string | null;
+  category: string;
+  source: "recurring" | "one_off";
+  amount_cents: number;
+  original_amount_cents: number;
+  frequency: string | null;
+  recurring_id: string | null;
+  overhead_cost_id: string | null;
+};
+
+const recurringDone = (qc: ReturnType<typeof useQueryClient>) => {
+  for (const k of ["recurring_overheads", "overhead_monthly", "data_reviews", "activity_logs"])
+    void qc.invalidateQueries({ queryKey: [k] });
+};
+
+export function useRecurringOverheads() {
+  return useQuery({
+    queryKey: ["recurring_overheads"],
+    queryFn: async () => {
+      const { data, error } = await sb()
+        .from("recurring_overheads")
+        .select("*")
+        .order("category")
+        .order("valid_from", { ascending: false });
+      if (error) throwDb(error);
+      return data ?? [];
+    },
+  });
+}
+
+const RECURRING_MESSAGES = {
+  "23P01":
+    "Tento náklad (kategória a divízia) už v danom období platí. Zmeňte sumu cez „Zmeniť sumu od…“.",
+  "23514":
+    "Zmenu treba zadať ako novú verziu od 1. dňa mesiaca v rámci platnosti – minulé mesiace sa neprepisujú.",
+};
+
+export function useAddRecurring() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: {
+      category: string;
+      division_id: string | null;
+      amount_cents: number;
+      frequency: string;
+      valid_from: string;
+      note: string | null;
+    }) => {
+      const { error } = await sb().from("recurring_overheads").insert(v);
+      if (error) throwDb(error, RECURRING_MESSAGES);
+    },
+    onSuccess: () => recurringDone(qc),
+  });
+}
+
+export function useReviseRecurring() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: {
+      id: string;
+      amount_cents: number;
+      effective_from: string;
+      frequency?: string;
+    }) => {
+      const { error } = await sb().rpc("revise_recurring_overhead", {
+        p_id: v.id,
+        p_amount_cents: v.amount_cents,
+        p_effective_from: v.effective_from,
+        p_frequency: v.frequency,
+      });
+      if (error) throwDb(error, RECURRING_MESSAGES);
+    },
+    onSuccess: () => recurringDone(qc),
+  });
+}
+
+/** "Ukončiť k…": the last month the cost applies (its last day). */
+export function useEndRecurring() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: { id: string; valid_to: string }) => {
+      const { error } = await sb()
+        .from("recurring_overheads")
+        .update({ valid_to: v.valid_to })
+        .eq("id", v.id);
+      if (error) throwDb(error, RECURRING_MESSAGES);
+    },
+    onSuccess: () => recurringDone(qc),
+  });
+}
+
+/** One month: recurring shares + one-off items (v_overhead_monthly). */
+export function useOverheadMonthly(month: string) {
+  return useQuery({
+    queryKey: ["overhead_monthly", month],
+    queryFn: async () => {
+      const { data, error } = await sb()
+        .from("v_overhead_monthly")
+        .select("*")
+        .eq("month", month)
+        .order("category");
+      if (error) throwDb(error);
+      return (data ?? []) as OverheadMonthRow[];
+    },
+  });
 }

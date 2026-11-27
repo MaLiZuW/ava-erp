@@ -563,7 +563,23 @@ Pohľady s `security_invoker = true`, aby rešpektovali RLS.
 ## 18. Doplnok 26. 11. 2026 – reporting, hodnotenie partnerov, dokumenty
 
 ### overhead_costs (réžia)
-`id`, `month date` (1. deň mesiaca), `division_id FK null` (null = spoločná), `category text`, `amount_cents bigint`, `note`. Unique **nulls not distinct** (month, division_id, category) – inak by sa dala vložiť duplicitná spoločná réžia.
+`id`, `month date` (1. deň mesiaca), `division_id FK null` (null = spoločná), `category text`, `amount_cents bigint`, `note`. Unique **nulls not distinct** (month, division_id, category) – inak by sa dala vložiť duplicitná spoločná réžia. Od bloku I len **jednorazové** položky a korekcie; pravidelné náklady sú v `recurring_overheads` (§18.1).
+
+### 18.1 Opakovaná réžia a periodické overovanie dát (F3, blok I)
+
+Migrácia `20261129110000_phase3_recurring_overhead_reviews.sql`:
+
+| Tabuľka / funkcia | Obsah |
+|---|---|
+| `recurring_overheads` | `category`, `division_id null` (spoločná), `amount_cents ≥ 0`, `frequency` ('monthly','quarterly','yearly'), `valid_from` (1. deň mesiaca), `valid_to null` (posledný deň mesiaca), `note`. Exclusion `(lower(category), coalesce(division_id, nil), daterange)` – ten istý náklad nikdy dvakrát v rovnakom období. Trigger `guard_recurring_overhead`: verzia použitá v minulom mesiaci nemení sumu, frekvenciu, kategóriu, divíziu ani `valid_from`. Bez mazania (verzie). |
+| `revise_recurring_overhead(id, suma, od, poznámka, frekvencia)` | nová verzia od 1. dňa mesiaca, predchádzajúca sa uzavrie deň predtým. |
+| `private.overhead_month_share(suma, frekvencia, valid_from, mesiac)` | podiel v mesiaci: štvrťročná ÷ 3, ročná ÷ 12, zvyšok centov prvým mesiacom obdobia (súčet za obdobie sedí na cent). |
+| `v_overhead_monthly` | mesiac × divízia × kategória (−36 až +12 mesiacov): `source` 'recurring' / 'one_off', `amount_cents` (podiel), `original_amount_cents`, `frequency`, `recurring_id`, `overhead_cost_id`; `security_invoker`. |
+| `data_review_types` | `entity_table` PK, `label`, `interval_months` (predvolene 12), `is_active`. Naplnené: `recurring_overheads`, `labor_rates`, `resources`, `income_tax_brackets`, `work_patterns`, `companies`. |
+| `data_reviews` | `entity_table FK`, `entity_id`, `interval_months`, `last_reviewed_at`, `last_reviewed_by FK profiles`, `next_review_at`; unique `(entity_table, entity_id)`. Trigger `track_data_review` na 6 tabuľkách: vloženie → termín dnes + interval; skutočná úprava → potvrdené; zmazanie → odstráni. Bez mazania z aplikácie. |
+| `confirm_data_review(tabuľka, id)` | „Potvrdiť bez zmeny“ – kto, kedy, nový termín; zápis v `activity_logs`. |
+| `v_reviews_due` | len aktuálne platné záznamy s názvom, stav `overdue` (po termíne) / `due_soon` (do 30 dní) / `ok`; počíta sa pri čítaní, bez cron úlohy. |
+| `notification_recipients` | check `event_types <@ array['data_review_due']` – len známe typy udalostí; odosielanie vo fáze 8. |
 
 ### income_tax_brackets (sadzby dane z príjmov PO)
 `id`, `valid_from date`, `valid_to date null`, `revenue_from_cents bigint`, `revenue_to_cents bigint null`, `rate_pct numeric(7,4)`, `source_note text`. Hodnoty sa zadávajú migráciou/nastavením podľa aktuálneho zákona a overujú s účtovníkom – nikdy v kóde. **Pravidlo (schválené vlastníkom 26. 11. 2026):** pásma platné v rovnakom období sa neprekrývajú – exclusion constraint `daterange(valid_from, valid_to, '[]') &&` × `int8range(revenue_from_cents, revenue_to_cents, '[)') &&`.

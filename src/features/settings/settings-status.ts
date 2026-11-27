@@ -1,5 +1,6 @@
 "use client";
 
+import { dueOnly, useReviewsDue } from "@/core/data-review";
 import type { StatusTone } from "@/ui/status-badge";
 import { useCompany } from "./api";
 import { useUsers } from "./components/users-tile";
@@ -14,14 +15,14 @@ export interface PageStatus {
 
 /**
  * What needs attention in the settings – one source for the markers in the settings menu and
- * the state badges on the overview (owner's points 20, 21). Blocks I and L add "Na overenie N"
- * and "AI kľúč nenastavený" here.
+ * the state badges on the overview (owner's points 20, 21). Block L adds "AI kľúč nenastavený".
  */
 /** `loaded`: false until the data behind the markers is known (no premature "V poriadku"). */
 export function useSettingsStatus(): Record<string, PageStatus> & { loaded?: boolean } {
   const company = useCompany();
   const users = useUsers();
   const tax = useTaxBrackets();
+  const reviews = useReviewsDue();
   const out: Record<string, PageStatus> & { loaded?: boolean } = {};
   const c = company.data;
   if (company.data !== undefined) {
@@ -43,8 +44,25 @@ export function useSettingsStatus(): Record<string, PageStatus> & { loaded?: boo
       tone: "warning",
       short: "",
     };
+  if (reviews.data) {
+    const due = dueOnly(reviews.data);
+    const overdue = due.filter((r) => r.state === "overdue").length;
+    if (due.length > 0)
+      out["/nastavenia/data/"] = {
+        text:
+          overdue > 0
+            ? `${due.length} na overenie (${overdue} po termíne)`
+            : `${due.length} na overenie`,
+        tone: overdue > 0 ? "danger" : "warning",
+        short: String(due.length),
+      };
+  }
   Object.defineProperty(out, "loaded", {
-    value: company.data !== undefined && users.data !== undefined && tax.data !== undefined,
+    value:
+      company.data !== undefined &&
+      users.data !== undefined &&
+      tax.data !== undefined &&
+      reviews.data !== undefined,
     enumerable: false,
   });
   return out;

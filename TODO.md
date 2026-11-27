@@ -69,7 +69,7 @@ Presunuté z brány fázy 1 do fázy 2 a so súhlasom vlastníka (27. 11. 2026) 
 - [ ] **Po zlúčení fázy 3:** samostatný malý PR – `.gitattributes` (`* text=auto eol=lf`) a jednorazové preformátovanie (Prettier hlási ~20 starších súborov kvôli koncom riadkov CRLF/LF po `core.autocrlf`). Teraz sa nič neformátuje.
 - [ ] Politiky pre role `manager`, `accountant`, `external` (s modulmi, ktoré ich potrebujú).
 - [ ] Trigger `lock_issued` a `status_transitions` naplniť podľa `BUSINESS_PROCESSES.md` kap. 4 (s prvými dokladmi).
-- [ ] Typy udalostí pre `notification_recipients.event_types` – až s notifikáciami (nevymýšľať vopred).
+- [ ] **Fáza 8 – odosielanie notifikácií:** e-mail príjemcom s udalosťou `data_review_due` (dáta po termíne overenia a do 30 dní, zdroj `v_reviews_due`). Typ udalosti a voľba pri príjemcovi sú hotové (blok I); ďalšie typy pridávať do `core/notification-events.ts` + check `notification_recipients_known_events`.
 - [ ] Bucket `documents`: rozšíriť povolené typy (PDF, prílohy) a limity s modulmi, ktoré ich potrebujú.
 - [ ] Na produkčnom projekte Pro: serverový limit nečinnosti relácie (Auth → Sessions) a overenie, či reset 2FA ukončí relácie cieľa.
 - [ ] Pred ostrými dátami: samostatný projekt Pro, zálohy, nezávislá bezpečnostná revízia (fáza 8).
@@ -80,6 +80,7 @@ Presunuté z brány fázy 1 do fázy 2 a so súhlasom vlastníka (27. 11. 2026) 
 - [x] Zákazníci, dodávatelia, kontakty, stroje (skryté), katalóg, kusovník, jednotky, roly a sadzby, zdroje.
 - [x] Knižnica obsahu, réžia, dane z príjmov (bez hodnôt), kapacity, ciele KPI.
 - [x] D22 zapísané v `docs/DECISIONS.md`.
+- [x] Blok I: opakovaná réžia s verziami a periodické overovanie dát (Dáta → Na overenie, dlaždica na prehľade).
 
 ## Hotové vo fáze 2
 

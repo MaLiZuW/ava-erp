@@ -15,6 +15,18 @@ Formát: [Keep a Changelog](https://keepachangelog.com/sk/1.1.0/).
 - Databáza: 3 migrácie `20261128100000_phase3_parties.sql`, `20261128110000_phase3_catalog.sql`, `20261128120000_phase3_content_reporting.sql` (16 tabuliek, `private.setup_admin_table()`, `btree_gist`), pravidlo obrázkov v `documents`.
 - Testy: pgTAP `07_parties`, `08_catalog`, `09_content_reporting`; Vitest pre schémy, vzorce a komponenty; e2e `master-data.spec.ts` (zákazník, dodávateľ, katalóg, knižnica, réžia) s upratovaním dát `E2E …`; API test pokrýva nové tabuľky a nahrávanie cez Storage.
 
+### Pridané – pripomienky vlastníka (bloky G–L, priebežne)
+
+- **Blok G:** tooltip v zbalenom menu, tenký posuvník, jednotková cena v kusovníku, `NumberStepper.onCommit` (uloží po 800 ms pauze), História zmien s názvami namiesto UUID (`core/audit-refs.ts`) a v SK formáte, vždy posledná dlaždica stránky.
+- **Blok H (D24):** kalendárová kapacita – týždenný vzor s verziami, výnimky (dovolenka, nedostupnosť, iná práca, extra), SK sviatky 2025–2030, pohľady kapacity; `capacity_plans` zrušená.
+- **Nastavenia (body 20–22):** režim nastavení s vlastným menu, podstránky, pripnutá hlavička stránky s tlačidlom, čitateľná história zmien s filtrom podľa sekcie.
+- **Blok I – opakovaná réžia a overovanie dát** (migrácia `20261129110000_phase3_recurring_overhead_reviews.sql`, pgTAP `11_overhead_reviews`):
+  - `recurring_overheads` (mesačne / štvrťročne / ročne, po celých mesiacoch), zmena sumy = nová verzia od mesiaca (`revise_recurring_overhead`), minulé mesiace sa neprepíšu (trigger); rozpočítanie na mesiace presne na centy (`private.overhead_month_share`, rovnaký výpočet v `core/calc/overhead-share.ts`);
+  - `v_overhead_monthly` – opakované podiely aj jednorazové položky v jednom prehľade;
+  - `data_review_types` + `data_reviews` + `v_reviews_due`: každý záznam réžie, sadzieb, techniky, daní, týždenného vzoru a firmy má termín overenia (12 mesiacov); úprava ho potvrdí automaticky, „Potvrdiť bez zmeny“ cez `confirm_data_review`;
+  - UI: Réžia s prepínačom „Opakované / Jednorazové“, štítky „Overiť do …“ / „Po termíne“ pri záznamoch, stránka **Dáta → Na overenie**, dlaždica „Na overenie“ na prehľade, značka v menu nastavení;
+  - notifikácie: typ udalosti `data_review_due` (zoznam v `core/notification-events.ts`, kontrola v DB), zaškrtnutie pri príjemcovi; odosielanie vo fáze 8.
+
 ### Pridané – doplnenie pred zlúčením
 
 - `NumberStepper` (`src/ui/number-stepper.tsx`): tlačidlá −/+ (40 px, aj na dotyk), šípky ↑/↓, Shift = krok ×10, krok podľa jednotky (ks/bal 1, hod 0,5, kg/m/m2 0,1) alebo cez prop, minimum/maximum (aj „menej ako“ pre maržu < 100 %), desatinná čiarka. Použitý pre množstvo v kusovníku (−/+ uloží hneď), maržu/prirážku, dni splatnosti, kapacity a životnosť techniky (krok 100 h, Shift 1000 h).

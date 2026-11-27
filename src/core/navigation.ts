@@ -183,9 +183,9 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
       {
         href: "/nastavenia/reporting/rezia/",
         label: "Réžia",
-        description: "Mesačné fixné náklady firmy a divízií pre prehľad zisku.",
-        keywords: ["fixné náklady", "nájom", "réžia"],
-        historyTables: ["overhead_costs"],
+        description: "Opakované a jednorazové fixné náklady firmy a divízií pre prehľad zisku.",
+        keywords: ["fixné náklady", "nájom", "réžia", "poistenie", "opakované"],
+        historyTables: ["recurring_overheads", "overhead_costs"],
       },
       {
         href: "/nastavenia/reporting/dane/",
@@ -213,14 +213,15 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
   {
     key: "data",
     label: "Dáta",
-    description: "Na overenie a číselníky (pripravujeme – bloky I, J, K).",
+    description:
+      "Periodické overenie aktuálnosti dát (réžia, sadzby, technika, dane, kapacity, firma).",
     pages: [
       {
         href: "/nastavenia/data/",
-        label: "Na overenie a číselníky",
-        description: "Periodické overenie aktuálnosti dát a číselníky.",
-        keywords: ["overenie", "aktuálnosť dát", "číselníky"],
-        historyTables: [],
+        label: "Na overenie",
+        description: "Záznamy, ktorých aktuálnosť treba raz za čas potvrdiť.",
+        keywords: ["overenie", "aktuálnosť dát", "potvrdiť bez zmeny", "termín"],
+        historyTables: ["data_reviews"],
       },
     ],
   },

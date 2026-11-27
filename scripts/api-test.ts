@@ -57,6 +57,11 @@ const TABLES = [
   "calendar_exceptions",
   "public_holidays",
   "v_resource_capacity_monthly",
+  "recurring_overheads",
+  "v_overhead_monthly",
+  "data_review_types",
+  "data_reviews",
+  "v_reviews_due",
 ];
 /** tables an aal2 admin must see rows in (seeded / always present) */
 const ADMIN_VISIBLE = [

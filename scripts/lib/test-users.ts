@@ -161,8 +161,26 @@ export async function purgeE2eMasterData(env: TestEnv): Promise<void> {
     await db.query("delete from public.labor_roles where name like $1", [like]);
     await db.query("delete from public.resources where name like $1", [like]);
     await db.query("delete from public.overhead_costs where category like $1", [like]);
+    // versions have no delete policy for the app; the owner connection removes test rows
+    await db.query("delete from public.recurring_overheads where category like $1", [like]);
     await db.query("delete from public.customers where name like $1", [like]);
     await db.query("delete from public.suppliers where name like $1", [like]);
+  } finally {
+    await db.end();
+  }
+}
+
+/** Moves the review of the e2e recurring overhead into the past (to test "Po termíne"). */
+export async function makeE2eOverheadReviewOverdue(env: TestEnv): Promise<void> {
+  const db = new Client({ connectionString: env.dbUrl });
+  await db.connect();
+  try {
+    await db.query(
+      `update public.data_reviews set next_review_at = current_date - 1
+        where entity_table = 'recurring_overheads'
+          and entity_id in (select id from public.recurring_overheads where category like $1)`,
+      [`${E2E_NAME_PREFIX}%`],
+    );
   } finally {
     await db.end();
   }

@@ -50,7 +50,7 @@ select throws_ok($$truncate public.activity_logs$$, '42501', null, 'owner cannot
 select set_config('request.jwt.claims',
   '{"sub":"a0000000-0000-0000-0000-00000000000a","role":"authenticated","aal":"aal2"}', true);
 set local role authenticated;
-insert into public.notification_recipients (email, event_types) values ('audit-probe@test.invalid', '{invoice_overdue}');
+insert into public.notification_recipients (email, event_types) values ('audit-probe@test.invalid', '{data_review_due}');
 update public.notification_recipients set is_active = false where email = 'audit-probe@test.invalid';
 reset role;
 select is((select count(*) from public.activity_logs where table_name = 'notification_recipients'

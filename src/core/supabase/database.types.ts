@@ -617,6 +617,98 @@ export type Database = {
         };
         Relationships: [];
       };
+      data_review_types: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          entity_table: string;
+          interval_months: number;
+          is_active: boolean;
+          label: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          entity_table: string;
+          interval_months?: number;
+          is_active?: boolean;
+          label: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          entity_table?: string;
+          interval_months?: number;
+          is_active?: boolean;
+          label?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [];
+      };
+      data_reviews: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          entity_id: string;
+          entity_table: string;
+          id: string;
+          interval_months: number;
+          last_reviewed_at: string | null;
+          last_reviewed_by: string | null;
+          next_review_at: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          entity_id: string;
+          entity_table: string;
+          id?: string;
+          interval_months: number;
+          last_reviewed_at?: string | null;
+          last_reviewed_by?: string | null;
+          next_review_at: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          entity_id?: string;
+          entity_table?: string;
+          id?: string;
+          interval_months?: number;
+          last_reviewed_at?: string | null;
+          last_reviewed_by?: string | null;
+          next_review_at?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "data_reviews_entity_table_fkey";
+            columns: ["entity_table"];
+            isOneToOne: false;
+            referencedRelation: "data_review_types";
+            referencedColumns: ["entity_table"];
+          },
+          {
+            foreignKeyName: "data_reviews_last_reviewed_by_fkey";
+            columns: ["last_reviewed_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       divisions: {
         Row: {
           code: Database["public"]["Enums"]["division_code"];
@@ -1149,6 +1241,60 @@ export type Database = {
         };
         Relationships: [];
       };
+      recurring_overheads: {
+        Row: {
+          amount_cents: number;
+          category: string;
+          created_at: string;
+          created_by: string | null;
+          division_id: string | null;
+          frequency: string;
+          id: string;
+          note: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          valid_from: string;
+          valid_to: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          amount_cents: number;
+          category: string;
+          created_at?: string;
+          created_by?: string | null;
+          division_id?: string | null;
+          frequency: string;
+          id?: string;
+          note?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from: string;
+          valid_to?: string | null;
+        };
+        Update: {
+          amount_cents?: number;
+          category?: string;
+          created_at?: string;
+          created_by?: string | null;
+          division_id?: string | null;
+          frequency?: string;
+          id?: string;
+          note?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from?: string;
+          valid_to?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "recurring_overheads_division_id_fkey";
+            columns: ["division_id"];
+            isOneToOne: false;
+            referencedRelation: "divisions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       resource_kinds: {
         Row: {
           code: string;
@@ -1637,6 +1783,21 @@ export type Database = {
         ComputedFields: never;
         Relationships: [];
       };
+      v_overhead_monthly: {
+        Row: {
+          amount_cents: number | null;
+          category: string | null;
+          division_id: string | null;
+          frequency: string | null;
+          month: string | null;
+          original_amount_cents: number | null;
+          overhead_cost_id: string | null;
+          recurring_id: string | null;
+          source: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
       v_resource_capacity_daily: {
         Row: {
           available_hours: number | null;
@@ -1672,6 +1833,28 @@ export type Database = {
         ComputedFields: never;
         Relationships: [];
       };
+      v_reviews_due: {
+        Row: {
+          entity_id: string | null;
+          entity_table: string | null;
+          label: string;
+          last_reviewed_at: string | null;
+          last_reviewed_by: string | null;
+          next_review_at: string;
+          record_name: string | null;
+          state: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "data_reviews_last_reviewed_by_fkey";
+            columns: ["last_reviewed_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Functions: {
       admin_list_users: {
@@ -1685,6 +1868,10 @@ export type Database = {
           user_id: string;
           verified_totp_factors: number;
         }[];
+      };
+      confirm_data_review: {
+        Args: { p_entity_id: string; p_entity_table: string };
+        Returns: string;
       };
       fill_sk_holidays: { Args: { p_year: number }; Returns: number };
       next_document_number: {
@@ -1704,6 +1891,16 @@ export type Database = {
           pattern_hours: number;
           resource_id: string;
         }[];
+      };
+      revise_recurring_overhead: {
+        Args: {
+          p_amount_cents: number;
+          p_effective_from: string;
+          p_frequency?: string;
+          p_id: string;
+          p_note?: string;
+        };
+        Returns: string;
       };
       revise_work_pattern: {
         Args: {

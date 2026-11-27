@@ -1,5 +1,6 @@
 "use client";
 
+import { ReviewControl } from "@/core/data-review";
 import { CalendarOff, ChevronLeft, ChevronRight, Minus, Plus, Sun } from "lucide-react";
 import { useMemo, useState, type MouseEvent } from "react";
 import { formatDate, parseDate, parseDecimal } from "@/core/format";
@@ -108,6 +109,7 @@ function PatternEditor({ resourceId, patterns }: { resourceId: string; patterns:
         <span className="h-10 text-[15px] leading-10 text-neutral-700 tabular-nums">
           Spolu {hoursText(weekTotal)} týždenne
         </span>
+        {current && <ReviewControl entityTable="work_patterns" entityId={current.id} />}
       </div>
       {(problem || save.error) && (
         <FormMessage tone="error">{problem ?? save.error?.message}</FormMessage>

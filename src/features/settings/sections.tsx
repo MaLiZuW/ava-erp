@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+import { dueOnly, ReviewsList, useReviewsDue } from "@/core/data-review";
 import { SETTINGS_GROUPS } from "@/core/navigation";
+import { ChipGroup } from "@/ui/chips";
 import { EmptyState } from "@/ui/empty-state";
 import { FormMessage } from "@/ui/field";
 import { StatusBadge, type StatusTone } from "@/ui/status-badge";
@@ -18,6 +20,7 @@ import { KpiTargetsTile } from "./components/reporting/kpi-targets-tile";
 import { OverheadTile } from "./components/reporting/overhead-tile";
 import { TaxBracketsTile } from "./components/reporting/tax-brackets-tile";
 import { SystemSettingsTile } from "./components/system-settings-tile";
+import { SettingsTile } from "./components/settings-tile";
 import { UsersTile } from "./components/users-tile";
 import { useSettingsStatus } from "./settings-status";
 
@@ -135,17 +138,60 @@ export const AiSection = () => (
     text="Poskytovateľ, API kľúč (len na zápis), funkcie a rozpočet s poistkou – pribudne v bloku L."
   />
 );
-export const DataSection = () => (
-  <Prepared
-    title="Na overenie a číselníky"
-    text="Periodické overovanie aktuálnosti dát a číselníky – pribudne v blokoch I, J a K."
-  />
-);
+const REVIEW_FILTERS = [
+  { value: "due", label: "Na overenie" },
+  { value: "overdue", label: "Po termíne" },
+  { value: "all", label: "Všetky" },
+] as const;
+
+/** Dáta → Na overenie (block I): every current record with its next review date. */
+export function DataSection() {
+  const reviews = useReviewsDue();
+  const [filter, setFilter] = useState<(typeof REVIEW_FILTERS)[number]["value"]>("due");
+  const all = reviews.data ?? [];
+  const rows =
+    filter === "all"
+      ? all
+      : filter === "overdue"
+        ? all.filter((r) => r.state === "overdue")
+        : dueOnly(all);
+  return (
+    <Grid>
+      <SettingsTile size="XL" title="Na overenie">
+        <div className="flex flex-col gap-4">
+          <p className="text-[13px] text-neutral-700">
+            Réžia, sadzby, technika, dane, týždenný vzor a údaje firmy sa raz za 12 mesiacov overia.
+            „Potvrdiť bez zmeny“ posunie termín; úprava záznamu ho potvrdí automaticky.
+          </p>
+          <ChipGroup
+            label="Filter overenia"
+            options={REVIEW_FILTERS}
+            value={filter}
+            onChange={setFilter}
+          />
+          {reviews.error && <FormMessage tone="error">{reviews.error.message}</FormMessage>}
+          {reviews.isPending ? (
+            <div aria-hidden className="h-24 animate-pulse rounded-lg bg-neutral-100" />
+          ) : rows.length === 0 ? (
+            <EmptyState
+              title={filter === "all" ? "Zatiaľ žiadne záznamy" : "Všetko je overené"}
+              description={
+                filter === "all" ? undefined : "Nič nečaká na overenie v najbližších 30 dňoch."
+              }
+            />
+          ) : (
+            <ReviewsList rows={rows} />
+          )}
+        </div>
+      </SettingsTile>
+    </Grid>
+  );
+}
 
 /** /nastavenia/ – tiles of the sections in the order of the menu, with their state (point 21). */
 export function SettingsOverview() {
   const status = useSettingsStatus();
-  const prepared = new Set(["ai", "data"]);
+  const prepared = new Set(["ai"]);
   return (
     <BentoGrid className="md:auto-rows-[minmax(160px,auto)]">
       {SETTINGS_GROUPS.map((g) => {

@@ -1,5 +1,6 @@
 "use client";
 
+import { ReviewControl } from "@/core/data-review";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -157,9 +158,14 @@ export function TaxBracketsTile() {
                     {r.source_note && ` · ${r.source_note}`}
                   </p>
                 </div>
-                <Button variant="ghost" onClick={() => setEditing(r)}>
-                  Upraviť
-                </Button>
+                <span className="flex flex-wrap items-center justify-end gap-1">
+                  {!r.valid_to && (
+                    <ReviewControl entityTable="income_tax_brackets" entityId={r.id} />
+                  )}
+                  <Button variant="ghost" onClick={() => setEditing(r)}>
+                    Upraviť
+                  </Button>
+                </span>
               </li>
             ))}
           </ul>

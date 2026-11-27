@@ -4,6 +4,7 @@ import {
   deleteTestUser,
   E2E_NAME_PREFIX,
   loadTestEnv,
+  makeE2eOverheadReviewOverdue,
   purgeE2eMasterData,
   purgeTestUsers,
   type TestEnv,
@@ -229,6 +230,7 @@ test.describe.serial("master data", () => {
     // settings tiles have no own title on their page; the primary button sits in the sticky header
     const overhead = page.locator("main");
     const category = `${E2E_NAME_PREFIX}réžia ${stamp}`;
+    await overhead.getByRole("button", { name: "Jednorazové", exact: true }).click();
     for (let i = 0; i < 2; i++) {
       await page
         .getByTestId("header-action")
@@ -246,6 +248,49 @@ test.describe.serial("master data", () => {
     await expect(overhead.getByText(/už v danom mesiaci a divízii existuje/)).toBeVisible({
       timeout: 15_000,
     });
+
+    // --- recurring overhead (block I): new amount from next month, this month keeps the old one --
+    const rec = `${E2E_NAME_PREFIX}nájom ${stamp}`;
+    await overhead.getByRole("button", { name: "Opakované", exact: true }).click();
+    await page
+      .getByTestId("header-action")
+      .getByRole("button", { name: "Pridať opakovaný náklad" })
+      .click();
+    await overhead.getByLabel("Kategória", { exact: true }).fill(rec);
+    await overhead.getByLabel("Suma za obdobie", { exact: true }).fill("100");
+    await overhead.getByRole("button", { name: "Uložiť opakovaný náklad" }).click();
+    const recRows = overhead.getByTestId("recurring-row").filter({ hasText: rec });
+    await expect(recRows).toHaveCount(1, { timeout: 15_000 });
+    await recRows.getByRole("button", { name: "Zmeniť sumu od…" }).click();
+    await recRows.getByLabel("Nová suma za obdobie").fill("150");
+    await recRows.getByRole("button", { name: "Uložiť novú verziu" }).click();
+    // the old version runs to the end of this month, the new one starts next month
+    await expect(recRows).toHaveCount(2, { timeout: 15_000 });
+    await expect(recRows.filter({ hasText: "Platí od budúceho obdobia" })).toContainText("150,00");
+
+    const now = new Date();
+    const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const mm = (d: Date) => `${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
+    await overhead.getByRole("button", { name: "Jednorazové", exact: true }).click();
+    const monthRow = overhead.getByTestId("overhead-row-recurring").filter({ hasText: rec });
+    await expect(monthRow).toContainText("100,00", { timeout: 15_000 });
+    await overhead.getByLabel("Mesiac", { exact: true }).selectOption({ label: mm(next) });
+    await expect(monthRow).toContainText("150,00", { timeout: 15_000 });
+
+    // --- data review: overdue → dashboard tile → "Potvrdiť bez zmeny" moves the date --------------
+    await makeE2eOverheadReviewOverdue(env!);
+    await page.goto("/");
+    await expect(page.getByTestId("dashboard-reviews")).toContainText(rec, { timeout: 15_000 });
+    await page.goto("/nastavenia/data/");
+    const due = page.getByTestId("review-row").filter({ hasText: rec });
+    await expect(due).toHaveCount(2, { timeout: 15_000 });
+    await expect(due.first()).toContainText("Po termíne");
+    await due
+      .first()
+      .getByRole("button", { name: /^Potvrdiť bez zmeny/ })
+      .click();
+    await expect(due).toHaveCount(1, { timeout: 15_000 });
+
     await page.goto("/nastavenia/reporting/dane/");
     await expect(page.getByTestId("tax-warning")).toContainText("overte ich s účtovníkom");
     await page.goto("/nastavenia/reporting/kapacity/");
