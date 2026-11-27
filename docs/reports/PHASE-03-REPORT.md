@@ -151,3 +151,103 @@ Brána STEP-05a je v prehľade označená **[NÁVRH]** (zákazka EVENT zo šabl�
 9. Prečítaj `docs/DECISIONS.md` (D23, D24), `DATABASE_SCHEMA.md` §19 a `docs/steps/STEP-03-az-08-prehlad.md` (STEP-05a/05b) – či sedia s tvojím zámerom.
 
 PR nie je zlúčený – čaká na tvoj súhlas.
+
+---
+
+## Pripomienky vlastníka 1–14, 17–22, bloky K, L a rozhodnutia D25–D28
+
+Zadanie: pripomienky z preklikania (body 1–14 → bloky G–J), doplnky (body 17–22), import katalógu (blok K), Nastavenia → AI (blok L), zápis D25–D28. Body 15 a 16 v zadaní neboli. Postup po krokoch, po každom testy, push do PR #3 a čakanie na potvrdenie. **PR nie je zlúčený.**
+
+### 1. Čo bolo vytvorené
+
+| # | Pripomienka | Výsledok | Commit |
+|---|---|---|---|
+| 1, 7 | Orezané zvýraznenie aktívnej položky a logo v menu | vnútorný odstup posúvateľnej oblasti, logo v strede 72 px stĺpca, `overflow-x-hidden` | `8c0801d` |
+| 2 | Posuvník menu | tenký, nevýrazný (`scrollbar-quiet`), nezasahuje do ikon | `8c0801d` |
+| 3 | Tooltip v zbalenom menu | `src/ui/tooltip.tsx` – hover aj focus klávesnicou, mimo posúvateľnej oblasti | `8c0801d` |
+| 4 | Ikona Next.js | `devIndicators` vpravo dole – nezakrýva Nastavenia (len vývoj) | `8c0801d` |
+| 5 | Kusovník – jednotková cena | stĺpec „Jedn. cena“, náklad = množstvo × jedn. cena; pri výbere komponentu jednotka a cena | `8c0801d` |
+| 6, 11 | História zmien – názvy a SK formát | jeden prekladač `core/audit-refs.ts` (UUID → názov, „(zmazaný záznam)“), sumy €, percentá, dátumy DD/MM/YYYY, áno/nie | `8c0801d` |
+| 8 | Kapacity podľa D24 | blok H: zdroje, týždenný vzor s verziami, výnimky (dovolenka, nedostupnosť, iná práca, extra), SK sviatky 2025–2030, výpočet v DB; `capacity_plans` zrušená | `f87a78f` |
+| 9 | História zmien vždy naspodku | pravidlo v DESIGN_SYSTEM (princíp 8), všetky stránky | `8c0801d` |
+| 10 | NumberStepper ukladá po pauze | `onCommit` po 800 ms / opustení poľa / Enter → v histórii jeden záznam | `8c0801d` |
+| 12 | Opakovaná réžia | blok I: mesačne / štvrťročne / ročne, verzie od mesiaca, minulé mesiace sa neprepíšu, rozpočítanie presne na centy, prepínač Opakované / Jednorazové | `f120a53` |
+| 13 | Periodické overenie dát | blok I: termín overenia pri réžii, sadzbách, technike, daniach, týždennom vzore a firme; „Potvrdiť bez zmeny“, Dáta → Na overenie, dlaždica na Prehľade, typ notifikácie | `f120a53` |
+| 14 | Prílohy podľa D23 | blok J: kategórie a typy v DB, vždy zakázané typy, jeden adaptér úložiska, dlaždica Prílohy, hlavná fotka a galéria položky, miniatúry, fronta súborov pri novom zázname | `84010f5` |
+| 17 | Balíčky | „+ Nový balíček“, „Duplikovať balíček“ (s kusovníkom), prázdny stav, „Balíček“ v „+ Nové“ a `Ctrl+K`, výber komponentu s vyhľadávaním a miniatúrami | `84010f5` |
+| 18 | NumberStepper neoreže hodnotu | šírka podľa najdlhšej hodnoty + jednotky; týždenný vzor v responzívnej mriežke | `e308b56` |
+| 19 | Výber dátumu z kalendára | `DateInput` všade: písanie ostáva, kalendár (SK, pondelok prvý, Dnes, víkendy a sviatky), klávesnica | `e308b56` |
+| 20, 21 | Nastavenia – podstránky a režim nastavení | vlastné menu nastavení, pripnutá hlavička s jedným tlačidlom, stavové značky, Ctrl+K | `1b5ad86`, `3cc62ac` |
+| 22 | História zmien – čitateľnosť a filter | vety namiesto technických polí, filter podľa sekcie, „Zobraziť podrobnosti“ | `3cc62ac` |
+| K | Import katalógu (D26) + EAN/GTIN | sprievodca XLSX/CSV (kódovanie, oddeľovač, mena, DPH, kurz, šablóny, náhľad, skúšobný beh, potvrdenie, vrátenie dávky), nákupná cena v mene s/bez DPH, história cien, GTIN-8/12/13/14 s kontrolnou číslicou v DB aj formulári | `0320646` |
+| L | Nastavenia → AI (D25) | Gemini za adaptérom v Edge Function `ai-gateway` (nasadená na dev), kľúč len vo Vault, modely a ceny od vlastníka, príznaky funkcií, rozpočet 5 € s poistkou 4,50 €, prehľad spotreby | `30a27e4` |
+| D25–D28 | Rozhodnutia a plán fáz | `DECISIONS.md` D25–D28 (O2 uzavretá, O7 sviatky), DESIGN_SYSTEM §6.1 (O2C tabuľa) a §8 (`BoardView`), STEP-03.5 / 04 / 04.5 / 05a / 05b / 06, BUSINESS_PROCESSES kap. 6 (D27) a Q15/Q21, obe analýzy AI v repozitári | krok 7 |
+
+### 2. Zmenené súbory (hlavné)
+
+- Migrácie a testy: pozri bod 3; `supabase/tests/10_capacity` … `14_ai`; `supabase/functions/ai-gateway/**`.
+- Jadro: `src/core/{audit-refs,audit-describe,data-review,ai,notification-events,foreign-supplier-notice,holidays}.ts(x)`, `src/core/storage/**` (adaptér, kontrola súborov, zmenšenie fotiek, dokumenty), `src/core/attachments/**`, `src/core/calc/{overhead-share,purchase-price}.ts`.
+- UI: `src/ui/{app-shell,shell-context,tooltip,number-stepper,date-input,audit-timeline}.tsx`.
+- Moduly: `src/features/settings/**` (režim nastavení, réžia, kapacity, Na overenie, AI), `src/features/catalog/**` (balíčky, prílohy, nákupná cena, `import/**`), `src/features/parties/**` (prílohy), `src/features/dashboard/dashboard-page.tsx`.
+- Testy a skripty: `e2e/{master-data,settings}.spec.ts`, `e2e/fixtures/cennik-fiktivny.*`, `scripts/{api-test,db-test-local,make-import-fixtures}.ts`, `scripts/lib/test-users.ts`.
+- Dokumenty: `docs/{DECISIONS,DATABASE_SCHEMA,DESIGN_SYSTEM,BUSINESS_PROCESSES}.md`, `docs/steps/STEP-03-az-08-prehlad.md`, `docs/analyzy/ANALYZA-AI-{IMPORT-KATALOGU,EMAIL-TRIAZ}.md`, v koreni `CHANGELOG`, `TODO`, `SECURITY`, `DEPLOYMENT` (časť G), `MASTER_ARCHITECTURE`, `MIGRATION_TO_SELF_HOSTED`, `TESTING_STRATEGY`.
+
+### 3. Databázové zmeny (migrácie, všetky na dev projekte `ava-erp-dev`)
+
+| Migrácia | Obsah |
+|---|---|
+| `20261129100000_phase3_capacity_calendar.sql` | `resource_kinds`, `bookable_resources`, `work_patterns`, `calendar_exceptions`, `public_holidays` + `fill_sk_holidays`, `resource_capacity()`, pohľady kapacity; drop `capacity_plans` (so súhlasom, bez dát) |
+| `20261129110000_phase3_recurring_overhead_reviews.sql` | `recurring_overheads`, `revise_recurring_overhead`, `v_overhead_monthly`, `data_review_types`, `data_reviews`, `confirm_data_review`, `v_reviews_due`, check typov notifikácií |
+| `20261129120000_phase3_attachments.sql` | `attachment_categories`, `blocked_mime_types`, `documents.storage_provider`, `check_attachment_file`, `catalog_items.main_photo_document_id`, pohľad `attachments` (`security_invoker`), bucket 20 MB, `duplicate_catalog_package` |
+| `20261129130000_phase3_catalog_import.sql` | `currencies`, GTIN (`gtin_valid`), nákupná cena v mene s/bez DPH (`apply_purchase_price`), `catalog_item_costs`, `import_templates`, `import_batches`, `import_batch_rows`, `match_catalog_item`, skúšobný beh, potvrdenie, vrátenie dávky |
+| `20261129131000_phase3_import_item_types.sql` | oprava: skúšobný beh akceptuje typy `external_service` a `other` |
+| `20261129140000_phase3_ai_settings.sql` | nastavenia a príznaky AI, `ai_model_prices`, `ai_provider_keys` + Vault, `ai_key_status`, `ai_store_key` / `ai_delete_key` / `ai_get_key` (len service role), `ai_usage`, `ai_budget_status`, `v_ai_usage_summary`, typy notifikácií rozpočtu AI |
+
+Každá tabuľka: RLS + reštriktívna `require_aal2`, admin politiky, audit; sumy ≥ 0; `nulls not distinct` tam, kde NULL = celá firma.
+
+### 4. Testy (stav po bloku L)
+
+| Sada | Výsledok |
+|---|---|
+| pgTAP – dev projekt a sandbox PGlite | **583/583** v 14 súboroch (sandbox má náhradu Vaultu) |
+| `db:test:api` (skutočné tokeny) | **ALL PASSED** – anon/aal1 bez dát na všetkých nových tabuľkách; Storage (PDF 3 MB prejde, SVG, HTML a > 20 MB nie, podpísaný odkaz); kľúč AI a Vault nečitateľné; `ai-gateway` odmieta anon, cudzí Origin, zlý kľúč a volanie bez modelu |
+| Vitest | **255/255** |
+| Playwright | **10/10** – kmeňové dáta vrátane opakovanej réžie, overenia dát, príloh, balíčkov, importu cenníka s vrátením dávky, kontroly EAN; režim nastavení vrátane stránky AI a poistky |
+| lint, typecheck, build | bez chýb |
+
+Po každom behu na dev nezostali testovacie dáta (overené dotazom): žiadne „E2E …“ záznamy, prílohy ani súbory v úložisku, dávky importu, spotreba AI ani testovací používatelia.
+
+### 5. Otvorené problémy a riziká
+
+- **Sviatky (O7 v `DECISIONS.md`) – na tvoje potvrdenie.** Slov-Lex sa mi nepodarilo strojovo prečítať; pravidlá sú podľa NIP a odborných zdrojov:
+  - 2026: 8. 5. a 15. 9. **nie sú** dňom pracovného pokoja (NIP);
+  - 2027–2030: 8. 5. a 15. 9. **sú** dňom pracovného pokoja – opiera sa len o vyhlásenie ministerstva o návrate od 2027;
+  - 1. 9. a 17. 11. ostávajú štátnymi sviatkami, ale nie sú dňom pracovného pokoja;
+  - 28. 10. v zozname nie je (jeden zdroj uvádza nový štátny sviatok, ktorý nie je dňom pracovného pokoja);
+  - oprava jedného riadku v `public_holidays` má prednosť, doplnenie roka nič neprepíše.
+- **Kurz meny** sa zadáva ako na kurzovom lístku ECB/NBS (jednotky meny za 1 EUR); automatický kurz je v TODO.
+- **AI:** žiadny skutočný kľúč ani volanie Gemini som nerobil – spojenie overíš ty podľa `DEPLOYMENT.md` G. Odosielanie notifikácií (overenie dát, rozpočet AI) je fáza 8.
+- **Prettier** hlási staršie súbory (napr. `admin-mfa-reset`) kvôli koncom riadkov – samostatný malý PR po zlúčení (`TODO.md`).
+- Vzhľad nových obrazoviek som overil testami a podľa `DESIGN_SYSTEM.md`; prosím pozri sa na ne (bod 7).
+
+### 6. Odporúčaný ďalší krok
+
+1. Prekliknúť bod 7, potvrdiť sviatky (O7) a prípadne zadať kľúč AI.
+2. Po tvojom súhlase **zlúčiť PR #3** (nezlučujem bez súhlasu), potom malý PR s koncami riadkov.
+3. Plán fázy 4 podľa `STEP-03-az-08-prehlad.md` (CP + PDF, O2C tabuľa s `BoardView`, e-mailové schránky bez AI) – predtým založiť testovaciu schránku test@av-agency.sk (D27).
+
+### 7. Čo mám overiť ja (konkrétne kliknutia)
+
+1. **Menu:** zbaľ menu (okno < 1280 px) → logo aj zvýraznená položka celé, tooltip pri prejdení myšou aj Tabom.
+2. **Katalóg → Balíčky:** „+ Nový balíček“ s fotkou → otvorí sa v kusovníku; komponent vyhľadaj a vyber zo zoznamu s miniatúrami (jednotka a cena sa ukážu); „Duplikovať balíček“.
+3. **Katalóg → Položky:** otvor položku → hlavná fotka vľavo hore, dole Prílohy (PDF, zmena kategórie, náhľad, stiahnutie, zmazanie s potvrdením); nákupná cena v CZK s DPH → prepočet na EUR bez DPH; zlý EAN `4006381333932` odmietnutý.
+4. **Katalóg → Import:** `e2e/fixtures/cennik-fiktivny-cp1250.csv`, CZK, s DPH 21 %, kurz 25 → náhľad → skúšobný beh → potvrdiť → v Položkách 40,00 € → „Vrátiť dávku“.
+5. **Zákazník / dodávateľ:** Prílohy na detaile; v histórii „Nahraný / Odstránený súbor …“.
+6. **Nastavenia → Reporting → Réžia:** opakovaný náklad, „Zmeniť sumu od…“, Jednorazové s prehľadom mesiaca.
+7. **Nastavenia → Dáta → Na overenie** a dlaždica „Na overenie“ na Prehľade.
+8. **Nastavenia → Reporting → Kapacity:** týždenný vzor, dovolenka, extra hodiny, sviatky v kalendári.
+9. **Nastavenia → AI:** podľa `DEPLOYMENT.md` G zadaj model, cenu a kľúč → „Otestovať spojenie“ → spotreba v prehľade.
+10. **Dátumy:** v ľubovoľnom dátumovom poli ikona kalendára, „Dnes“, Esc.
+11. Prečítaj `DECISIONS.md` D25–D28 a O7, `DESIGN_SYSTEM.md` §6.1 a §8, `STEP-03-az-08-prehlad.md` (STEP-03.5, 04, 04.5) – či sedia s tvojím zámerom.
+
+PR #3 nie je zlúčený – čaká na tvoj súhlas.

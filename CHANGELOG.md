@@ -45,6 +45,7 @@ Formát: [Keep a Changelog](https://keepachangelog.com/sk/1.1.0/).
   - obsah ide do AI ako dáta oddelené od pokynov (prompt injection); kľúč v hlavičke, nikdy v URL ani v logoch;
   - DEPLOYMENT.md, časť G – postup pre Google AI Studio (kľúč, fakturácia, rozpočet 5 €, kvóta);
   - lokálne testy PGlite majú náhradu Vaultu (len na kontrolu prístupov).
+- **Rozhodnutia a plán (krok 7, len dokumentácia):** `DECISIONS.md` D25 (AI), D26 (import katalógu a nákupné ceny), D27 (e-mail a AI triáž; O2 uzavretá), D28 (O2C tabuľa v Prehľade), otvorená otázka O7 (sviatky 2027+ a 28. 10.); `DESIGN_SYSTEM.md` §6.1 O2C tabuľa pod KPI dlaždicami a §8 `BoardView` (dnd-kit); `STEP-03-az-08-prehlad.md` – STEP-03.5 (AI asistent katalógu), STEP-04 (BoardView, tabuľa, e-mailové schránky bez AI), nový STEP-04.5 (AI triáž), STEP-05a (kanban úloh), STEP-05b (e-mail cez F4/F4.5), STEP-06 (stĺpec Fakturácia); `BUSINESS_PROCESSES.md` kap. 6 podľa D27, Q15 a Q21; analýzy `ANALYZA-AI-IMPORT-KATALOGU.md` a `ANALYZA-AI-EMAIL-TRIAZ.md` v repozitári; report fázy – sekcia pripomienok vlastníka.
 - **Bod 17 – balíčky:** „+ Nový balíček“ v záložke Balíčky (typ a jednotka predvyplnené, s fotkou; po uložení sa otvorí v kusovníku), „Duplikovať balíček“ (kópia s kusovníkom, nový názov a kód – `duplicate_catalog_package`), prázdny stav s tlačidlom, „Balíček“ v „+ Nové“ a `Ctrl+K`; výber komponentu s vyhľadávaním a miniatúrami.
 
 ### Pridané – doplnenie pred zlúčením

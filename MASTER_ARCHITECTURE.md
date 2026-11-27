@@ -72,3 +72,13 @@ TypeScript 5.9 a ESLint 9 sú zámerne nižšie než najnovšie (TS 7, ESLint 10
 - **NumberStepper:** pole sa nikdy nezúži pod najdlhšiu očakávanú hodnotu + jednotku (`fieldMinWidth`, min. 6 znakov); inline bunky ukladajú raz po 800 ms pauze alebo pri opustení poľa / Enter.
 - **História zmien:** jeden prekladač odkazov `src/core/audit-refs.ts` (UUID → názov, „(zmazaný záznam)“) a slovenský formát hodnôt v `AuditTimeline`; vždy posledná sekcia stránky.
 - **Kapacity (D24, blok H):** zdroje + týždenný vzor + výnimky + `public_holidays`; výpočet v DB (`resource_capacity()`), kalendár v Nastaveniach.
+
+## Doplnky fázy 3 – bloky I–L a rozhodnutia D25–D28
+
+- **Režim nastavení:** `ShellContext` (`src/ui/shell-context.tsx`) – modul môže nahradiť ľavé menu a nastaviť pripnutú hlavičku stránky s jedným tlačidlom (`HeaderAction`); zoznam stránok nastavení je v `navigation.ts` (`SETTINGS_GROUPS`).
+- **Overenie dát (blok I):** jeden mechanizmus pre všetky tabuľky – `data_reviews` + trigger + `v_reviews_due`; v UI `src/core/data-review.tsx` (`ReviewControl`, `ReviewsList`).
+- **Prílohy (D23, blok J):** `src/core/storage/adapter.ts` je jediné miesto, ktoré volá úložisko; `src/core/attachments` (dlaždica + fronta) používajú všetky moduly.
+- **Nákupná cena a import (D26, blok K):** databáza počíta EUR bez DPH (`apply_purchase_price`), TS má rovnaký celočíselný výpočet; import beží v dávkach s funkciami v DB (skúšobný beh, potvrdenie, vrátenie); čítanie XLSX `read-excel-file` (MIT) v prehliadači.
+- **AI (D25, blok L):** jediný vstup k poskytovateľovi je Edge Function `ai-gateway` (adaptér `AiProvider`, implementácia Gemini); kľúč vo Vault, spotreba v `ai_usage`, poistka v DB; v UI `useAiAvailability` (`src/core/ai.ts`).
+- **O2C tabuľa (D28, F4):** jeden komponent `BoardView` v `src/ui` na dnd-kit; presun vždy cez `transition()`.
+- **E-mail (D27, F4/F4.5):** len čítanie (IMAP v Edge Function), prílohy cez adaptér úložiska, AI triáž cez `ai-gateway`.
