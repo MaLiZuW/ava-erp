@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { throwDb } from "@/core/supabase/errors";
 import { getSupabase } from "@/core/supabase/client";
 import type { Json, Tables } from "@/core/supabase/database.types";
-import { uploadImageDocument } from "@/core/documents";
+import { uploadImageDocument } from "@/core/storage/documents";
 import type { CompanyOutput, SystemSettingKey } from "./schema";
 
 export const keys = {
@@ -50,7 +50,7 @@ export function useSaveCompany() {
 }
 
 // --- logo (upload and signed URLs live in the documents core) --------------------------------------
-export { useSignedUrl } from "@/core/documents";
+export { useSignedUrl } from "@/core/storage/documents";
 
 export function useLogoDocument(documentId: string | null | undefined) {
   return useQuery({

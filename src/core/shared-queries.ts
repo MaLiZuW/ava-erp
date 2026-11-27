@@ -11,20 +11,47 @@ import { throwDb } from "./supabase/errors";
 
 const sb = () => getSupabase();
 
-/** Change history of whole tables, or only of some records when `recordIds` is given. */
+/**
+ * Change history of whole tables, or only of some records when `recordIds` is given.
+ * `attachmentsOf`: also the attachments (documents) of that record – including deleted ones,
+ * which are no longer among the record ids.
+ */
 export function useAuditLog(
   tables: readonly string[],
-  { recordIds, limit = 30 }: { recordIds?: readonly string[]; limit?: number } = {},
+  {
+    recordIds,
+    limit = 30,
+    attachmentsOf,
+  }: { recordIds?: readonly string[]; limit?: number; attachmentsOf?: string } = {},
 ) {
+  const uuid = /^[0-9a-f-]{36}$/i;
   return useQuery({
-    queryKey: ["activity_logs", ...tables, ...(recordIds ? ["records", ...recordIds] : [])],
+    queryKey: [
+      "activity_logs",
+      ...tables,
+      ...(recordIds ? ["records", ...recordIds] : []),
+      ...(attachmentsOf ? ["attachments", attachmentsOf] : []),
+    ],
     enabled: !recordIds || recordIds.length > 0,
     queryFn: async () => {
       let q = sb()
         .from("activity_logs")
         .select("*")
         .in("table_name", [...tables]);
-      if (recordIds) q = q.in("record_id", [...recordIds]);
+      if (
+        recordIds &&
+        attachmentsOf &&
+        uuid.test(attachmentsOf) &&
+        recordIds.every((r) => uuid.test(r))
+      ) {
+        q = q.or(
+          [
+            `record_id.in.(${recordIds.join(",")})`,
+            `and(table_name.eq.documents,new_data->>entity_id.eq.${attachmentsOf})`,
+            `and(table_name.eq.documents,old_data->>entity_id.eq.${attachmentsOf})`,
+          ].join(","),
+        );
+      } else if (recordIds) q = q.in("record_id", [...recordIds]);
       const { data, error } = await q.order("at", { ascending: false }).limit(limit);
       if (error) throwDb(error);
       return (data ?? []) as AuditEntry[];

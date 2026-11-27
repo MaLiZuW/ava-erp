@@ -38,6 +38,13 @@ const MIME_LABELS: Record<string, string> = {
 const CATEGORY_LABELS: Record<string, string> = {
   logo: "logo",
   content_image: "obrázok obsahu",
+  // attachments (D23) – labels of public.attachment_categories
+  photo: "foto",
+  datasheet: "technický list",
+  certificate: "certifikát",
+  contract: "zmluva",
+  drawing: "výkres",
+  other: "iné",
 };
 
 /** 2345 → "2,3 kB", 1 572 864 → "1,5 MB". */

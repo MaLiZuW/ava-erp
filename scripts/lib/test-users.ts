@@ -147,6 +147,24 @@ export async function purgeE2eMasterData(env: TestEnv): Promise<void> {
   await db.connect();
   try {
     const like = `${E2E_NAME_PREFIX}%`;
+    // attachments of e2e records (D23): the stored objects first, then the rows
+    const docs = await db.query<{ id: string; storage_path: string }>(
+      `select d.id, d.storage_path from public.documents d
+        where (d.entity_table = 'catalog_items' and d.entity_id in (select id from public.catalog_items where name like $1))
+           or (d.entity_table = 'resources' and d.entity_id in (select id from public.resources where name like $1))
+           or (d.entity_table = 'customers' and d.entity_id in (select id from public.customers where name like $1))
+           or (d.entity_table = 'suppliers' and d.entity_id in (select id from public.suppliers where name like $1))`,
+      [like],
+    );
+    if (docs.rows.length) {
+      const { error } = await adminClient(env)
+        .storage.from("documents")
+        .remove(docs.rows.map((r) => r.storage_path));
+      if (error) throw new Error(`storage cleanup failed: ${error.message}`);
+      await db.query("delete from public.documents where id = any($1)", [
+        docs.rows.map((r) => r.id),
+      ]);
+    }
     // order matters (foreign keys); contacts and BOM rows of a package go by "on delete cascade"
     await db.query(
       `delete from public.package_components

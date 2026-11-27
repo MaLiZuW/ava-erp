@@ -19,6 +19,7 @@ export function RecordHistoryTile({
   recordLabel,
   size = "XL",
   filter,
+  attachmentsOf,
 }: {
   tables: readonly string[];
   /** omitted = whole tables (e.g. the catalog) */
@@ -29,9 +30,11 @@ export function RecordHistoryTile({
   size?: TileSize;
   /** narrows the entries of shared tables (e.g. documents → only the logo) */
   filter?: (e: AuditEntry) => boolean;
+  /** include attachments of this record, also deleted ones (D23) */
+  attachmentsOf?: string;
 }) {
   // more rows are read when a filter narrows them; 30 are shown
-  const log = useAuditLog(tables, { recordIds, limit: filter ? 150 : 30 });
+  const log = useAuditLog(tables, { recordIds, limit: filter ? 150 : 30, attachmentsOf });
   const entries = useMemo(
     () => (filter ? (log.data ?? []).filter(filter).slice(0, 30) : (log.data ?? [])),
     [log.data, filter],

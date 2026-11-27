@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { RequireRole } from "@/core/auth/require-role";
+import { useAttachmentQueue } from "@/core/attachments/api";
+import { AttachmentsTile, NewRecordAttachments } from "@/core/attachments/attachments-tile";
 import { RecordHistoryTile } from "@/core/record-history";
 import { useFeatureFlag } from "@/core/shared-queries";
 import type { AuditEntry } from "@/ui/audit-timeline";
@@ -19,6 +21,7 @@ import { ForeignSupplierNotice } from "./components/foreign-supplier-notice";
 import { MachinesTile } from "./components/machines-tile";
 import { PartyForm } from "./components/party-form";
 import {
+  ATTACHMENT_FIELD_LABELS,
   CONTACT_FIELD_LABELS,
   MACHINE_FIELD_LABELS,
   PARTY_FIELD_LABELS,
@@ -103,9 +106,11 @@ function Detail({ kind, id }: { kind: PartyKind; id: string }) {
   const recordLabel = (e: AuditEntry) =>
     e.table_name === text.contactsTable
       ? `Kontakt: ${String(((e.new_data ?? e.old_data) as { full_name?: string } | null)?.full_name ?? "")}`
-      : e.table_name === "customer_machines"
-        ? "Stroj"
-        : text.one;
+      : e.table_name === "documents"
+        ? `Príloha: ${String(((e.new_data ?? e.old_data) as { file_name?: string } | null)?.file_name ?? "")}`
+        : e.table_name === "customer_machines"
+          ? "Stroj"
+          : text.one;
 
   return (
     <div className="flex flex-col gap-4">
@@ -148,6 +153,7 @@ function Detail({ kind, id }: { kind: PartyKind; id: string }) {
         )}
         <ContactsTile kind={kind} partyId={id} />
         {kind === "customers" && machinesOn && <MachinesTile customerId={id} />}
+        <AttachmentsTile entityTable={kind} entityId={id} size="XL" />
         <Tile size="M" title="Stav">
           <div className="flex flex-col items-start gap-3">
             <p className="text-[15px] text-neutral-700">
@@ -164,12 +170,19 @@ function Detail({ kind, id }: { kind: PartyKind; id: string }) {
       </BentoGrid>
       {/* change history is always the last section of the page (DESIGN_SYSTEM §1) */}
       <RecordHistoryTile
-        tables={[kind, text.contactsTable, ...(kind === "customers" ? ["customer_machines"] : [])]}
+        tables={[
+          kind,
+          text.contactsTable,
+          "documents",
+          ...(kind === "customers" ? ["customer_machines"] : []),
+        ]}
         recordIds={childIds}
+        attachmentsOf={id}
         fieldLabels={{
           [kind]: PARTY_FIELD_LABELS,
           [text.contactsTable]: CONTACT_FIELD_LABELS,
           customer_machines: MACHINE_FIELD_LABELS,
+          documents: ATTACHMENT_FIELD_LABELS,
         }}
         recordLabel={recordLabel}
       />
@@ -194,14 +207,25 @@ function Detail({ kind, id }: { kind: PartyKind; id: string }) {
 function NewParty({ kind }: { kind: PartyKind }) {
   const router = useRouter();
   const text = PARTY_TEXT[kind];
+  const queue = useAttachmentQueue();
+  // saved, but some files failed: the form stays with "Nahrať znova"
+  const [saved, setSaved] = useState<Party | null>(null);
+  const finish = async (row: Party) => {
+    setSaved(row);
+    const { failed } = await queue.run(kind, row.id);
+    if (failed === 0) router.replace(`${text.href}detail/?id=${row.id}`);
+  };
   return (
     <BentoGrid className={GRID}>
       <PartyForm
         kind={kind}
-        party={null}
-        onSaved={(saved) => router.replace(`${text.href}detail/?id=${saved.id}`)}
+        party={saved}
+        onSaved={(row) => void finish(row)}
         onCancel={() => router.push(text.href)}
       />
+      <Tile size="HERO" title="Prílohy">
+        <NewRecordAttachments queue={queue} retry={saved ? () => void finish(saved) : undefined} />
+      </Tile>
     </BentoGrid>
   );
 }

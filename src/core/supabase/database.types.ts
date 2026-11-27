@@ -66,6 +66,62 @@ export type Database = {
         };
         Relationships: [];
       };
+      attachment_categories: {
+        Row: {
+          allowed_mime_types: string[];
+          code: string;
+          created_at: string;
+          created_by: string | null;
+          is_active: boolean;
+          label: string;
+          max_bytes: number;
+          sort_order: number;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          allowed_mime_types: string[];
+          code: string;
+          created_at?: string;
+          created_by?: string | null;
+          is_active?: boolean;
+          label: string;
+          max_bytes: number;
+          sort_order?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          allowed_mime_types?: string[];
+          code?: string;
+          created_at?: string;
+          created_by?: string | null;
+          is_active?: boolean;
+          label?: string;
+          max_bytes?: number;
+          sort_order?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [];
+      };
+      blocked_mime_types: {
+        Row: {
+          mime_type: string;
+          note: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          mime_type: string;
+          note: string;
+        };
+        Update: {
+          mime_type?: string;
+          note?: string;
+        };
+        Relationships: [];
+      };
       bookable_resources: {
         Row: {
           created_at: string;
@@ -220,6 +276,7 @@ export type Database = {
           id: string;
           is_active: boolean;
           item_type: Database["public"]["Enums"]["item_type"];
+          main_photo_document_id: string | null;
           name: string;
           unit_code: string;
           updated_at: string;
@@ -239,6 +296,7 @@ export type Database = {
           id?: string;
           is_active?: boolean;
           item_type: Database["public"]["Enums"]["item_type"];
+          main_photo_document_id?: string | null;
           name: string;
           unit_code: string;
           updated_at?: string;
@@ -257,6 +315,7 @@ export type Database = {
           id?: string;
           is_active?: boolean;
           item_type?: Database["public"]["Enums"]["item_type"];
+          main_photo_document_id?: string | null;
           name?: string;
           unit_code?: string;
           updated_at?: string;
@@ -275,6 +334,20 @@ export type Database = {
             columns: ["division_id"];
             isOneToOne: false;
             referencedRelation: "divisions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "catalog_items_main_photo_document_id_fkey";
+            columns: ["main_photo_document_id"];
+            isOneToOne: false;
+            referencedRelation: "attachments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "catalog_items_main_photo_document_id_fkey";
+            columns: ["main_photo_document_id"];
+            isOneToOne: false;
+            referencedRelation: "documents";
             referencedColumns: ["id"];
           },
           {
@@ -364,6 +437,13 @@ export type Database = {
           zip?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "companies_logo_document_fk";
+            columns: ["logo_document_id"];
+            isOneToOne: false;
+            referencedRelation: "attachments";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "companies_logo_document_fk";
             columns: ["logo_document_id"];
@@ -759,6 +839,7 @@ export type Database = {
           size_bytes: number;
           storage_bucket: string;
           storage_path: string;
+          storage_provider: string;
           updated_at: string;
           updated_by: string | null;
           version: number;
@@ -779,6 +860,7 @@ export type Database = {
           size_bytes: number;
           storage_bucket?: string;
           storage_path: string;
+          storage_provider?: string;
           updated_at?: string;
           updated_by?: string | null;
           version?: number;
@@ -798,6 +880,7 @@ export type Database = {
           size_bytes?: number;
           storage_bucket?: string;
           storage_path?: string;
+          storage_provider?: string;
           updated_at?: string;
           updated_by?: string | null;
           version?: number;
@@ -1721,6 +1804,27 @@ export type Database = {
       };
     };
     Views: {
+      attachments: {
+        Row: {
+          category: string;
+          category_label: string;
+          created_at: string;
+          created_by: string | null;
+          created_by_name: string | null;
+          entity_id: string;
+          entity_table: string;
+          file_name: string;
+          id: string;
+          is_locked: boolean;
+          mime_type: string;
+          size_bytes: number;
+          storage_bucket: string;
+          storage_path: string;
+          storage_provider: string;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
       v_bookable_resources: {
         Row: {
           display_name: string | null;
@@ -1871,6 +1975,10 @@ export type Database = {
       };
       confirm_data_review: {
         Args: { p_entity_id: string; p_entity_table: string };
+        Returns: string;
+      };
+      duplicate_catalog_package: {
+        Args: { p_code?: string; p_id: string; p_name: string };
         Returns: string;
       };
       fill_sk_holidays: { Args: { p_year: number }; Returns: number };

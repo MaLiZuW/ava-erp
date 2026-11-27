@@ -11,10 +11,15 @@ set local storage.allow_delete_query = 'true';
 
 -- bucket configuration (enforced by the Storage API on upload) ---------------------------------
 select is((select public from storage.buckets where id = 'documents'), false, 'bucket documents is private');
-select is((select file_size_limit from storage.buckets where id = 'documents'), 2097152::bigint,
-  'bucket size limit is 2 MB');
+-- block J (D23): 20 MB cap; types = the attachment categories + images, never SVG / HTML
+select is((select file_size_limit from storage.buckets where id = 'documents'), 20971520::bigint,
+  'bucket size limit is 20 MB');
 select is((select allowed_mime_types from storage.buckets where id = 'documents'),
-  array['image/png','image/jpeg','image/webp'], 'only PNG, JPEG and WebP are allowed (no SVG)');
+  array['application/pdf',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'image/jpeg','image/png','image/webp'],
+  'only PDF, DOCX, XLSX, PNG, JPEG and WebP are allowed (no SVG, no HTML)');
 
 -- fixtures as owner: one locked and one unlocked document with their objects ---------------------
 insert into storage.objects (bucket_id, name) values

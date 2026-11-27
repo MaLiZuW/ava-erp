@@ -156,6 +156,13 @@ export const CATALOG_FIELD_LABELS: Record<string, Record<string, string>> = {
     default_pricing_pct: "Navýšenie %",
     description: "Popis",
     is_active: "Aktívna",
+    main_photo_document_id: "Hlavná fotka",
+  },
+  documents: {
+    file_name: "Súbor",
+    category: "Kategória",
+    mime_type: "Typ",
+    size_bytes: "Veľkosť",
   },
   package_components: {
     package_item_id: "Balíček",
@@ -190,4 +197,5 @@ export const CATALOG_TABLE_LABELS: Record<string, string> = {
   labor_roles: "Rola",
   labor_rates: "Sadzba",
   resources: "Technika",
+  documents: "Príloha",
 };

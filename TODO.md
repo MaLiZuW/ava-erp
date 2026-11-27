@@ -15,11 +15,7 @@ Podľa D22: na dev reálne firmy (verejné údaje z OR), katalóg, sadzby, zdroj
 
 **Prílohy podľa D23** (`docs/DECISIONS.md`):
 
-- [ ] Migrácia: `documents.storage_provider` (predvolene `supabase`), konfigurácia kategórií príloh v DB (kód, názov, povolené MIME typy, max. veľkosť) – foto, technický list, certifikát, zmluva, výkres, iné; povolené PNG, JPEG, WebP, PDF, DOCX, XLSX; zákaz SVG, HTML a spustiteľných súborov aj v DB.
-- [ ] Jeden adaptér súborov (rozšírenie `src/core/documents.ts`): nahratie, podpísané URL, mazanie – všetok prístup k súborom len cez neho.
-- [ ] Dlaždica „Prílohy“ (jedna pre všetky moduly): položka katalógu (+ hlavná fotka pre CP a prezentáciu, galéria), zákazník, dodávateľ, technika a vybavenie; kontakty bez príloh (D22).
-- [ ] Zmenšenie fotiek v prehliadači (max 2000 px, WebP); nahrávanie myšou, Ctrl+V, na mobile fotoaparát.
-- [ ] pgTAP, Vitest, e2e; rozšírenie bucketu (typy, limity) v súlade s konfiguráciou.
+- [x] Implementované už vo fáze 3 (blok J). Vo fáze 4 len použiť `AttachmentsTile` v nových moduloch (dopyt, CP, zákazka) a doplniť ich tabuľky do `private.check_attachment_file`.
 
 **Zdroje podľa D24** (analýza kap. 7):
 
@@ -70,7 +66,8 @@ Presunuté z brány fázy 1 do fázy 2 a so súhlasom vlastníka (27. 11. 2026) 
 - [ ] Politiky pre role `manager`, `accountant`, `external` (s modulmi, ktoré ich potrebujú).
 - [ ] Trigger `lock_issued` a `status_transitions` naplniť podľa `BUSINESS_PROCESSES.md` kap. 4 (s prvými dokladmi).
 - [ ] **Fáza 8 – odosielanie notifikácií:** e-mail príjemcom s udalosťou `data_review_due` (dáta po termíne overenia a do 30 dní, zdroj `v_reviews_due`). Typ udalosti a voľba pri príjemcovi sú hotové (blok I); ďalšie typy pridávať do `core/notification-events.ts` + check `notification_recipients_known_events`.
-- [ ] Bucket `documents`: rozšíriť povolené typy (PDF, prílohy) a limity s modulmi, ktoré ich potrebujú.
+- [ ] Fáza 8 (D23): sledovanie obsadenia úložiska (Free 1 GB), antivírusová kontrola nahraných súborov.
+- [ ] Správa kategórií príloh v Nastaveniach (zatiaľ len migráciou / SQL) – keď bude treba nový typ (napr. DWG/DXF/STEP).
 - [ ] Na produkčnom projekte Pro: serverový limit nečinnosti relácie (Auth → Sessions) a overenie, či reset 2FA ukončí relácie cieľa.
 - [ ] Pred ostrými dátami: samostatný projekt Pro, zálohy, nezávislá bezpečnostná revízia (fáza 8).
 
@@ -81,6 +78,7 @@ Presunuté z brány fázy 1 do fázy 2 a so súhlasom vlastníka (27. 11. 2026) 
 - [x] Knižnica obsahu, réžia, dane z príjmov (bez hodnôt), kapacity, ciele KPI.
 - [x] D22 zapísané v `docs/DECISIONS.md`.
 - [x] Blok I: opakovaná réžia s verziami a periodické overovanie dát (Dáta → Na overenie, dlaždica na prehľade).
+- [x] Blok J: prílohy podľa D23 (položka katalógu s hlavnou fotkou a galériou, zákazník, dodávateľ, technika); bod 17 – nový a duplikovaný balíček.
 
 ## Hotové vo fáze 2
 

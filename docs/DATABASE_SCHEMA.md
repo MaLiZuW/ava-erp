@@ -144,6 +144,14 @@ Index: (table_name, record_id), (at). Zápis iba triggerom `private.log_change()
 | retention_until | date | archivácia |
 Index: (entity_table, entity_id). Zamknutý dokument nejde zmazať ani prepísať.
 
+**Prílohy (D23, implementované vo F3 – blok J, migrácia `20261129120000_phase3_attachments.sql`):**
+- `documents.storage_provider text` (predvolene `supabase`, check zoznamu) – výmena úložiska bez zmeny dát; všetok prístup k súborom cez jeden adaptér (`src/core/storage/adapter.ts`).
+- `attachment_categories` (`code` PK, `label`, `allowed_mime_types text[]`, `max_bytes` ≤ 20 MB, `sort_order`, `is_active`) – **konfigurácia**: `photo` PNG/JPEG/WebP do 5 MB; `datasheet`, `certificate`, `contract`, `drawing`, `other` PDF/DOCX/XLSX/PNG/JPEG/WebP do 20 MB. Nový typ (napr. DWG) = len úprava zoznamu; trigger `sync_documents_bucket` prenesie typy do bucketu. Bez mazania (deaktivácia).
+- `blocked_mime_types` – SVG, HTML/XHTML, XML, skripty, spustiteľné súbory, dokumenty s makrami, `application/octet-stream`; **vždy zakázané** (trigger nedovolí pridať ich do kategórie). Len čítanie, mení sa migráciou.
+- Trigger `check_attachment_file` na `documents`: zakázaný typ → odmietnuté vždy; pri kategóriách príloh typ a veľkosť podľa kategórie, neaktívna kategória neprijme nový súbor, prílohy len pri `catalog_items`, `customers`, `suppliers`, `resources` (kontakty nie – D22); hlavná fotka nesmie zmeniť kategóriu.
+- Pohľad `attachments` (`security_invoker = true`): dokumenty entity s názvom kategórie a menom autora.
+- Bucket `documents`: limit 20 MB, typy = zjednotenie kategórií + obrázky loga a obsahu.
+
 ### document_templates
 `id`, `code text unique` ('quote', 'order_confirmation', 'purchase_order', 'delivery_note', 'handover_protocol', 'invoice', 'proforma', 'credit_note', 'visual_approval_request'), `name`, `version int`, `content jsonb` (texty, rozloženie), `is_active`.
 
@@ -196,6 +204,9 @@ Ako `customer_contacts`, FK `supplier_id`.
 | default_pricing_pct | numeric(7,4) | |
 | description | text | |
 | is_active | boolean | |
+| main_photo_document_id | uuid FK documents null | hlavná fotka pre CP a prezentáciu (F3, blok J); musí byť dokument kategórie `photo` tej istej položky (trigger), zmazanie fotky ju vynuluje. Galéria = prílohy kategórie `photo`. |
+
+`duplicate_catalog_package(id, názov, kód)` (security invoker): kópia balíčka s kusovníkom, novým názvom a kódom; prílohy sa nekopírujú (pripomienka vlastníka 17).
 
 ### package_components (kusovník balíčka)
 `package_item_id FK catalog_items on delete cascade`, `component_item_id FK catalog_items`, `quantity numeric(14,4) > 0`; PK (package_item_id, component_item_id). Check: komponent nesmie byť ten istý balíček. **Jedna úroveň** (rozhodnutie vlastníka, fáza 3): rodič musí mať `item_type = 'package'`, komponent nesmie byť balíček; trigger stráži aj zmenu typu položky.

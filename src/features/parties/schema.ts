@@ -158,3 +158,11 @@ export const MACHINE_FIELD_LABELS: Record<string, string> = {
   note: "Poznámka",
   is_active: "Aktívny",
 };
+
+/** change history of attachments (D23) */
+export const ATTACHMENT_FIELD_LABELS: Record<string, string> = {
+  file_name: "Súbor",
+  category: "Kategória",
+  mime_type: "Typ",
+  size_bytes: "Veľkosť",
+};

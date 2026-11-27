@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { removeDocument, uploadImageDocument, type DocumentRow } from "@/core/documents";
+import { removeDocument, uploadImageDocument, type DocumentRow } from "@/core/storage/documents";
 import { getSupabase } from "@/core/supabase/client";
 import type { Tables } from "@/core/supabase/database.types";
 import { throwDb } from "@/core/supabase/errors";

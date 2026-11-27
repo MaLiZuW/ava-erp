@@ -19,17 +19,33 @@ import {
 } from "./schema";
 
 const TAB_TABLES: Record<CatalogTab, string[]> = {
-  polozky: ["catalog_items"],
-  balicky: ["package_components", "catalog_items"],
+  polozky: ["catalog_items", "documents"],
+  balicky: ["package_components", "catalog_items", "documents"],
   jednotky: ["units"],
   sadzby: ["labor_roles", "labor_rates"],
-  technika: ["resources"],
+  technika: ["resources", "documents"],
+};
+
+/** documents of the tab only (attachments of items / equipment, not the logo or content images) */
+const DOC_ENTITY: Partial<Record<CatalogTab, string>> = {
+  polozky: "catalog_items",
+  balicky: "catalog_items",
+  technika: "resources",
+};
+const docFilter = (tab: CatalogTab) => (e: AuditEntry) => {
+  if (e.table_name !== "documents") return true;
+  const d = (e.new_data ?? e.old_data) as { entity_table?: string } | null;
+  return d?.entity_table === DOC_ENTITY[tab];
 };
 
 const LEGACY_TABS: Record<string, CatalogTab> = { zdroje: "technika" };
 
 function recordLabel(e: AuditEntry, resolve: RefResolver): string {
   const data = (e.new_data ?? e.old_data) as Record<string, unknown> | null;
+  if (e.table_name === "documents" && data) {
+    const owner = resolve("entity_id", data.entity_id, data);
+    return `Príloha: ${String(data.file_name ?? "")}${owner ? ` (${owner})` : ""}`;
+  }
   if (e.table_name === "package_components" && data) {
     const pkg = resolve("package_item_id", data.package_item_id, data) ?? "?";
     const part = resolve("component_item_id", data.component_item_id, data) ?? "?";
@@ -62,7 +78,7 @@ function Catalog() {
       />
       <BentoGrid className="md:auto-rows-[minmax(160px,auto)]">
         {tab === "polozky" && <ItemsTab key={params.get("nova") ?? ""} openNew={openNew} />}
-        {tab === "balicky" && <PackagesTab />}
+        {tab === "balicky" && <PackagesTab key={params.get("nova") ?? ""} openNew={openNew} />}
         {tab === "jednotky" && <UnitsTab />}
         {tab === "sadzby" && <RatesTab />}
         {tab === "technika" && <ResourcesTab key={params.get("nova") ?? ""} openNew={openNew} />}
@@ -73,6 +89,7 @@ function Catalog() {
         tables={TAB_TABLES[tab]}
         fieldLabels={CATALOG_FIELD_LABELS}
         recordLabel={recordLabel}
+        filter={DOC_ENTITY[tab] ? docFilter(tab) : undefined}
       />
     </div>
   );

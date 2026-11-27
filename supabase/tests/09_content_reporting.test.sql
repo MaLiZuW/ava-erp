@@ -68,8 +68,8 @@ select throws_ok($$insert into public.documents (entity_table, entity_id, catego
                            '2026/companies/00000000-0000-0000-0000-000000000001/00000000-0000-0000-0000-000000000015-a.gif',
                            'a.gif', 'image/gif', 100)$$, '23514', null, 'logo: GIF is refused');
 select lives_ok($$insert into public.documents (entity_table, entity_id, category, storage_path, file_name, mime_type, size_bytes)
-                  values ('jobs', gen_random_uuid(), 'attachment',
-                          '2026/jobs/00000000-0000-0000-0000-000000000001/00000000-0000-0000-0000-000000000016-a.pdf',
+                  values ('suppliers', gen_random_uuid(), 'datasheet',
+                          '2026/suppliers/00000000-0000-0000-0000-000000000001/00000000-0000-0000-0000-000000000016-a.pdf',
                           'a.pdf', 'application/pdf', 5000000)$$, 'other categories are not limited by the image rule');
 
 -- content blocks

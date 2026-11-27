@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useId, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useDocuments, useSignedUrl, type DocumentRow } from "@/core/documents";
+import { useDocuments, useSignedUrl, type DocumentRow } from "@/core/storage/documents";
 import { formatDateTime } from "@/core/format";
 import { checkImageFile, IMAGE_ACCEPT } from "@/core/validation";
 import { Button } from "@/ui/button";

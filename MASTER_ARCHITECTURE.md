@@ -51,7 +51,7 @@ TypeScript 5.9 a ESLint 9 sú zámerne nižšie než najnovšie (TS 7, ESLint 10
 - **Brána aplikácie:** `src/app/app-gate.tsx` – stránky `/prihlasenie/*` bez rozloženia, všetko ostatné len cez `RequireAal2` + `IdleLogout` + `AppShell`. Statický export ostáva (žiadny middleware) – ochranu dát robí RLS.
 - **Roly v UI:** `NavItem.requiredRole`, `visibleNavItems()`, `RequireRole`; databáza to vynucuje politikami.
 - **Moduly:** prvé `src/features/*` – `settings` (api.ts s TanStack Query, schema.ts so zod, components/) a `dashboard`. Spoločné validátory v `src/core/validation.ts`, chyby DB → slovenské hlásenia v `src/core/supabase/errors.ts`.
-- **Dokumenty a súbory:** tabuľka `documents` + súkromný bucket `documents` (jadro príloh pre ďalšie fázy). Prepis objektu je zakázaný vždy; zamknutý dokument sa nedá zmeniť ani zmazať (DB aj storage politika).
+- **Dokumenty a súbory:** tabuľka `documents` + súkromný bucket `documents`; prílohy (D23) cez jednu dlaždicu `AttachmentsTile` a frontu `useAttachmentQueue` (`src/core/attachments`), všetok prístup k súborom cez adaptér `src/core/storage/adapter.ts`, kategórie a povolené typy v DB (`attachment_categories`, `blocked_mime_types`). Prepis objektu je zakázaný vždy; zamknutý dokument sa nedá zmeniť ani zmazať (DB aj storage politika).
 - **Edge Function `admin-mfa-reset`:** logika v `handler.ts` so vstrekovanými závislosťami (testovaná vo Vitest), `index.ts` ju napája na Deno a Supabase. Prvý kód so `service_role` – výhradne na serveri.
 - **`v_open_items`:** zmluva pre dashboard (zatiaľ nuly), `security_invoker`, s aal1 nevráti nič.
 

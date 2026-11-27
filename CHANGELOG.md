@@ -26,6 +26,12 @@ Formát: [Keep a Changelog](https://keepachangelog.com/sk/1.1.0/).
   - `data_review_types` + `data_reviews` + `v_reviews_due`: každý záznam réžie, sadzieb, techniky, daní, týždenného vzoru a firmy má termín overenia (12 mesiacov); úprava ho potvrdí automaticky, „Potvrdiť bez zmeny“ cez `confirm_data_review`;
   - UI: Réžia s prepínačom „Opakované / Jednorazové“, štítky „Overiť do …“ / „Po termíne“ pri záznamoch, stránka **Dáta → Na overenie**, dlaždica „Na overenie“ na prehľade, značka v menu nastavení;
   - notifikácie: typ udalosti `data_review_due` (zoznam v `core/notification-events.ts`, kontrola v DB), zaškrtnutie pri príjemcovi; odosielanie vo fáze 8.
+- **Blok J – prílohy podľa D23** (migrácia `20261129120000_phase3_attachments.sql`, pgTAP `12_attachments`):
+  - kategórie príloh s povolenými typmi a limitmi v DB (`attachment_categories`: foto 5 MB, dokumenty 20 MB), vždy zakázané typy (`blocked_mime_types`: SVG, HTML, skripty, spustiteľné súbory …), kontrola triggerom `check_attachment_file`, bucket nasleduje konfiguráciu (20 MB);
+  - `documents.storage_provider` a **jeden adaptér úložiska** `src/core/storage/adapter.ts`; `core/documents.ts` presunuté do `core/storage/documents.ts`; kontrola súborov podľa obsahu (`file-check.ts`), zmenšenie fotiek na WebP max. 2000 px (`resize-image.ts`);
+  - dlaždica **Prílohy** (`core/attachments`): zoznam, galéria s náhľadom, PDF v novej karte, stiahnutie, zmena kategórie, zmazanie s potvrdením (zamknuté nikdy), pretiahnutie myšou, Ctrl+V, na mobile fotoaparát; pri novom zázname sa súbory nahrajú až po uložení (priebeh po súboroch, „Nahrať znova“);
+  - použitá pri položke katalógu (**hlavná fotka** + galéria, miniatúry v zozname a pri výbere komponentu), zákazníkovi, dodávateľovi a technike; história zmien ukazuje názvy súborov.
+- **Bod 17 – balíčky:** „+ Nový balíček“ v záložke Balíčky (typ a jednotka predvyplnené, s fotkou; po uložení sa otvorí v kusovníku), „Duplikovať balíček“ (kópia s kusovníkom, nový názov a kód – `duplicate_catalog_package`), prázdny stav s tlačidlom, „Balíček“ v „+ Nové“ a `Ctrl+K`; výber komponentu s vyhľadávaním a miniatúrami.
 
 ### Pridané – doplnenie pred zlúčením
 

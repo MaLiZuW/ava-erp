@@ -62,6 +62,10 @@ const TABLES = [
   "data_review_types",
   "data_reviews",
   "v_reviews_due",
+  // block J – attachments (D23)
+  "attachment_categories",
+  "blocked_mime_types",
+  "attachments",
 ];
 /** tables an aal2 admin must see rows in (seeded / always present) */
 const ADMIN_VISIBLE = [
@@ -198,13 +202,32 @@ async function main() {
       { contentType: "image/svg+xml", upsert: false },
     );
     report(!!svg.error, "SVG upload is refused by the bucket");
-    const big = await store.upload(
-      `${folder}/${randomUUID()}-big.png`,
-      Buffer.concat([png, Buffer.alloc(2 * 1024 * 1024)]),
-      { contentType: "image/png", upsert: false },
+    const html = await store.upload(
+      `${folder}/${randomUUID()}-x.html`,
+      Buffer.from("<html><script>alert(1)</script></html>"),
+      { contentType: "text/html", upsert: false },
     );
-    report(!!big.error, "upload over 2 MB is refused by the bucket");
-    if (okUp.data?.path) await store.remove([okUp.data.path]);
+    report(!!html.error, "HTML upload is refused by the bucket");
+    // block J (D23): documents up to 20 MB; PDF accepted, over 20 MB refused
+    const pdf = Buffer.concat([Buffer.from("%PDF-1.4\n"), Buffer.alloc(3 * 1024 * 1024)]);
+    const pdfUp = await store.upload(`${folder}/${randomUUID()}-list.pdf`, pdf, {
+      contentType: "application/pdf",
+      upsert: false,
+    });
+    report(!pdfUp.error, `PDF (3 MB) uploads${pdfUp.error ? `: ${pdfUp.error.message}` : ""}`);
+    if (pdfUp.data?.path) {
+      const signed = await store.createSignedUrl(pdfUp.data.path, 60, { download: true });
+      const got = signed.data ? await fetch(signed.data.signedUrl) : null;
+      report(!!got?.ok, `signed download URL works (HTTP ${got?.status ?? "–"})`);
+    }
+    const big = await store.upload(
+      `${folder}/${randomUUID()}-big.pdf`,
+      Buffer.concat([Buffer.from("%PDF-1.4\n"), Buffer.alloc(20 * 1024 * 1024 + 1)]),
+      { contentType: "application/pdf", upsert: false },
+    );
+    report(!!big.error, "upload over 20 MB is refused by the bucket");
+    const paths = [okUp.data?.path, pdfUp.data?.path].filter((p): p is string => !!p);
+    if (paths.length) await store.remove(paths);
 
     // 5. Edge Function admin-mfa-reset ----------------------------------------------------------------
     console.log("\n-- Edge Function admin-mfa-reset --");

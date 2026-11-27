@@ -84,6 +84,31 @@ test.describe.serial("master data", () => {
     await expect(page).toHaveURL(/\/dodavatelia\/detail\/\?id=[0-9a-f-]{36}$/, { timeout: 15_000 });
     await expect(page.getByTestId("foreign-supplier-warning")).toBeVisible();
 
+    // attachments (D23): PDF to the supplier → change of category → delete after confirmation
+    const files = page.getByRole("region", { name: "Prílohy" });
+    await files.getByTestId("attachment-input").setInputFiles({
+      name: "technicky-list.pdf",
+      mimeType: "application/pdf",
+      buffer: Buffer.from("%PDF-1.4\n% E2E fictitious datasheet\n%%EOF\n"),
+    });
+    const pdfRow = files.getByTestId("attachment-row").filter({ hasText: "technicky-list.pdf" });
+    await expect(pdfRow).toBeVisible({ timeout: 15_000 });
+    await expect(pdfRow.getByLabel("Kategória – technicky-list.pdf")).toHaveValue("other");
+    await pdfRow.getByLabel("Kategória – technicky-list.pdf").selectOption("datasheet");
+    await expect(pdfRow.getByLabel("Kategória – technicky-list.pdf")).toHaveValue("datasheet", {
+      timeout: 15_000,
+    });
+    await pdfRow.getByRole("button", { name: "Zmazať – technicky-list.pdf" }).click();
+    await page.getByRole("alertdialog").getByRole("button", { name: "Zmazať" }).click();
+    await expect(pdfRow).toHaveCount(0, { timeout: 15_000 });
+    // the change history names the file, not an id
+    await expect(
+      page
+        .getByRole("region", { name: "História zmien" })
+        .getByText(/Odstránený súbor technicky-list\.pdf/)
+        .first(),
+    ).toBeVisible({ timeout: 15_000 });
+
     // --- catalog -------------------------------------------------------------------------------
     const stamp = Date.now();
     const goods = `${E2E_NAME_PREFIX}Hrnček ${stamp}`;
@@ -103,22 +128,38 @@ test.describe.serial("master data", () => {
       timeout: 15_000,
     });
 
-    await page.getByRole("button", { name: "+ Nová položka" }).click();
-    const itemForm = page.getByRole("region", { name: "Nová položka katalógu" });
-    await itemForm.getByLabel("Názov", { exact: true }).fill(pkg);
-    await itemForm.getByLabel("Typ", { exact: true }).selectOption("package");
-    await itemForm.getByLabel("Jednotka", { exact: true }).selectOption("bal");
-    await page.getByRole("button", { name: "Uložiť" }).click();
-    await expect(page.getByRole("button", { name: pkg, exact: true })).toBeVisible({
-      timeout: 15_000,
+    // point 17: a new package via "+ Nové" → Balíček, with a photo in the queue (block J);
+    // after saving it opens in the bill of materials and the photo is its main photo
+    await page.getByRole("button", { name: "+ Nové" }).click();
+    await page.getByRole("link", { name: "Balíček", exact: true }).click();
+    const pkgForm = page.getByRole("region", { name: "Nový balíček" });
+    await pkgForm.getByLabel("Názov", { exact: true }).fill(pkg);
+    await expect(pkgForm.getByLabel("Typ", { exact: true })).toHaveValue("package");
+    await expect(pkgForm.getByLabel("Jednotka", { exact: true })).toHaveValue("bal");
+    await pkgForm.getByTestId("attachment-input").setInputFiles({
+      name: "balicek.png",
+      mimeType: "image/png",
+      buffer: Buffer.from(
+        "89504e470d0a1a0a0000000d4948445200000001000000010806000000" +
+          "1f15c4890000000d49444154789c6300010000050001" +
+          "0d0a2db40000000049454e44ae426082",
+        "hex",
+      ),
     });
+    await expect(pkgForm.getByLabel("Kategória – balicek.png")).toHaveValue("photo");
+    await pkgForm.getByRole("button", { name: "Uložiť" }).click();
+    await expect(pkgForm).toHaveCount(0, { timeout: 15_000 });
+    await expect(page.getByLabel("Balíček", { exact: true }).locator("option:checked")).toHaveText(
+      pkg,
+      { timeout: 15_000 },
+    );
 
-    // package BOM: a package is never offered as a component (one level)
-    await page.goto("/katalog/?tab=balicky");
-    await page.getByLabel("Balíček", { exact: true }).selectOption({ label: pkg });
-    const componentSelect = page.getByLabel("Komponent", { exact: true });
-    await expect(componentSelect.locator("option", { hasText: pkg })).toHaveCount(0);
-    await componentSelect.selectOption({ label: `${goods} (ks)` });
+    // package BOM: search with thumbnails; a package is never offered as a component (one level)
+    await page.getByLabel("Komponent", { exact: true }).fill(String(stamp));
+    const itemPicker = page.getByRole("list", { name: "Položky na výber" });
+    await expect(itemPicker.getByRole("button", { name: new RegExp(goods) })).toBeVisible();
+    await expect(itemPicker.getByRole("button", { name: new RegExp(pkg) })).toHaveCount(0);
+    await itemPicker.getByRole("button", { name: new RegExp(goods) }).click();
     // unit and unit price of the chosen component are shown before adding
     await expect(page.getByTestId("component-unit-price")).toContainText("2,50");
     await page.getByLabel("Množstvo", { exact: true }).fill("2");
@@ -149,11 +190,32 @@ test.describe.serial("master data", () => {
     await expect(qty).toHaveValue("2");
     await expect(cost).toContainText("5,00 €", { timeout: 15_000 });
 
+    // point 17: "Duplikovať balíček" – a copy with the bill of materials opens in the BOM
+    await page.getByRole("button", { name: "Duplikovať balíček" }).click();
+    const dupForm = page.getByRole("region", { name: "Duplikovať balíček" });
+    await expect(dupForm.getByLabel("Názov kópie")).toHaveValue(`${pkg} – kópia`);
+    await dupForm.getByRole("button", { name: "Vytvoriť kópiu" }).click();
+    await expect(page.getByLabel("Balíček", { exact: true }).locator("option:checked")).toHaveText(
+      `${pkg} – kópia`,
+      { timeout: 15_000 },
+    );
+    await expect(page.getByRole("row", { name: new RegExp(goods) })).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(cost).toContainText("5,00 €", { timeout: 15_000 });
+
     // the change history is the last section of the page (DESIGN_SYSTEM principle 8)
     const lastRegion = await page
       .locator("main section[aria-label]")
       .evaluateAll((els) => els.at(-1)?.getAttribute("aria-label"));
     expect(lastRegion).toBe("História zmien");
+
+    // the main photo of the package is its thumbnail in the item list (block J)
+    await page.goto("/katalog/?tab=polozky");
+    const pkgRow = page
+      .getByRole("row")
+      .filter({ has: page.getByRole("button", { name: pkg, exact: true }) });
+    await expect(pkgRow.getByTestId("item-thumb")).toBeVisible({ timeout: 15_000 });
 
     // labour rates: an overlapping period is refused with a clear message
     await page.goto("/katalog/?tab=sadzby");

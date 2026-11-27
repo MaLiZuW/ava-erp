@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useDocuments, useSignedUrls } from "@/core/storage/documents";
 import { getSupabase } from "@/core/supabase/client";
 import type { Tables } from "@/core/supabase/database.types";
 import { throwDb, type DbMessages } from "@/core/supabase/errors";
@@ -296,9 +297,10 @@ export function useSaveResource() {
   return useMutation({
     mutationFn: async ({ id, values }: { id: string | null; values: ResourceOutput }) => {
       const res = id
-        ? await sb().from("resources").update(values).eq("id", id)
-        : await sb().from("resources").insert(values);
+        ? await sb().from("resources").update(values).eq("id", id).select().single()
+        : await sb().from("resources").insert(values).select().single();
       if (res.error) throwDb(res.error);
+      return res.data;
     },
     onSuccess: () => invalidateCatalog(qc, "resources"),
   });
@@ -312,5 +314,57 @@ export function useSetResourceActive() {
       if (error) throwDb(error);
     },
     onSuccess: () => invalidateCatalog(qc, "resources"),
+  });
+}
+
+// --- main photo, thumbnails, duplicate a package (block J, owner's point 17) -----------------------------
+export function useSetMainPhoto() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ itemId, documentId }: { itemId: string; documentId: string | null }) => {
+      const { error } = await sb()
+        .from("catalog_items")
+        .update({ main_photo_document_id: documentId })
+        .eq("id", itemId);
+      if (error)
+        throwDb(error, { "23514": "Hlavná fotka musí byť fotka priložená k tejto položke." });
+    },
+    onSuccess: () => invalidateCatalog(qc, "catalog_items", "attachments"),
+  });
+}
+
+/** Thumbnails of the main photos: item id → signed URL (one request for the whole list). */
+export function useCatalogThumbs(
+  items: readonly Pick<CatalogItem, "id" | "main_photo_document_id">[],
+) {
+  const ids = items.map((i) => i.main_photo_document_id).filter((x): x is string => !!x);
+  const docs = useDocuments(ids);
+  const paths = (docs.data ?? []).map((d) => d.storage_path);
+  const urls = useSignedUrls(paths);
+  const byDoc = new Map((docs.data ?? []).map((d) => [d.id, urls.data?.get(d.storage_path)]));
+  return new Map(
+    items
+      .filter((i) => i.main_photo_document_id && byDoc.get(i.main_photo_document_id))
+      .map((i) => [i.id, byDoc.get(i.main_photo_document_id!)!]),
+  );
+}
+
+export function useDuplicatePackage() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: { id: string; name: string; code: string | null }) => {
+      const { data, error } = await sb().rpc("duplicate_catalog_package", {
+        p_id: v.id,
+        p_name: v.name,
+        p_code: v.code ?? undefined,
+      });
+      if (error)
+        throwDb(error, {
+          "23505": "Položka s týmto kódom už existuje.",
+          "23514": "Názov alebo kód kópie nie je platný.",
+        });
+      return data as string;
+    },
+    onSuccess: () => invalidateCatalog(qc, "catalog_items", "package_components"),
   });
 }

@@ -4,6 +4,8 @@ import { ReviewControl } from "@/core/data-review";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
+import { useAttachmentQueue } from "@/core/attachments/api";
+import { AttachmentsTile, NewRecordAttachments } from "@/core/attachments/attachments-tile";
 import { resourceCostRateCents } from "@/core/calc/resource-rate";
 import { formatMoney, formatMoneyInput, parseDecimal, parseMoneyToCents } from "@/core/format";
 import { Button } from "@/ui/button";
@@ -48,137 +50,158 @@ function ResourceForm({ resource, onDone }: { resource: Resource | null; onDone:
   const o = parseMoneyToCents(operating ?? "");
   const preview = p != null && h != null && o != null ? resourceCostRateCents(p, h, o) : null;
 
+  const queue = useAttachmentQueue();
+  // a new record that is saved but whose files did not all upload stays open ("Nahrať znova")
+  const [saved, setSaved] = useState<Resource | null>(null);
+  const uploadQueue = async (row: Resource) => {
+    const { failed } = await queue.run("resources", row.id);
+    if (failed === 0) onDone();
+  };
   const submit = handleSubmit(async (values) => {
-    const ok = await save
-      .mutateAsync({ id: resource?.id ?? null, values })
-      .then(() => true)
-      .catch(() => false);
-    if (ok) onDone();
+    const row = await save
+      .mutateAsync({ id: resource?.id ?? saved?.id ?? null, values })
+      .catch(() => null);
+    if (!row) return;
+    if (resource) return onDone();
+    setSaved(row);
+    await uploadQueue(row);
   });
   const formId = "resource-form";
   const id = (n: keyof ResourceInput) => `${formId}-${n}`;
   const err = (n: keyof ResourceInput) => errors[n]?.message;
 
   return (
-    <Tile
-      size="XL"
-      title={resource ? `Technika – ${resource.name}` : "Nová technika"}
-      action={
-        <div className="flex gap-2">
-          <Button variant="ghost" onClick={onDone}>
-            Zrušiť
-          </Button>
-          <Button type="submit" form={formId} disabled={isSubmitting}>
-            {isSubmitting ? "Ukladám…" : "Uložiť"}
-          </Button>
-        </div>
-      }
-    >
-      <form
-        id={formId}
-        onSubmit={submit}
-        noValidate
-        className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4"
+    <>
+      <Tile
+        size="XL"
+        title={resource ? `Technika – ${resource.name}` : "Nová technika"}
+        action={
+          <div className="flex gap-2">
+            <Button variant="ghost" onClick={onDone}>
+              Zrušiť
+            </Button>
+            <Button type="submit" form={formId} disabled={isSubmitting}>
+              {isSubmitting ? "Ukladám…" : "Uložiť"}
+            </Button>
+          </div>
+        }
       >
-        <Field id={id("name")} label="Názov" error={err("name")} className="md:col-span-2">
-          <Input
-            id={id("name")}
-            invalid={!!err("name")}
-            aria-describedby={describedBy(id("name"), { error: err("name") })}
-            {...register("name")}
-          />
-        </Field>
-        <Field id={id("kind")} label="Druh" hint={RESOURCE_KINDS.join(", ")} error={err("kind")}>
-          <Input id={id("kind")} list="resource-kinds" {...register("kind")} />
-        </Field>
-        <datalist id="resource-kinds">
-          {RESOURCE_KINDS.map((k) => (
-            <option key={k} value={k} />
-          ))}
-        </datalist>
-        <Field
-          id={id("bill_rate_cents")}
-          label="Predajná sadzba / h"
-          hint="Nepovinné."
-          error={err("bill_rate_cents")}
+        <form
+          id={formId}
+          onSubmit={submit}
+          noValidate
+          className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4"
         >
-          <MoneyInput
+          <Field id={id("name")} label="Názov" error={err("name")} className="md:col-span-2">
+            <Input
+              id={id("name")}
+              invalid={!!err("name")}
+              aria-describedby={describedBy(id("name"), { error: err("name") })}
+              {...register("name")}
+            />
+          </Field>
+          <Field id={id("kind")} label="Druh" hint={RESOURCE_KINDS.join(", ")} error={err("kind")}>
+            <Input id={id("kind")} list="resource-kinds" {...register("kind")} />
+          </Field>
+          <datalist id="resource-kinds">
+            {RESOURCE_KINDS.map((k) => (
+              <option key={k} value={k} />
+            ))}
+          </datalist>
+          <Field
             id={id("bill_rate_cents")}
-            invalid={!!err("bill_rate_cents")}
-            {...register("bill_rate_cents")}
-          />
-        </Field>
-        <Field
-          id={id("purchase_cost_cents")}
-          label="Obstarávacia cena"
-          error={err("purchase_cost_cents")}
-        >
-          <MoneyInput
-            id={id("purchase_cost_cents")}
-            invalid={!!err("purchase_cost_cents")}
-            aria-describedby={describedBy(id("purchase_cost_cents"), {
-              error: err("purchase_cost_cents"),
-            })}
-            {...register("purchase_cost_cents")}
-          />
-        </Field>
-        <Field
-          id={id("expected_life_hours")}
-          label="Predpokladaná životnosť"
-          error={err("expected_life_hours")}
-        >
-          <Controller
-            control={control}
-            name="expected_life_hours"
-            render={({ field }) => (
-              <NumberStepper
-                id={id("expected_life_hours")}
-                label="Predpokladaná životnosť"
-                suffix="h"
-                step={100} // owner's choice: 100 h, Shift = 1000 h
-                decimals={2}
-                value={field.value}
-                onChange={field.onChange}
-                onBlur={field.onBlur}
-                ref={field.ref}
-                invalid={!!err("expected_life_hours")}
-                aria-describedby={describedBy(id("expected_life_hours"), {
-                  error: err("expected_life_hours"),
-                })}
-              />
-            )}
-          />
-        </Field>
-        <Field
-          id={id("operating_cost_per_hour_cents")}
-          label="Prevádzkové náklady / h"
-          error={err("operating_cost_per_hour_cents")}
-        >
-          <MoneyInput
-            id={id("operating_cost_per_hour_cents")}
-            invalid={!!err("operating_cost_per_hour_cents")}
-            {...register("operating_cost_per_hour_cents")}
-          />
-        </Field>
-        <div className="flex flex-col justify-end">
-          <p className="text-[13px] font-medium text-neutral-700">Nákladová sadzba / h</p>
-          <p
-            data-testid="resource-rate-preview"
-            className="text-navy text-[20px] leading-7 font-semibold tabular-nums"
+            label="Predajná sadzba / h"
+            hint="Nepovinné."
+            error={err("bill_rate_cents")}
           >
-            {preview == null ? "—" : formatMoney(preview)}
-          </p>
-          <p className="text-[13px] text-neutral-500">
-            cena ÷ hodiny + prevádzka (kalkulačné opotrebenie)
-          </p>
-        </div>
-        {save.error && (
-          <div className="md:col-span-2 xl:col-span-4">
-            <FormMessage tone="error">{save.error.message}</FormMessage>
+            <MoneyInput
+              id={id("bill_rate_cents")}
+              invalid={!!err("bill_rate_cents")}
+              {...register("bill_rate_cents")}
+            />
+          </Field>
+          <Field
+            id={id("purchase_cost_cents")}
+            label="Obstarávacia cena"
+            error={err("purchase_cost_cents")}
+          >
+            <MoneyInput
+              id={id("purchase_cost_cents")}
+              invalid={!!err("purchase_cost_cents")}
+              aria-describedby={describedBy(id("purchase_cost_cents"), {
+                error: err("purchase_cost_cents"),
+              })}
+              {...register("purchase_cost_cents")}
+            />
+          </Field>
+          <Field
+            id={id("expected_life_hours")}
+            label="Predpokladaná životnosť"
+            error={err("expected_life_hours")}
+          >
+            <Controller
+              control={control}
+              name="expected_life_hours"
+              render={({ field }) => (
+                <NumberStepper
+                  id={id("expected_life_hours")}
+                  label="Predpokladaná životnosť"
+                  suffix="h"
+                  step={100} // owner's choice: 100 h, Shift = 1000 h
+                  decimals={2}
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  ref={field.ref}
+                  invalid={!!err("expected_life_hours")}
+                  aria-describedby={describedBy(id("expected_life_hours"), {
+                    error: err("expected_life_hours"),
+                  })}
+                />
+              )}
+            />
+          </Field>
+          <Field
+            id={id("operating_cost_per_hour_cents")}
+            label="Prevádzkové náklady / h"
+            error={err("operating_cost_per_hour_cents")}
+          >
+            <MoneyInput
+              id={id("operating_cost_per_hour_cents")}
+              invalid={!!err("operating_cost_per_hour_cents")}
+              {...register("operating_cost_per_hour_cents")}
+            />
+          </Field>
+          <div className="flex flex-col justify-end">
+            <p className="text-[13px] font-medium text-neutral-700">Nákladová sadzba / h</p>
+            <p
+              data-testid="resource-rate-preview"
+              className="text-navy text-[20px] leading-7 font-semibold tabular-nums"
+            >
+              {preview == null ? "—" : formatMoney(preview)}
+            </p>
+            <p className="text-[13px] text-neutral-500">
+              cena ÷ hodiny + prevádzka (kalkulačné opotrebenie)
+            </p>
+          </div>
+          {save.error && (
+            <div className="md:col-span-2 xl:col-span-4">
+              <FormMessage tone="error">{save.error.message}</FormMessage>
+            </div>
+          )}
+        </form>
+        {!resource && (
+          <div className="mt-4 border-t border-neutral-200 pt-4">
+            <NewRecordAttachments
+              queue={queue}
+              busy={isSubmitting}
+              retry={saved ? () => void uploadQueue(saved) : undefined}
+            />
           </div>
         )}
-      </form>
-    </Tile>
+      </Tile>
+      {resource && <AttachmentsTile entityTable="resources" entityId={resource.id} />}
+    </>
   );
 }
 
