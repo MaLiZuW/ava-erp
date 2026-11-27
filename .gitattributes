@@ -1,2 +1,20 @@
+# Line endings: LF in the repository AND in the working copy on every system (also on Windows
+# with core.autocrlf=true). Prettier, ESLint, the SQL migrations and the Apache server all
+# expect LF; editors on Windows handle LF fine.
+* text=auto eol=lf
+
+# binary files – never converted
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.xlsx binary
+*.docx binary
+*.woff binary
+*.woff2 binary
+
 # test files of the catalog import: exact bytes (Windows-1250, CRLF)
 e2e/fixtures/** binary
