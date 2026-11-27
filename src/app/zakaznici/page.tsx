@@ -1,5 +1,7 @@
-import { ComingSoon } from "@/ui/coming-soon";
+"use client";
+
+import { PartyListPage } from "@/features/parties/party-list-page";
 
 export default function Page() {
-  return <ComingSoon module="Zákazníci" />;
+  return <PartyListPage kind="customers" />;
 }

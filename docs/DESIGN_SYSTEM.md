@@ -14,6 +14,8 @@ Interpretácia [NÁVRH]: **švajčiarsky (Swiss) štýl** – prísna mriežka, 
 5. **Čísla sú hrdinovia.** Sumy, termíny a počty veľkým písmom s tabulárnymi číslicami.
 6. **Klávesnica prvá.** Globálne vyhľadávanie a príkazy cez `Ctrl+K`, skratky na hlavné akcie.
 7. **Prístupnosť WCAG 2.1 AA** minimum: kontrast textu ≥ 4,5 : 1, viditeľné zameranie (focus), stav vždy aj textom/ikonou, nie len farbou.
+8. **História zmien je vždy posledná.** Poradie stránky: obsah a formuláre → **História zmien** ako posledná dlaždica na celú šírku, nikdy medzi formulármi (Nastavenia, detaily zákazníka/dodávateľa, katalóg, dokumenty, neskôr všetky doklady). Hodnoty v histórii sú v slovenskom formáte (čiarka, sumy €, DD/MM/YYYY, áno/nie) a odkazy sa zobrazujú ako názvy záznamov, nie UUID. *(Pripomienka vlastníka, fáza 3.)*
+9. **Lepiaca hlavička stránky – nadpis modulu vždy viditeľný.** Horná lišta (nadpis, v režime nastavení navigačná cesta a popis, hlavné tlačidlo stránky, Hľadať, + Nové) ostáva pri rolovaní hore v celej aplikácii. *(Pripomienka vlastníka 21.)*
 
 ## 2. Mriežka a rozmery
 
@@ -102,6 +104,16 @@ Hore prepínač **Spolu / Agentúra / AVENG** a obdobie (mesiac, štvrťrok, rok
 | Top zákazníci | L | tržby a marža, prekliknutie na kartu zákazníka |
 | Dodávatelia – skóre | L | kategória A/B/C, dodanie včas % |
 | Procesné KPI | XL | semafory voči cieľom (doba dopyt→CP, dodanie včas, DSO, utilizácia…) |
+| Na overenie | L | dáta, ktorých aktuálnosť treba potvrdiť (blok I) – počet, zoznam, „Potvrdiť bez zmeny“ |
+
+**O2C tabuľa (D28, `docs/analyzy/NAVRH-O2C-TABULA.md`)** – hlavná časť Prehľadu: **pod KPI dlaždicami, na celú šírku**, nadpis „Celý proces na jednom mieste“.
+
+- **Stĺpce podľa etáp:** Dopyty · Cenové ponuky · Zákazky · Fakturácia. Hlavička stĺpca: farebná bodka, názov, počet, súčet € (bez DPH – neplatiteľ), podnadpis, tlačidlo „+ Nový …“. Jemný odtieň pozadia podľa etapy len ako akcent (WCAG AA); stav je vždy aj textom.
+- **Karta:** štítok typu/čísla dokladu (Dopyt, CP-2026-0018, FV-2026-0012), štítok stavu vpravo, názov, zákazník alebo e-mail, suma veľkým písmom (tabulárne číslice), termín s ikonou kalendára (omeškanie červeným textom + ikonou), divízia, ikonky (čaká vizuál, subdodávateľ, e-mail na potvrdenie, AI návrh). Pri zákazke riadok subdodávateľa, pri faktúre „Uhradené … · zostatok …“. Klik = detail dokladu.
+- **Drag & drop vždy cez `transition()`:** pri ťahaní sa v cieľovom stĺpci rozbalia **povolené stavy** (ostatné zašedené); prechod s povinnými údajmi → krátke okno; **prijatie CP, vystavenie faktúry a storno → potvrdzovacie okno s jasným následkom** (§7); presun do ďalšej etapy = sprievodca; chyba z DB → karta sa vráti, slovenská hláška. Bez optimistického zobrazenia pri nevratných krokoch.
+- **Prístupnosť a mobil:** na každej karte menu **„Presunúť do…“**, ťahanie aj klávesnicou s ohlásením pre čítačku; na mobile stĺpce vodorovne posúvateľné, presun len cez „Presunúť do…“.
+- **Filtre:** Spolu / Agentúra / AVENG, obdobie, zodpovedný, typ zákazky, vyhľadávanie. V stĺpci posledných N kariet + „Zobraziť všetko“; uzavreté staršie ako 30 dní skryté (nastaviteľné). Zmena od druhého konateľa sa prejaví hneď (Realtime).
+- Zaradenie: F4 Dopyty, Ponuky, Zákazky; F5a/F5b realizácia, nákup, dodanie; F6 Fakturácia; F7 súčty a filtre z reportingu.
 
 ### 6.1a Karta zákazníka / dodávateľa
 
@@ -115,7 +127,8 @@ Tlačový štýl A4 na výšku aj na šírku: biele pozadie, logo, názov report
 
 1. **HERO dlaždica:** číslo dokladu, stav (štítok), zákazník, suma, **jedno hlavné tlačidlo „ďalší krok“**.
 2. **Procesná os** pod HERO: Dopyt → Ponuka → Objednávka → Vizuál → Nákup → Dodanie → Faktúra → Úhrada → Archív; hotové kroky plné, aktuálny zvýraznený, budúce prázdne; klik = otvorí súvisiaci doklad.
-3. Bento dlaždice podľa typu dokladu, napr. pri zákazke: Ekonomika (plán vs. skutočnosť) L, Úlohy/Gantt XL, Nákup M, Dokumenty M, E-maily M, História zmien M.
+3. Bento dlaždice podľa typu dokladu, napr. pri zákazke: Ekonomika (plán vs. skutočnosť) L, Úlohy/Gantt XL, Nákup M, Dokumenty M, E-maily M.
+4. **História zmien** ako posledná sekcia stránky na celú šírku (princíp 8).
 
 ### 6.3 Zoznamy
 
@@ -124,6 +137,17 @@ Tlačový štýl A4 na výšku aj na šírku: biele pozadie, logo, názov report
 ### 6.4 Editor položiek CP
 
 Tabuľkový editor ako v tabuľkovom procesore (klávesnica, Tab/Enter), napravo lepiaca dlaždica **Súhrn**: náklad, cena, zisk € a %, marža aj prirážka – prepočet okamžite.
+
+### 6.5 Režim nastavení (vzor Linear / Vercel / GitHub) – pripomienky vlastníka 20–22
+
+- **Ľavý panel sa prepne:** po vstupe do Nastavení nahradí hlavné menu menu Nastavení. Hore „← Späť do aplikácie“ (posledná stránka aplikácie) a nadpis „Nastavenia“, pod tým skupiny: Firma · Bezpečnosť · Systém · AI · Reporting · Dáta · História zmien. Žiadne podpoložky v hlavnom menu, žiadne druhé menu vedľa hlavného.
+- **Položky:** ikona + krátky názov na jeden riadok; nadpisy skupín malé sivé. **Aktívna položka:** jemné pozadie `canvas`, 2 px linka `brand-blue` vľavo, tučný text `navy` – nie plný tmavý blok. **Stav pri položke:** bodka (prípadne číslo), celý text v popise a pre čítačky (napr. „Logo chýba“, „Na overenie N“).
+- **Podstránky s vlastnou adresou** (`/nastavenia/firma/logo/` …); jedna konfigurácia `SETTINGS_GROUPS` (`src/core/navigation.ts`) riadi menu, úvod a Ctrl+K (aj podľa názvov polí).
+- **Hlavička podstránky (lepiaca):** navigačná cesta „Nastavenia / Skupina“, nadpis, jeden riadok popisu, hlavné tlačidlo sekcie vpravo. Titulok okna „Stránka · Nastavenia · Add Value Agency“. Dlaždica pod hlavičkou **nemá vlastný nadpis** (žiadna duplicita).
+- **Obsah má jednotnú šírku** (max. 960 px): dlaždice na celú šírku obsahu alebo vzor „nadpis a popis vľavo, polia vpravo“.
+- **Úvod `/nastavenia/`:** dlaždice skupín v poradí menu s popisom, stavom a odkazmi; „V poriadku“ až po načítaní dát.
+- **Mobil:** zoznam sekcií (úvod) ako prvá obrazovka; sekcia samostatne s „← Nastavenia“ v hlavičke.
+- **História zmien** sekcie naspodku (princíp 8), len jej záznamy, ako ľudské vety bez technických polí; celá v skupine História zmien.
 
 ## 7. Pohyb a odozva
 
@@ -135,6 +159,10 @@ Tabuľkový editor ako v tabuľkovom procesore (klávesnica, Tab/Enter), napravo
 ## 8. Komponenty (shadcn/ui základ)
 
 `Tile` (veľkosti S–XL, HERO), `StatusBadge`, `NextStepButton`, `ProcessRail`, `KpiNumber`, `DataTable` (TanStack Table), `CommandPalette` (cmdk), `MoneyInput`, `PercentInput`, `DateInput` (DD/MM/YYYY), `LineItemsEditor`, `Gantt` [výber knižnice vo fáze 5], `FileDrop`, `EmailThread`, `AuditTimeline`, `EmptyState`.
+
+Doplnené vo F3: `NumberStepper` (−/+ s oneskoreným uložením), `ChipGroup`, `Tooltip`, `ConfirmDialog`, `AttachmentsTile` + fronta súborov (D23, jedna dlaždica Prílohy pre všetky moduly), `ReviewControl` / `ReviewsList` (overenie dát).
+
+**`BoardView`** (D28, F4) – jeden komponent kanbanu v `src/ui` na **dnd-kit** (MIT; podpora klávesnice a čítačky): stĺpce, karty, ťahanie, menu „Presunúť do…“, zvýraznenie povolených cieľov. Dáta a povolené prechody dodáva modul (z `status_transitions`), samotný presun vždy volá `transition()` – `BoardView` stav nemení. Použitie: O2C tabuľa v Prehľade (F4/F6), kanban úloh zákazky (F5a), nákup (F5b).
 
 Každý komponent: varianty, stavy (hover, focus, disabled, loading, error), test prístupnosti.
 

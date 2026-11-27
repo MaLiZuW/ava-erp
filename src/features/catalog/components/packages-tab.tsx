@@ -1,0 +1,447 @@
+"use client";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import { Controller, useForm, useWatch } from "react-hook-form";
+import { formatMoney } from "@/core/format";
+import { Button } from "@/ui/button";
+import { EmptyState } from "@/ui/empty-state";
+import { cn } from "@/ui/cn";
+import { describedBy, Field, FormMessage, Input, Select } from "@/ui/field";
+import { KpiNumber } from "@/ui/kpi-number";
+import { NumberStepper, stepForUnit } from "@/ui/number-stepper";
+import { Tile } from "@/ui/tile";
+import {
+  useAddComponent,
+  useCatalogItems,
+  useCatalogThumbs,
+  useComponents,
+  useDuplicatePackage,
+  useRemoveComponent,
+  useUpdateComponent,
+  type CatalogItem,
+  type PackageComponent,
+} from "../api";
+import { ItemForm } from "./items-tab";
+import { componentSchema, type ComponentInput, type ComponentOutput } from "../schema";
+
+/** One BOM line: quantity × unit price of the component, rounded to cents. */
+export function lineCostCents(r: Pick<PackageComponent, "quantity" | "component">): number {
+  return Math.round((r.component?.default_cost_cents ?? 0) * Number(r.quantity));
+}
+
+/** Indicative cost of one package: Σ component cost × quantity (each line rounded to cents). */
+export function packageCostCents(
+  rows: readonly Pick<PackageComponent, "quantity" | "component">[],
+): number {
+  return rows.reduce((sum, r) => sum + lineCostCents(r), 0);
+}
+
+const qtyText = (q: number) => String(Number(q)).replace(".", ",");
+
+/**
+ * Choosing a component: search + list with thumbnails of the main photos (block J). The field
+ * is a search box; the options are buttons (a list of 1 000 items stays usable by typing).
+ */
+function ItemPicker({
+  id,
+  items,
+  value,
+  onChange,
+  invalid,
+}: {
+  id: string;
+  items: readonly CatalogItem[];
+  value: string;
+  onChange: (id: string) => void;
+  invalid?: boolean;
+}) {
+  const [q, setQ] = useState("");
+  const thumbs = useCatalogThumbs(items);
+  const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  const shown = items
+    .filter((i) => !q || norm(`${i.name} ${i.code ?? ""}`).includes(norm(q)))
+    .slice(0, 50);
+  const selected = items.find((i) => i.id === value);
+  return (
+    <div className="flex flex-col gap-2">
+      <Input
+        id={id}
+        type="search"
+        placeholder={selected ? `Vybraté: ${selected.name}` : "Hľadať podľa názvu alebo kódu…"}
+        value={q}
+        invalid={invalid}
+        onChange={(e) => setQ(e.target.value)}
+      />
+      <ul
+        aria-label="Položky na výber"
+        className="flex max-h-56 flex-col overflow-y-auto rounded-xl border border-neutral-200"
+      >
+        {shown.length === 0 && (
+          <li className="px-3 py-2 text-[13px] text-neutral-500">Nič sa nenašlo.</li>
+        )}
+        {shown.map((i) => {
+          const url = thumbs.get(i.id);
+          const on = i.id === value;
+          return (
+            <li key={i.id}>
+              <button
+                type="button"
+                aria-pressed={on}
+                onClick={() => onChange(on ? "" : i.id)}
+                className={cn(
+                  "flex w-full items-center gap-3 px-3 py-1.5 text-left text-[15px]",
+                  on ? "bg-navy text-white" : "hover:bg-canvas",
+                )}
+              >
+                {url ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- signed URL of a private file
+                  <img src={url} alt="" className="size-8 rounded object-cover" />
+                ) : (
+                  <span aria-hidden className="bg-canvas size-8 rounded" />
+                )}
+                <span className="min-w-0 flex-1 truncate">{i.name}</span>
+                <span className={cn("text-[13px]", on ? "text-white" : "text-neutral-500")}>
+                  {i.unit_code}
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+function AddComponentForm({ packageId, excluded }: { packageId: string; excluded: Set<string> }) {
+  const add = useAddComponent(packageId);
+  // only plain items can be components (one-level bill of materials – owner decision)
+  const items = useCatalogItems({ type: "all", showInactive: false });
+  const options = (items.data ?? []).filter(
+    (i) => i.item_type !== "package" && !excluded.has(i.id),
+  );
+  const {
+    handleSubmit,
+    reset,
+    control,
+    formState: { errors, isSubmitting },
+  } = useForm<ComponentInput, unknown, ComponentOutput>({
+    resolver: zodResolver(componentSchema),
+    defaultValues: { component_item_id: "", quantity: "1" },
+  });
+  const selectedId = useWatch({ control, name: "component_item_id" });
+  const selected = options.find((i) => i.id === selectedId);
+  const unit = selected?.unit_code;
+  const submit = handleSubmit(async (values) => {
+    const ok = await add
+      .mutateAsync(values)
+      .then(() => true)
+      .catch(() => false);
+    if (ok) reset({ component_item_id: "", quantity: "1" });
+  });
+  return (
+    <form
+      onSubmit={submit}
+      noValidate
+      aria-label="Pridať komponent"
+      className="flex flex-wrap items-end gap-3"
+    >
+      <Field
+        id="component-item"
+        label="Komponent"
+        error={errors.component_item_id?.message}
+        className="min-w-64 flex-1"
+      >
+        <Controller
+          control={control}
+          name="component_item_id"
+          render={({ field }) => (
+            <ItemPicker
+              id="component-item"
+              items={options}
+              value={field.value}
+              onChange={field.onChange}
+              invalid={!!errors.component_item_id}
+            />
+          )}
+        />
+      </Field>
+      <Field id="component-qty" label="Množstvo" error={errors.quantity?.message} className="w-48">
+        <Controller
+          control={control}
+          name="quantity"
+          render={({ field }) => (
+            <NumberStepper
+              id="component-qty"
+              label="Množstvo komponentu"
+              unit={unit}
+              min={stepForUnit(unit)}
+              value={field.value}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
+              ref={field.ref}
+              invalid={!!errors.quantity}
+              aria-describedby={describedBy("component-qty", { error: errors.quantity?.message })}
+            />
+          )}
+        />
+      </Field>
+      {selected && (
+        <p
+          data-testid="component-unit-price"
+          className="h-10 text-[15px] leading-10 text-neutral-700 tabular-nums"
+        >
+          {selected.unit_code} · {formatMoney(selected.default_cost_cents)} / {selected.unit_code}
+        </p>
+      )}
+      <Button type="submit" disabled={isSubmitting}>
+        Pridať
+      </Button>
+      {add.error && (
+        <div className="w-full">
+          <FormMessage tone="error">{add.error.message}</FormMessage>
+        </div>
+      )}
+    </form>
+  );
+}
+
+function QuantityCell({ packageId, row }: { packageId: string; row: PackageComponent }) {
+  const update = useUpdateComponent(packageId);
+  const [value, setValue] = useState(qtyText(row.quantity));
+  const parsed = componentSchema.shape.quantity.safeParse(value);
+  const save = (text: string) => {
+    const r = componentSchema.shape.quantity.safeParse(text);
+    if (r.success && r.data !== Number(row.quantity)) {
+      update.mutate({ componentId: row.component_item_id, quantity: r.data });
+    }
+  };
+  const unit = row.component?.unit_code;
+  return (
+    <NumberStepper
+      label={`Množstvo – ${row.component?.name ?? ""}`}
+      unit={unit}
+      min={stepForUnit(unit)}
+      value={value}
+      invalid={!parsed.success}
+      onChange={setValue}
+      onCommit={save} // after 800 ms without change, on leaving the cell or Enter
+      className="ml-auto w-44"
+    />
+  );
+}
+
+function PackageEditor({ packageId }: { packageId: string }) {
+  const components = useComponents(packageId);
+  const remove = useRemoveComponent(packageId);
+  const rows = components.data ?? [];
+  const excluded = new Set([packageId, ...rows.map((r) => r.component_item_id)]);
+
+  return (
+    <div className="flex flex-col gap-4">
+      {components.error && <FormMessage tone="error">{components.error.message}</FormMessage>}
+      {rows.length === 0 ? (
+        <EmptyState
+          title="Balíček je prázdny"
+          description="Pridajte komponenty a ich množstvo na 1 balíček."
+        />
+      ) : (
+        <table className="w-full border-collapse text-[15px]">
+          <caption className="sr-only">Kusovník balíčka</caption>
+          <thead>
+            <tr className="border-b border-neutral-200 text-left text-[13px] font-semibold tracking-[0.04em] text-neutral-500 uppercase">
+              <th scope="col" className="h-12 pr-3">
+                Komponent
+              </th>
+              <th scope="col" className="px-3 text-right">
+                Množstvo
+              </th>
+              <th scope="col" className="px-3">
+                Jedn.
+              </th>
+              <th scope="col" className="px-3 text-right">
+                Jedn. cena
+              </th>
+              <th scope="col" className="px-3 text-right">
+                Náklad
+              </th>
+              <th scope="col">
+                <span className="sr-only">Akcie</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.component_item_id} className="h-12 border-b border-neutral-200">
+                <td className="pr-3">{r.component?.name}</td>
+                <td className="px-3 text-right">
+                  <QuantityCell packageId={packageId} row={r} />
+                </td>
+                <td className="px-3">{r.component?.unit_code}</td>
+                <td className="px-3 text-right tabular-nums">
+                  {formatMoney(r.component?.default_cost_cents ?? 0)}
+                </td>
+                <td className="px-3 text-right tabular-nums">
+                  {/* cost = quantity × unit price (rounded to cents per line) */}
+                  {formatMoney(lineCostCents(r))}
+                </td>
+                <td className="text-right">
+                  <Button
+                    variant="ghost"
+                    disabled={remove.isPending}
+                    onClick={() => remove.mutate(r.component_item_id)}
+                    aria-label={`Odobrať ${r.component?.name ?? ""}`}
+                  >
+                    Odobrať
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      {remove.error && <FormMessage tone="error">{remove.error.message}</FormMessage>}
+      <AddComponentForm packageId={packageId} excluded={excluded} />
+    </div>
+  );
+}
+
+/** "Duplikovať balíček": a copy with the bill of materials, a new name and code (point 17). */
+function DuplicateForm({
+  pkg,
+  onDone,
+}: {
+  pkg: CatalogItem;
+  onDone: (newId: string | null) => void;
+}) {
+  const dup = useDuplicatePackage();
+  const [name, setName] = useState(`${pkg.name} – kópia`.slice(0, 200));
+  const [code, setCode] = useState("");
+  const [problem, setProblem] = useState<string | null>(null);
+  const submit = async () => {
+    setProblem(null);
+    if (!name.trim()) return setProblem("Zadajte názov kópie.");
+    if (code && !/^[A-Za-z0-9._/-]{1,30}$/.test(code))
+      return setProblem("Kód: najviac 30 znakov – písmená bez diakritiky, číslice, . _ / -");
+    const id = await dup
+      .mutateAsync({ id: pkg.id, name: name.trim(), code: code.trim() || null })
+      .catch(() => null);
+    if (id) onDone(id);
+  };
+  return (
+    <section
+      aria-label="Duplikovať balíček"
+      className="bg-canvas/50 flex flex-wrap items-end gap-3 rounded-xl border border-neutral-200 p-3"
+    >
+      <Field id="dup-name" label="Názov kópie" className="min-w-64 flex-1">
+        <Input id="dup-name" value={name} onChange={(e) => setName(e.target.value)} />
+      </Field>
+      <Field id="dup-code" label="Interný kód kópie" className="w-48">
+        <Input id="dup-code" value={code} onChange={(e) => setCode(e.target.value)} />
+      </Field>
+      <Button onClick={() => void submit()} disabled={dup.isPending}>
+        Vytvoriť kópiu
+      </Button>
+      <Button variant="ghost" onClick={() => onDone(null)}>
+        Zrušiť
+      </Button>
+      {(problem || dup.error) && (
+        <div className="w-full">
+          <FormMessage tone="error">{problem ?? dup.error?.message}</FormMessage>
+        </div>
+      )}
+      <p className="w-full text-[13px] text-neutral-500">
+        Skopíruje sa kusovník, jednotka, divízia, cena a popis; prílohy a fotky nie.
+      </p>
+    </section>
+  );
+}
+
+const PACKAGE_DEFAULTS = { item_type: "package", unit_code: "bal" } as const;
+
+export function PackagesTab({ openNew = false }: { openNew?: boolean }) {
+  const packages = useCatalogItems({ type: "package", showInactive: false });
+  const [selected, setSelected] = useState<string>("");
+  const [creating, setCreating] = useState(openNew);
+  const [duplicating, setDuplicating] = useState(false);
+  const current = selected || packages.data?.[0]?.id || "";
+  const currentPkg = packages.data?.find((p) => p.id === current);
+  const components = useComponents(current || null);
+
+  const newForm = creating && (
+    <ItemForm
+      item={null}
+      title="Nový balíček"
+      defaults={PACKAGE_DEFAULTS}
+      onSaved={(saved) => setSelected(saved.id)} // the new package opens in the BOM
+      onDone={() => setCreating(false)}
+    />
+  );
+  const newButton = !creating && <Button onClick={() => setCreating(true)}>+ Nový balíček</Button>;
+
+  if (packages.data?.length === 0) {
+    return (
+      <>
+        {newForm}
+        <Tile size="XL" title="Balíčky">
+          <EmptyState
+            title="Zatiaľ žiadny balíček"
+            description="Vytvorte balíček (napr. mikulášsky balíček) a potom mu zadajte komponenty."
+          >
+            {newButton}
+          </EmptyState>
+        </Tile>
+      </>
+    );
+  }
+
+  return (
+    <>
+      {newForm}
+      <Tile size="XL" title="Kusovník balíčka" action={newButton || undefined}>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-end gap-3">
+            <Field id="package-select" label="Balíček" className="w-full max-w-md">
+              <Select
+                id="package-select"
+                value={current}
+                onChange={(e) => {
+                  setSelected(e.target.value);
+                  setDuplicating(false);
+                }}
+              >
+                {(packages.data ?? []).map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            {currentPkg && !duplicating && (
+              <Button variant="secondary" onClick={() => setDuplicating(true)}>
+                Duplikovať balíček
+              </Button>
+            )}
+          </div>
+          {currentPkg && duplicating && (
+            <DuplicateForm
+              key={currentPkg.id}
+              pkg={currentPkg}
+              onDone={(newId) => {
+                setDuplicating(false);
+                if (newId) setSelected(newId);
+              }}
+            />
+          )}
+          {current && <PackageEditor key={current} packageId={current} />}
+        </div>
+      </Tile>
+      <Tile size="S" title="Náklad 1 balíčka">
+        <KpiNumber
+          value={formatMoney(packageCostCents(components.data ?? []))}
+          hint="Orientačne z nákupných cien komponentov."
+        />
+      </Tile>
+    </>
+  );
+}

@@ -40,6 +40,26 @@ Sandbox nenahrádza beh na skutočnom projekte (brána fázy): odlišnosti PGlit
 - Heslo a TOTP tajomstvo sú náhodné pre každý beh a nikde sa nevypisujú. Skripty bežia len proti dev projektu (kontrola ref projektu).
 - Playwright `e2e/auth.spec.ts` sa bez týchto údajov (CI na GitHube) **preskočí** s jasnou správou; CI zostaví aplikáciu so zástupnými verejnými hodnotami, aby sa overili prihlasovacie obrazovky bez siete.
 
+## Testovacie dáta na dev projekte (fáza 3)
+
+- e2e test kmeňových dát (`e2e/master-data.spec.ts`) zakladá len fiktívne záznamy s názvom „E2E …“ a po behu ich zmaže (`purgeE2eMasterData` v `scripts/lib/test-users.ts`) – zákazníci, dodávatelia, katalóg, roly, zdroje, réžia. Do pevných slotov knižnice obsahu (reálne texty vlastníka) e2e **nezapisuje**; zápis, verzie a pravidlá obrázkov overuje pgTAP a API test.
+- Každá testovacia sada maže len svojich používateľov (`purgeTestUsers(env, "e2e-md")`), sady preto môžu bežať súbežne.
+
+## Stav (fáza 3)
+
+- Vitest: 180 testov (doplnenie: `number-stepper.test.tsx` – logika kroku, tlačidlá, šípky, MoneyInput s react-hook-form). Playwright: 9 testov (vrátane prihlásenia kódom „123 456“, menu pri 1280×560 a 375×640, toku kmeňových dát, −/+ v kusovníku a starého odkazu `?tab=zdroje`).
+- pgTAP: 306 asercií v 9 súboroch – dev projekt aj sandbox PGlite (sandbox načítava aj `btree_gist`).
+- `db:test:api`: anon/aal1 bez dát aj na všetkých nových tabuľkách; nahrávanie cez Storage s aal2 – PNG prejde, SVG a súbor nad 2 MB bucket odmietne.
+- Vzorec sadzby zdroja je overený rovnakými prípadmi v TypeScripte (`resource-rate.test.ts`) aj v databáze (`08_catalog`).
+
+## Stav (fáza 3 – pripomienky vlastníka, bloky G–L, 27. 11. 2026)
+
+- pgTAP: **583 asercií v 14 súboroch** – dev projekt aj sandbox (`10_capacity`, `11_overhead_reviews`, `12_attachments`, `13_catalog_import`, `14_ai`). Sandbox PGlite dostal náhradu **Vaultu** (`vault.secrets`, `create_secret`, `update_secret`, `decrypted_secrets` bez šifrovania) – overujú sa len prístupy; šifrovanie a skutočný Vault overuje beh na dev projekte.
+- Vitest: **255 testov** – okrem iného výpočty v rovnakých prípadoch ako pgTAP (rozpočítanie réžie na centy, prepočet nákupnej ceny s DPH a kurzom, GTIN), kontrola súborov podľa obsahu (PDF, DOCX/XLSX, obrázky), CSV parser a Windows-1250, čítanie XLSX, fronta príloh, brána `ai-gateway` (prístup, poistka, kľúč sa nevracia ani neloguje, dáta oddelené od pokynov).
+- Playwright: **10 testov** – navyše opakovaná réžia a overenie dát, prílohy (PDF u dodávateľa, fotka balíčka, miniatúra), nový a duplikovaný balíček, import cenníka (Windows-1250, CZK s DPH) so skúšobným behom, potvrdením a vrátením dávky, kontrola EAN, stránka AI bez kľúča a s vyčerpaným rozpočtom.
+- `db:test:api`: Storage do 20 MB (PDF prejde, SVG, HTML a > 20 MB nie, podpísaný odkaz), tabuľka kľúča AI a funkcie Vaultu nedostupné pre aplikáciu, Edge Function `ai-gateway` (neprihlásený 401, cudzí Origin 403, zlý kľúč 400, volanie bez modelu 409).
+- Testovacie dáta: fiktívne cenníky `e2e/fixtures/cennik-fiktivny.*` (skript `scripts/make-import-fixtures.ts`, binárne v git – `.gitattributes`); upratovanie maže aj prílohy zo Storage, dávky a šablóny importu testovacích používateľov a testovaciu spotrebu AI (`test_fixture`).
+
 ## Stav (fáza 2, 27. 11. 2026)
 
 - Vitest: 98 testov v 11 súboroch. Playwright: 5 testov bez prihlásenia zelených; 3 testy s TOTP čakajú na `SUPABASE_SECRET_KEY`.

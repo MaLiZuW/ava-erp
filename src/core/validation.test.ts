@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
-  checkLogoFile,
+  checkImageFile,
   formatIban,
   isValidDic,
   isValidIban,
   isValidIco,
   isValidSwift,
-  LOGO_MAX_BYTES,
+  IMAGE_MAX_BYTES,
   safeFileName,
 } from "./validation";
 
@@ -74,34 +74,34 @@ const SVG = new TextEncoder().encode(
 
 describe("logo file", () => {
   it("accepts PNG, JPEG and WebP up to 2 MB", () => {
-    expect(checkLogoFile({ name: "logo.png", type: "image/png", size: 1000 }, PNG)).toBeNull();
-    expect(checkLogoFile({ name: "logo.JPG", type: "image/jpeg", size: 1000 }, JPG)).toBeNull();
-    expect(checkLogoFile({ name: "logo.jpeg", type: "image/jpeg", size: 1000 }, JPG)).toBeNull();
+    expect(checkImageFile({ name: "logo.png", type: "image/png", size: 1000 }, PNG)).toBeNull();
+    expect(checkImageFile({ name: "logo.JPG", type: "image/jpeg", size: 1000 }, JPG)).toBeNull();
+    expect(checkImageFile({ name: "logo.jpeg", type: "image/jpeg", size: 1000 }, JPG)).toBeNull();
     expect(
-      checkLogoFile({ name: "logo.webp", type: "image/webp", size: LOGO_MAX_BYTES }, WEBP),
+      checkImageFile({ name: "logo.webp", type: "image/webp", size: IMAGE_MAX_BYTES }, WEBP),
     ).toBeNull();
   });
   it("refuses SVG", () => {
-    expect(checkLogoFile({ name: "logo.svg", type: "image/svg+xml", size: 100 }, SVG)).toMatch(
+    expect(checkImageFile({ name: "logo.svg", type: "image/svg+xml", size: 100 }, SVG)).toMatch(
       /SVG nie/,
     );
   });
   it("refuses an SVG disguised as PNG (magic bytes)", () => {
-    expect(checkLogoFile({ name: "logo.png", type: "image/png", size: 100 }, SVG)).toMatch(
+    expect(checkImageFile({ name: "logo.png", type: "image/png", size: 100 }, SVG)).toMatch(
       /Obsah súboru/,
     );
   });
   it("refuses a mismatched extension", () => {
-    expect(checkLogoFile({ name: "logo.webp", type: "image/png", size: 100 }, PNG)).toMatch(
+    expect(checkImageFile({ name: "logo.webp", type: "image/png", size: 100 }, PNG)).toMatch(
       /Prípona/,
     );
-    expect(checkLogoFile({ name: "logo", type: "image/png", size: 100 }, PNG)).toMatch(/Prípona/);
+    expect(checkImageFile({ name: "logo", type: "image/png", size: 100 }, PNG)).toMatch(/Prípona/);
   });
   it("refuses files over 2 MB and empty files", () => {
     expect(
-      checkLogoFile({ name: "a.png", type: "image/png", size: LOGO_MAX_BYTES + 1 }, PNG),
+      checkImageFile({ name: "a.png", type: "image/png", size: IMAGE_MAX_BYTES + 1 }, PNG),
     ).toMatch(/2 MB/);
-    expect(checkLogoFile({ name: "a.png", type: "image/png", size: 0 }, PNG)).toMatch(/prázdny/);
+    expect(checkImageFile({ name: "a.png", type: "image/png", size: 0 }, PNG)).toMatch(/prázdny/);
   });
 });
 

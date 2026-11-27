@@ -40,6 +40,7 @@ Tabuľka rozdielov krokov (✔ = krok sa používa, – = nepoužíva, ○ = vol
 | Schválenie vizuálu | – | ○ | ✔ povinné | ○ | – |
 | Gantt / úlohy | ✔ | ✔ | ○ | ○ | ○ |
 | Evidencia hodín | ✔ | ✔ | ○ | ○ | ✔ |
+| Scenár dňa eventu (D24) | – | ✔ | – | – | – |
 | Objednávka dodávateľovi | ○ | ✔ | ✔ | ✔ | ✔ |
 | Príjem tovaru/služby | ○ | ✔ | ✔ | ✔ | ✔ |
 | Dodací list | ○ | – | ✔ | ✔ | ✔ |
@@ -269,9 +270,16 @@ Zaokrúhlenie [NÁVRH]: výpočty v celých centoch, jednotková cena zaokrúhle
 - Skutočnosť = OD/príjmy + prijaté faktúry priradené k zákazke + hodiny × kalkulačná sadzba.
 - Ak skutočný zisk klesne pod baseline o viac ako nastavený prah [NÁVRH: prah nenastavený, kým ho vlastník nezadá] → notifikácia.
 
-## 6. E-mail [POTVRDENÉ požiadavka, NÁVRH riešenie]
+## 6. E-mail [POTVRDENÉ požiadavka, riešenie podľa D27]
 
-1. Systém sa pripojí k schránke na WebSupporte (IMAP na čítanie, SMTP na odosielanie). Prístupové údaje uložené šifrovane na serveri (Supabase Vault).
+Rozhodnutie **D27** a schválená analýza `docs/analyzy/ANALYZA-AI-EMAIL-TRIAZ.md` upresňujú body nižšie:
+
+- **Pravidlo: AI navrhuje, človek potvrdzuje.** Automaticky len pripojenie e-mailu k záznamu, štítok kategórie a označenie spamu; zmenu stavu dokladu a vznik zmluvy (prijatie CP) robí vždy človek.
+- **Zatiaľ len čítanie (IMAP)** – systém e-maily **neodosiela** (bod 5 a SMTP sa zatiaľ neimplementujú); AI môže pripraviť koncept odpovede na skopírovanie.
+- Schránky sú **parameter v Nastaveniach → E-mailové schránky**, vlastník ich doplní sám; na dev testovacia schránka test@av-agency.sk s fiktívnymi e-mailmi, reálne schránky až na projekte Pro (D22).
+- Zaradenie: e-mail bez AI (načítanie, párovanie, „Priradiť k…“, „Vytvoriť DOP z e-mailu“) vo **F4**, AI triáž (kategórie, extrakcia, návrhy akcií) vo **F4.5**.
+
+1. Systém sa pripojí k schránke na WebSupporte (IMAP na čítanie; SMTP na odosielanie až neskôr – D27). Prístupové údaje uložené šifrovane na serveri (Supabase Vault).
 2. Synchronizácia každých N minút (plánovaná úloha) – nové správy sa uložia (hlavička, text, prílohy do úložiska).
 3. Automatické priradenie:
    - k zákazníkovi/dodávateľovi podľa e-mailovej adresy kontaktu,
@@ -279,7 +287,7 @@ Zaokrúhlenie [NÁVRH]: výpočty v celých centoch, jednotková cena zaokrúhle
 4. Z nepriradeného e-mailu jedným klikom: nový dopyt, priradenie k existujúcej zákazke, ignorovať.
 5. Odosielanie zo systému (CP, potvrdenie objednávky, náhľad vizuálu, dopyt na dodávateľa, OD, faktúra) – číslo dokladu v predmete, PDF v prílohe, kópia v histórii zákazky.
 6. Riziko na overenie vo fáze 1: dostupnosť IMAP/SMTP z Supabase Edge Functions. Záloha: transakčná e-mailová služba cez HTTPS na odosielanie.
-7. [CHÝBA] Ktorá schránka (adresa) sa pripojí – pravdepodobne na doméne aveng.sk alebo av-agency.sk.
+7. ~~[CHÝBA] Ktorá schránka (adresa) sa pripojí~~ → **vyriešené D27**: schránky sú parameter v Nastaveniach → E-mailové schránky (odporúčané spoločné info@, ponuky@); O2 uzavretá.
 
 ## 7. Notifikácie [NÁVRH]
 
@@ -312,13 +320,13 @@ Zaokrúhlenie [NÁVRH]: výpočty v celých centoch, jednotková cena zaokrúhle
 
 | Otázka | Predvolené riešenie |
 |---|---|
-| Q15 watchlist, AI | 4 predpisy v kap. 8; AI vypnuté |
+| Q15 watchlist, AI | 4 predpisy v kap. 8; AI podľa **D25** – Nastavenia → AI, každá funkcia má vlastný príznak (predvolene vypnutá), rozpočet s poistkou |
 | Q16 úložisko | Supabase Storage (súkromné buckety), záloha na domáci server |
 | Q17 potvrdenie dodania | sken/fotka podpísaného dokladu alebo e-mail v systéme |
-| Q18 Gantt | úlohy, podúlohy, míľniky, závislosti „koniec–začiatok“, priradenie osobe alebo dodávateľovi |
+| Q18 Gantt | úlohy, podúlohy, míľniky, závislosti „koniec–začiatok“, priradenie osobe alebo dodávateľovi. **Rozšírené rozhodnutím D24** a analýzou `docs/analyzy/ANALYZA-RIADENIE-PROJEKTOV-A-ZDROJOV.md` (plánovanie zdrojov, kalendáre, šablóny, baseline, scenár eventu – fáza 5a) |
 | Q19 jazyk, mena | doklady SK, mena EUR (pole meny pripravené) |
 | Q20 B2C | primárne B2B; zákazník môže byť aj fyzická osoba (typ zákazníka) – GDPR |
-| Q21 import | bez importu, dáta sa zadajú ručne vo fáze 3 |
+| Q21 import | katalóg: **import XLSX/CSV podľa D26** (fáza 3, dávka s vrátením); ostatné kmeňové dáta ručne |
 | Q22 Supabase | Free na vývoj s testovacími dátami → Pro pred ostrými dátami → neskôr self-hosted |
 | Q23 čas | bez termínov |
 | Q-P1 schválenie CP | pri 2 adminoch smie schváliť aj autor (inak by jeden konateľ nemohol pracovať sám) |
@@ -414,7 +422,7 @@ Nový evidenčný záznam: kto (zákazník/dodávateľ), zákazka, popis, záva�
 | Doba dodanie → faktúra | vystavenie FA − potvrdené dodanie | – |
 | DSO (dni inkasa) | priemer dní od vystavenia po úhradu | – |
 | Zákazky pod plánovaným ziskom | podiel uzavretých zákaziek so ziskom < baseline | – |
-| Utilizácia | fakturované hodiny ÷ dostupné hodiny (kapacita zadaná v `capacity_plans`) | S1 |
+| Utilizácia | fakturované hodiny ÷ dostupné hodiny (kapacita z kalendára: týždenný vzor − dni pracovného pokoja ± výnimky, D24) | S1 |
 | Realizovaná sadzba | tržby za hodinové služby ÷ fakturované hodiny | S2 |
 | Miera reklamácií | zákazky s reklamáciou ÷ všetky | S5 |
 | Opakované nákupy | zákazníci s ≥ 2 zákazkami ÷ aktívni | S7 |

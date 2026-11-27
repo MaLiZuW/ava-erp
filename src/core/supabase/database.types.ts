@@ -66,6 +66,525 @@ export type Database = {
         };
         Relationships: [];
       };
+      ai_model_prices: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          input_eur_per_mtok: number;
+          model: string;
+          note: string | null;
+          output_eur_per_mtok: number;
+          updated_at: string;
+          updated_by: string | null;
+          valid_from: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          input_eur_per_mtok: number;
+          model: string;
+          note?: string | null;
+          output_eur_per_mtok: number;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from?: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          input_eur_per_mtok?: number;
+          model?: string;
+          note?: string | null;
+          output_eur_per_mtok?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from?: string;
+        };
+        Relationships: [];
+      };
+      ai_provider_keys: {
+        Row: {
+          last4: string;
+          provider: string;
+          set_at: string;
+          set_by: string | null;
+          vault_secret_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          last4: string;
+          provider: string;
+          set_at?: string;
+          set_by?: string | null;
+          vault_secret_id: string;
+        };
+        Update: {
+          last4?: string;
+          provider?: string;
+          set_at?: string;
+          set_by?: string | null;
+          vault_secret_id?: string;
+        };
+        Relationships: [];
+      };
+      ai_usage: {
+        Row: {
+          at: string;
+          cost_eur: number;
+          error_code: string | null;
+          feature: string;
+          id: string;
+          input_tokens: number;
+          model: string;
+          ok: boolean;
+          output_tokens: number;
+          user_id: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          at?: string;
+          cost_eur?: number;
+          error_code?: string | null;
+          feature: string;
+          id?: string;
+          input_tokens?: number;
+          model: string;
+          ok: boolean;
+          output_tokens?: number;
+          user_id?: string | null;
+        };
+        Update: {
+          at?: string;
+          cost_eur?: number;
+          error_code?: string | null;
+          feature?: string;
+          id?: string;
+          input_tokens?: number;
+          model?: string;
+          ok?: boolean;
+          output_tokens?: number;
+          user_id?: string | null;
+        };
+        Relationships: [];
+      };
+      attachment_categories: {
+        Row: {
+          allowed_mime_types: string[];
+          code: string;
+          created_at: string;
+          created_by: string | null;
+          is_active: boolean;
+          label: string;
+          max_bytes: number;
+          sort_order: number;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          allowed_mime_types: string[];
+          code: string;
+          created_at?: string;
+          created_by?: string | null;
+          is_active?: boolean;
+          label: string;
+          max_bytes: number;
+          sort_order?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          allowed_mime_types?: string[];
+          code?: string;
+          created_at?: string;
+          created_by?: string | null;
+          is_active?: boolean;
+          label?: string;
+          max_bytes?: number;
+          sort_order?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [];
+      };
+      blocked_mime_types: {
+        Row: {
+          mime_type: string;
+          note: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          mime_type: string;
+          note: string;
+        };
+        Update: {
+          mime_type?: string;
+          note?: string;
+        };
+        Relationships: [];
+      };
+      bookable_resources: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          division_id: string | null;
+          equipment_id: string | null;
+          id: string;
+          is_active: boolean;
+          kind: string;
+          name: string | null;
+          profile_id: string | null;
+          supplier_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          division_id?: string | null;
+          equipment_id?: string | null;
+          id?: string;
+          is_active?: boolean;
+          kind: string;
+          name?: string | null;
+          profile_id?: string | null;
+          supplier_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          division_id?: string | null;
+          equipment_id?: string | null;
+          id?: string;
+          is_active?: boolean;
+          kind?: string;
+          name?: string | null;
+          profile_id?: string | null;
+          supplier_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "bookable_resources_division_id_fkey";
+            columns: ["division_id"];
+            isOneToOne: false;
+            referencedRelation: "divisions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "bookable_resources_equipment_id_fkey";
+            columns: ["equipment_id"];
+            isOneToOne: true;
+            referencedRelation: "resources";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "bookable_resources_kind_fkey";
+            columns: ["kind"];
+            isOneToOne: false;
+            referencedRelation: "resource_kinds";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "bookable_resources_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: true;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "bookable_resources_supplier_id_fkey";
+            columns: ["supplier_id"];
+            isOneToOne: true;
+            referencedRelation: "suppliers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      calendar_exceptions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          date_from: string;
+          date_to: string;
+          hours: number | null;
+          id: string;
+          kind: string;
+          note: string | null;
+          resource_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          date_from: string;
+          date_to: string;
+          hours?: number | null;
+          id?: string;
+          kind: string;
+          note?: string | null;
+          resource_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          date_from?: string;
+          date_to?: string;
+          hours?: number | null;
+          id?: string;
+          kind?: string;
+          note?: string | null;
+          resource_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "calendar_exceptions_resource_id_fkey";
+            columns: ["resource_id"];
+            isOneToOne: false;
+            referencedRelation: "bookable_resources";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "calendar_exceptions_resource_id_fkey";
+            columns: ["resource_id"];
+            isOneToOne: false;
+            referencedRelation: "v_bookable_resources";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      catalog_item_costs: {
+        Row: {
+          cost_cents: number;
+          created_at: string;
+          created_by: string | null;
+          currency: string;
+          fx_date: string | null;
+          fx_rate: number | null;
+          id: string;
+          import_batch_id: string | null;
+          includes_vat: boolean;
+          item_id: string;
+          original_amount: number | null;
+          source: string;
+          updated_at: string;
+          updated_by: string | null;
+          vat_rate_pct: number | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          cost_cents: number;
+          created_at?: string;
+          created_by?: string | null;
+          currency: string;
+          fx_date?: string | null;
+          fx_rate?: number | null;
+          id?: string;
+          import_batch_id?: string | null;
+          includes_vat: boolean;
+          item_id: string;
+          original_amount?: number | null;
+          source: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          vat_rate_pct?: number | null;
+        };
+        Update: {
+          cost_cents?: number;
+          created_at?: string;
+          created_by?: string | null;
+          currency?: string;
+          fx_date?: string | null;
+          fx_rate?: number | null;
+          id?: string;
+          import_batch_id?: string | null;
+          includes_vat?: boolean;
+          item_id?: string;
+          original_amount?: number | null;
+          source?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          vat_rate_pct?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "catalog_item_costs_currency_fkey";
+            columns: ["currency"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "catalog_item_costs_import_batch_id_fkey";
+            columns: ["import_batch_id"];
+            isOneToOne: false;
+            referencedRelation: "import_batches";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "catalog_item_costs_item_id_fkey";
+            columns: ["item_id"];
+            isOneToOne: false;
+            referencedRelation: "catalog_items";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      catalog_items: {
+        Row: {
+          code: string | null;
+          cost_currency: string;
+          cost_fx_date: string | null;
+          cost_fx_rate: number | null;
+          cost_import_batch_id: string | null;
+          cost_includes_vat: boolean;
+          cost_original_amount: number | null;
+          cost_source: string;
+          cost_updated_at: string | null;
+          cost_vat_rate_pct: number | null;
+          created_at: string;
+          created_by: string | null;
+          default_cost_cents: number;
+          default_pricing_mode: Database["public"]["Enums"]["pricing_mode"];
+          default_pricing_pct: number | null;
+          default_supplier_id: string | null;
+          description: string | null;
+          division_id: string | null;
+          ean: string | null;
+          id: string;
+          is_active: boolean;
+          item_type: Database["public"]["Enums"]["item_type"];
+          main_photo_document_id: string | null;
+          name: string;
+          supplier_item_code: string | null;
+          unit_code: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          code?: string | null;
+          cost_currency?: string;
+          cost_fx_date?: string | null;
+          cost_fx_rate?: number | null;
+          cost_import_batch_id?: string | null;
+          cost_includes_vat?: boolean;
+          cost_original_amount?: number | null;
+          cost_source?: string;
+          cost_updated_at?: string | null;
+          cost_vat_rate_pct?: number | null;
+          created_at?: string;
+          created_by?: string | null;
+          default_cost_cents?: number;
+          default_pricing_mode?: Database["public"]["Enums"]["pricing_mode"];
+          default_pricing_pct?: number | null;
+          default_supplier_id?: string | null;
+          description?: string | null;
+          division_id?: string | null;
+          ean?: string | null;
+          id?: string;
+          is_active?: boolean;
+          item_type: Database["public"]["Enums"]["item_type"];
+          main_photo_document_id?: string | null;
+          name: string;
+          supplier_item_code?: string | null;
+          unit_code: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          code?: string | null;
+          cost_currency?: string;
+          cost_fx_date?: string | null;
+          cost_fx_rate?: number | null;
+          cost_import_batch_id?: string | null;
+          cost_includes_vat?: boolean;
+          cost_original_amount?: number | null;
+          cost_source?: string;
+          cost_updated_at?: string | null;
+          cost_vat_rate_pct?: number | null;
+          created_at?: string;
+          created_by?: string | null;
+          default_cost_cents?: number;
+          default_pricing_mode?: Database["public"]["Enums"]["pricing_mode"];
+          default_pricing_pct?: number | null;
+          default_supplier_id?: string | null;
+          description?: string | null;
+          division_id?: string | null;
+          ean?: string | null;
+          id?: string;
+          is_active?: boolean;
+          item_type?: Database["public"]["Enums"]["item_type"];
+          main_photo_document_id?: string | null;
+          name?: string;
+          supplier_item_code?: string | null;
+          unit_code?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "catalog_items_cost_currency_fkey";
+            columns: ["cost_currency"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "catalog_items_cost_import_batch_id_fkey";
+            columns: ["cost_import_batch_id"];
+            isOneToOne: false;
+            referencedRelation: "import_batches";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "catalog_items_default_supplier_id_fkey";
+            columns: ["default_supplier_id"];
+            isOneToOne: false;
+            referencedRelation: "suppliers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "catalog_items_division_id_fkey";
+            columns: ["division_id"];
+            isOneToOne: false;
+            referencedRelation: "divisions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "catalog_items_main_photo_document_id_fkey";
+            columns: ["main_photo_document_id"];
+            isOneToOne: false;
+            referencedRelation: "attachments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "catalog_items_main_photo_document_id_fkey";
+            columns: ["main_photo_document_id"];
+            isOneToOne: false;
+            referencedRelation: "documents";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "catalog_items_unit_code_fkey";
+            columns: ["unit_code"];
+            isOneToOne: false;
+            referencedRelation: "units";
+            referencedColumns: ["code"];
+          },
+        ];
+      };
       companies: {
         Row: {
           bank_name: string | null;
@@ -148,7 +667,384 @@ export type Database = {
             foreignKeyName: "companies_logo_document_fk";
             columns: ["logo_document_id"];
             isOneToOne: false;
+            referencedRelation: "attachments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "companies_logo_document_fk";
+            columns: ["logo_document_id"];
+            isOneToOne: false;
             referencedRelation: "documents";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      content_blocks: {
+        Row: {
+          body: string;
+          created_at: string;
+          created_by: string | null;
+          division_id: string | null;
+          id: string;
+          image_document_ids: string[];
+          is_active: boolean;
+          job_type: Database["public"]["Enums"]["job_type"] | null;
+          key: string;
+          language: string;
+          title: string;
+          updated_at: string;
+          updated_by: string | null;
+          version: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          body?: string;
+          created_at?: string;
+          created_by?: string | null;
+          division_id?: string | null;
+          id?: string;
+          image_document_ids?: string[];
+          is_active?: boolean;
+          job_type?: Database["public"]["Enums"]["job_type"] | null;
+          key: string;
+          language?: string;
+          title: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          version?: number;
+        };
+        Update: {
+          body?: string;
+          created_at?: string;
+          created_by?: string | null;
+          division_id?: string | null;
+          id?: string;
+          image_document_ids?: string[];
+          is_active?: boolean;
+          job_type?: Database["public"]["Enums"]["job_type"] | null;
+          key?: string;
+          language?: string;
+          title?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          version?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "content_blocks_division_id_fkey";
+            columns: ["division_id"];
+            isOneToOne: false;
+            referencedRelation: "divisions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      currencies: {
+        Row: {
+          code: string;
+          created_at: string;
+          created_by: string | null;
+          is_active: boolean;
+          name: string;
+          sort_order: number;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          code: string;
+          created_at?: string;
+          created_by?: string | null;
+          is_active?: boolean;
+          name: string;
+          sort_order?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          code?: string;
+          created_at?: string;
+          created_by?: string | null;
+          is_active?: boolean;
+          name?: string;
+          sort_order?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [];
+      };
+      customer_contacts: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          customer_id: string;
+          email: string | null;
+          full_name: string;
+          id: string;
+          is_active: boolean;
+          is_primary: boolean;
+          phone: string | null;
+          position: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          customer_id: string;
+          email?: string | null;
+          full_name: string;
+          id?: string;
+          is_active?: boolean;
+          is_primary?: boolean;
+          phone?: string | null;
+          position?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          customer_id?: string;
+          email?: string | null;
+          full_name?: string;
+          id?: string;
+          is_active?: boolean;
+          is_primary?: boolean;
+          phone?: string | null;
+          position?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "customer_contacts_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      customer_machines: {
+        Row: {
+          control_system: string | null;
+          created_at: string;
+          created_by: string | null;
+          customer_id: string;
+          id: string;
+          is_active: boolean;
+          location: string | null;
+          manufacturer: string | null;
+          model: string | null;
+          note: string | null;
+          serial_number: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          year_built: number | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          control_system?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          customer_id: string;
+          id?: string;
+          is_active?: boolean;
+          location?: string | null;
+          manufacturer?: string | null;
+          model?: string | null;
+          note?: string | null;
+          serial_number?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          year_built?: number | null;
+        };
+        Update: {
+          control_system?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          customer_id?: string;
+          id?: string;
+          is_active?: boolean;
+          location?: string | null;
+          manufacturer?: string | null;
+          model?: string | null;
+          note?: string | null;
+          serial_number?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          year_built?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "customer_machines_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      customers: {
+        Row: {
+          billing_email: string | null;
+          city: string | null;
+          country: string;
+          created_at: string;
+          created_by: string | null;
+          dic: string | null;
+          ic_dph: string | null;
+          ico: string | null;
+          id: string;
+          is_active: boolean;
+          kind: Database["public"]["Enums"]["party_kind"];
+          name: string;
+          note: string | null;
+          payment_terms_days: number | null;
+          peppol_id: string | null;
+          street: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          vat_payer: boolean;
+          zip: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          billing_email?: string | null;
+          city?: string | null;
+          country?: string;
+          created_at?: string;
+          created_by?: string | null;
+          dic?: string | null;
+          ic_dph?: string | null;
+          ico?: string | null;
+          id?: string;
+          is_active?: boolean;
+          kind?: Database["public"]["Enums"]["party_kind"];
+          name: string;
+          note?: string | null;
+          payment_terms_days?: number | null;
+          peppol_id?: string | null;
+          street?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          vat_payer?: boolean;
+          zip?: string | null;
+        };
+        Update: {
+          billing_email?: string | null;
+          city?: string | null;
+          country?: string;
+          created_at?: string;
+          created_by?: string | null;
+          dic?: string | null;
+          ic_dph?: string | null;
+          ico?: string | null;
+          id?: string;
+          is_active?: boolean;
+          kind?: Database["public"]["Enums"]["party_kind"];
+          name?: string;
+          note?: string | null;
+          payment_terms_days?: number | null;
+          peppol_id?: string | null;
+          street?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          vat_payer?: boolean;
+          zip?: string | null;
+        };
+        Relationships: [];
+      };
+      data_review_types: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          entity_table: string;
+          interval_months: number;
+          is_active: boolean;
+          label: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          entity_table: string;
+          interval_months?: number;
+          is_active?: boolean;
+          label: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          entity_table?: string;
+          interval_months?: number;
+          is_active?: boolean;
+          label?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [];
+      };
+      data_reviews: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          entity_id: string;
+          entity_table: string;
+          id: string;
+          interval_months: number;
+          last_reviewed_at: string | null;
+          last_reviewed_by: string | null;
+          next_review_at: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          entity_id: string;
+          entity_table: string;
+          id?: string;
+          interval_months: number;
+          last_reviewed_at?: string | null;
+          last_reviewed_by?: string | null;
+          next_review_at: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          entity_id?: string;
+          entity_table?: string;
+          id?: string;
+          interval_months?: number;
+          last_reviewed_at?: string | null;
+          last_reviewed_by?: string | null;
+          next_review_at?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "data_reviews_entity_table_fkey";
+            columns: ["entity_table"];
+            isOneToOne: false;
+            referencedRelation: "data_review_types";
+            referencedColumns: ["entity_table"];
+          },
+          {
+            foreignKeyName: "data_reviews_last_reviewed_by_fkey";
+            columns: ["last_reviewed_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ];
@@ -203,6 +1099,7 @@ export type Database = {
           size_bytes: number;
           storage_bucket: string;
           storage_path: string;
+          storage_provider: string;
           updated_at: string;
           updated_by: string | null;
           version: number;
@@ -223,6 +1120,7 @@ export type Database = {
           size_bytes: number;
           storage_bucket?: string;
           storage_path: string;
+          storage_provider?: string;
           updated_at?: string;
           updated_by?: string | null;
           version?: number;
@@ -242,6 +1140,7 @@ export type Database = {
           size_bytes?: number;
           storage_bucket?: string;
           storage_path?: string;
+          storage_provider?: string;
           updated_at?: string;
           updated_by?: string | null;
           version?: number;
@@ -274,6 +1173,364 @@ export type Database = {
           enabled?: boolean;
           key?: string;
           note?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [];
+      };
+      import_batch_rows: {
+        Row: {
+          action: string | null;
+          batch_id: string;
+          chosen_item_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          decision: string | null;
+          errors: NonNullable<Json>;
+          id: string;
+          match: NonNullable<Json>;
+          parsed: NonNullable<Json>;
+          previous: Json | null;
+          raw: NonNullable<Json>;
+          result_item_id: string | null;
+          row_no: number;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          action?: string | null;
+          batch_id: string;
+          chosen_item_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          decision?: string | null;
+          errors?: NonNullable<Json>;
+          id?: string;
+          match?: NonNullable<Json>;
+          parsed?: NonNullable<Json>;
+          previous?: Json | null;
+          raw?: NonNullable<Json>;
+          result_item_id?: string | null;
+          row_no: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          action?: string | null;
+          batch_id?: string;
+          chosen_item_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          decision?: string | null;
+          errors?: NonNullable<Json>;
+          id?: string;
+          match?: NonNullable<Json>;
+          parsed?: NonNullable<Json>;
+          previous?: Json | null;
+          raw?: NonNullable<Json>;
+          result_item_id?: string | null;
+          row_no?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "import_batch_rows_batch_id_fkey";
+            columns: ["batch_id"];
+            isOneToOne: false;
+            referencedRelation: "import_batches";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "import_batch_rows_chosen_item_id_fkey";
+            columns: ["chosen_item_id"];
+            isOneToOne: false;
+            referencedRelation: "catalog_items";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "import_batch_rows_result_item_id_fkey";
+            columns: ["result_item_id"];
+            isOneToOne: false;
+            referencedRelation: "catalog_items";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      import_batches: {
+        Row: {
+          applied_at: string | null;
+          applied_by: string | null;
+          created_at: string;
+          created_by: string | null;
+          file_name: string;
+          id: string;
+          options: NonNullable<Json>;
+          rolled_back_at: string | null;
+          rolled_back_by: string | null;
+          status: string;
+          summary: NonNullable<Json>;
+          supplier_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          applied_at?: string | null;
+          applied_by?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          file_name: string;
+          id?: string;
+          options?: NonNullable<Json>;
+          rolled_back_at?: string | null;
+          rolled_back_by?: string | null;
+          status?: string;
+          summary?: NonNullable<Json>;
+          supplier_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          applied_at?: string | null;
+          applied_by?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          file_name?: string;
+          id?: string;
+          options?: NonNullable<Json>;
+          rolled_back_at?: string | null;
+          rolled_back_by?: string | null;
+          status?: string;
+          summary?: NonNullable<Json>;
+          supplier_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "import_batches_supplier_id_fkey";
+            columns: ["supplier_id"];
+            isOneToOne: false;
+            referencedRelation: "suppliers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      import_templates: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          mapping: NonNullable<Json>;
+          name: string;
+          options: NonNullable<Json>;
+          supplier_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          mapping: NonNullable<Json>;
+          name: string;
+          options?: NonNullable<Json>;
+          supplier_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          mapping?: NonNullable<Json>;
+          name?: string;
+          options?: NonNullable<Json>;
+          supplier_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "import_templates_supplier_id_fkey";
+            columns: ["supplier_id"];
+            isOneToOne: false;
+            referencedRelation: "suppliers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      income_tax_brackets: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          rate_pct: number;
+          revenue_from_cents: number;
+          revenue_to_cents: number | null;
+          source_note: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          valid_from: string;
+          valid_to: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          rate_pct: number;
+          revenue_from_cents: number;
+          revenue_to_cents?: number | null;
+          source_note?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from: string;
+          valid_to?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          rate_pct?: number;
+          revenue_from_cents?: number;
+          revenue_to_cents?: number | null;
+          source_note?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from?: string;
+          valid_to?: string | null;
+        };
+        Relationships: [];
+      };
+      kpi_targets: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          direction: string;
+          division_id: string | null;
+          id: string;
+          kpi_key: string;
+          target_value: number;
+          updated_at: string;
+          updated_by: string | null;
+          valid_from: string;
+          warning_value: number | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          direction: string;
+          division_id?: string | null;
+          id?: string;
+          kpi_key: string;
+          target_value: number;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from?: string;
+          warning_value?: number | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          direction?: string;
+          division_id?: string | null;
+          id?: string;
+          kpi_key?: string;
+          target_value?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from?: string;
+          warning_value?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "kpi_targets_division_id_fkey";
+            columns: ["division_id"];
+            isOneToOne: false;
+            referencedRelation: "divisions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      labor_rates: {
+        Row: {
+          bill_rate_cents: number;
+          cost_rate_cents: number;
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          role_id: string;
+          updated_at: string;
+          updated_by: string | null;
+          valid_from: string;
+          valid_to: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          bill_rate_cents: number;
+          cost_rate_cents: number;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          role_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from: string;
+          valid_to?: string | null;
+        };
+        Update: {
+          bill_rate_cents?: number;
+          cost_rate_cents?: number;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          role_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from?: string;
+          valid_to?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "labor_rates_role_id_fkey";
+            columns: ["role_id"];
+            isOneToOne: false;
+            referencedRelation: "labor_roles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      labor_roles: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          is_active: boolean;
+          name: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          is_active?: boolean;
+          name: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          is_active?: boolean;
+          name?: string;
           updated_at?: string;
           updated_by?: string | null;
         };
@@ -347,6 +1604,100 @@ export type Database = {
         };
         Relationships: [];
       };
+      overhead_costs: {
+        Row: {
+          amount_cents: number;
+          category: string;
+          created_at: string;
+          created_by: string | null;
+          division_id: string | null;
+          id: string;
+          month: string;
+          note: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          amount_cents: number;
+          category: string;
+          created_at?: string;
+          created_by?: string | null;
+          division_id?: string | null;
+          id?: string;
+          month: string;
+          note?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          amount_cents?: number;
+          category?: string;
+          created_at?: string;
+          created_by?: string | null;
+          division_id?: string | null;
+          id?: string;
+          month?: string;
+          note?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "overhead_costs_division_id_fkey";
+            columns: ["division_id"];
+            isOneToOne: false;
+            referencedRelation: "divisions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      package_components: {
+        Row: {
+          component_item_id: string;
+          created_at: string;
+          created_by: string | null;
+          package_item_id: string;
+          quantity: number;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          component_item_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          package_item_id: string;
+          quantity: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          component_item_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          package_item_id?: string;
+          quantity?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "package_components_component_item_id_fkey";
+            columns: ["component_item_id"];
+            isOneToOne: false;
+            referencedRelation: "catalog_items";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "package_components_package_item_id_fkey";
+            columns: ["package_item_id"];
+            isOneToOne: false;
+            referencedRelation: "catalog_items";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       profiles: {
         Row: {
           created_at: string;
@@ -379,6 +1730,180 @@ export type Database = {
           id?: string;
           is_active?: boolean;
           phone?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [];
+      };
+      public_holidays: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          date: string;
+          is_day_off: boolean;
+          name: string;
+          source: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          date: string;
+          is_day_off: boolean;
+          name: string;
+          source: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          date?: string;
+          is_day_off?: boolean;
+          name?: string;
+          source?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [];
+      };
+      recurring_overheads: {
+        Row: {
+          amount_cents: number;
+          category: string;
+          created_at: string;
+          created_by: string | null;
+          division_id: string | null;
+          frequency: string;
+          id: string;
+          note: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          valid_from: string;
+          valid_to: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          amount_cents: number;
+          category: string;
+          created_at?: string;
+          created_by?: string | null;
+          division_id?: string | null;
+          frequency: string;
+          id?: string;
+          note?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from: string;
+          valid_to?: string | null;
+        };
+        Update: {
+          amount_cents?: number;
+          category?: string;
+          created_at?: string;
+          created_by?: string | null;
+          division_id?: string | null;
+          frequency?: string;
+          id?: string;
+          note?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from?: string;
+          valid_to?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "recurring_overheads_division_id_fkey";
+            columns: ["division_id"];
+            isOneToOne: false;
+            referencedRelation: "divisions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      resource_kinds: {
+        Row: {
+          code: string;
+          cost_source: string;
+          created_at: string;
+          created_by: string | null;
+          has_capacity: boolean;
+          is_active: boolean;
+          name: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          code: string;
+          cost_source: string;
+          created_at?: string;
+          created_by?: string | null;
+          has_capacity: boolean;
+          is_active?: boolean;
+          name: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          code?: string;
+          cost_source?: string;
+          created_at?: string;
+          created_by?: string | null;
+          has_capacity?: boolean;
+          is_active?: boolean;
+          name?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [];
+      };
+      resources: {
+        Row: {
+          bill_rate_cents: number | null;
+          cost_rate_cents: number | null;
+          created_at: string;
+          created_by: string | null;
+          expected_life_hours: number;
+          id: string;
+          is_active: boolean;
+          kind: string | null;
+          name: string;
+          operating_cost_per_hour_cents: number;
+          purchase_cost_cents: number;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          bill_rate_cents?: number | null;
+          cost_rate_cents?: never;
+          created_at?: string;
+          created_by?: string | null;
+          expected_life_hours: number;
+          id?: string;
+          is_active?: boolean;
+          kind?: string | null;
+          name: string;
+          operating_cost_per_hour_cents?: number;
+          purchase_cost_cents?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          bill_rate_cents?: number | null;
+          cost_rate_cents?: never;
+          created_at?: string;
+          created_by?: string | null;
+          expected_life_hours?: number;
+          id?: string;
+          is_active?: boolean;
+          kind?: string | null;
+          name?: string;
+          operating_cost_per_hour_cents?: number;
+          purchase_cost_cents?: number;
           updated_at?: string;
           updated_by?: string | null;
         };
@@ -427,6 +1952,136 @@ export type Database = {
         };
         Relationships: [];
       };
+      supplier_contacts: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          email: string | null;
+          full_name: string;
+          id: string;
+          is_active: boolean;
+          is_primary: boolean;
+          phone: string | null;
+          position: string | null;
+          supplier_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          email?: string | null;
+          full_name: string;
+          id?: string;
+          is_active?: boolean;
+          is_primary?: boolean;
+          phone?: string | null;
+          position?: string | null;
+          supplier_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          email?: string | null;
+          full_name?: string;
+          id?: string;
+          is_active?: boolean;
+          is_primary?: boolean;
+          phone?: string | null;
+          position?: string | null;
+          supplier_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "supplier_contacts_supplier_id_fkey";
+            columns: ["supplier_id"];
+            isOneToOne: false;
+            referencedRelation: "suppliers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      suppliers: {
+        Row: {
+          billing_email: string | null;
+          categories: string[];
+          city: string | null;
+          country: string;
+          created_at: string;
+          created_by: string | null;
+          dic: string | null;
+          ic_dph: string | null;
+          ico: string | null;
+          id: string;
+          is_active: boolean;
+          is_foreign: boolean | null;
+          kind: Database["public"]["Enums"]["party_kind"];
+          name: string;
+          note: string | null;
+          payment_terms_days: number | null;
+          peppol_id: string | null;
+          street: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          vat_payer: boolean;
+          zip: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          billing_email?: string | null;
+          categories?: string[];
+          city?: string | null;
+          country?: string;
+          created_at?: string;
+          created_by?: string | null;
+          dic?: string | null;
+          ic_dph?: string | null;
+          ico?: string | null;
+          id?: string;
+          is_active?: boolean;
+          is_foreign?: never;
+          kind?: Database["public"]["Enums"]["party_kind"];
+          name: string;
+          note?: string | null;
+          payment_terms_days?: number | null;
+          peppol_id?: string | null;
+          street?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          vat_payer?: boolean;
+          zip?: string | null;
+        };
+        Update: {
+          billing_email?: string | null;
+          categories?: string[];
+          city?: string | null;
+          country?: string;
+          created_at?: string;
+          created_by?: string | null;
+          dic?: string | null;
+          ic_dph?: string | null;
+          ico?: string | null;
+          id?: string;
+          is_active?: boolean;
+          is_foreign?: never;
+          kind?: Database["public"]["Enums"]["party_kind"];
+          name?: string;
+          note?: string | null;
+          payment_terms_days?: number | null;
+          peppol_id?: string | null;
+          street?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          vat_payer?: boolean;
+          zip?: string | null;
+        };
+        Relationships: [];
+      };
       system_settings: {
         Row: {
           created_at: string;
@@ -455,6 +2110,34 @@ export type Database = {
           updated_at?: string;
           updated_by?: string | null;
           value?: NonNullable<Json>;
+        };
+        Relationships: [];
+      };
+      units: {
+        Row: {
+          code: string;
+          created_at: string;
+          created_by: string | null;
+          name: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          code: string;
+          created_at?: string;
+          created_by?: string | null;
+          name: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          code?: string;
+          created_at?: string;
+          created_by?: string | null;
+          name?: string;
+          updated_at?: string;
+          updated_by?: string | null;
         };
         Relationships: [];
       };
@@ -494,8 +2177,161 @@ export type Database = {
           },
         ];
       };
+      work_patterns: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          fri: number;
+          id: string;
+          mon: number;
+          resource_id: string;
+          sat: number;
+          sun: number;
+          thu: number;
+          tue: number;
+          updated_at: string;
+          updated_by: string | null;
+          valid_from: string;
+          valid_to: string | null;
+          wed: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          fri?: number;
+          id?: string;
+          mon?: number;
+          resource_id: string;
+          sat?: number;
+          sun?: number;
+          thu?: number;
+          tue?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from: string;
+          valid_to?: string | null;
+          wed?: number;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          fri?: number;
+          id?: string;
+          mon?: number;
+          resource_id?: string;
+          sat?: number;
+          sun?: number;
+          thu?: number;
+          tue?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from?: string;
+          valid_to?: string | null;
+          wed?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "work_patterns_resource_id_fkey";
+            columns: ["resource_id"];
+            isOneToOne: false;
+            referencedRelation: "bookable_resources";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "work_patterns_resource_id_fkey";
+            columns: ["resource_id"];
+            isOneToOne: false;
+            referencedRelation: "v_bookable_resources";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: {
+      attachments: {
+        Row: {
+          category: string;
+          category_label: string;
+          created_at: string;
+          created_by: string | null;
+          created_by_name: string | null;
+          entity_id: string;
+          entity_table: string;
+          file_name: string;
+          id: string;
+          is_locked: boolean;
+          mime_type: string;
+          size_bytes: number;
+          storage_bucket: string;
+          storage_path: string;
+          storage_provider: string;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
+      v_ai_usage_summary: {
+        Row: {
+          calls: number | null;
+          cost_eur: number | null;
+          input_tokens: number | null;
+          key: string | null;
+          output_tokens: number | null;
+          scope: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
+      v_bookable_resources: {
+        Row: {
+          display_name: string | null;
+          division_id: string | null;
+          equipment_id: string | null;
+          id: string;
+          is_active: boolean;
+          kind: string;
+          profile_id: string | null;
+          supplier_id: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "bookable_resources_division_id_fkey";
+            columns: ["division_id"];
+            isOneToOne: false;
+            referencedRelation: "divisions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "bookable_resources_equipment_id_fkey";
+            columns: ["equipment_id"];
+            isOneToOne: true;
+            referencedRelation: "resources";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "bookable_resources_kind_fkey";
+            columns: ["kind"];
+            isOneToOne: false;
+            referencedRelation: "resource_kinds";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "bookable_resources_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: true;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "bookable_resources_supplier_id_fkey";
+            columns: ["supplier_id"];
+            isOneToOne: true;
+            referencedRelation: "suppliers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       v_open_items: {
         Row: {
           delivered_not_invoiced: number | null;
@@ -507,6 +2343,78 @@ export type Database = {
         };
         ComputedFields: never;
         Relationships: [];
+      };
+      v_overhead_monthly: {
+        Row: {
+          amount_cents: number | null;
+          category: string | null;
+          division_id: string | null;
+          frequency: string | null;
+          month: string | null;
+          original_amount_cents: number | null;
+          overhead_cost_id: string | null;
+          recurring_id: string | null;
+          source: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
+      v_resource_capacity_daily: {
+        Row: {
+          available_hours: number | null;
+          day: string | null;
+          extra: number | null;
+          holiday_name: string | null;
+          is_absent: boolean | null;
+          is_day_off: boolean | null;
+          other_work: number | null;
+          pattern_hours: number | null;
+          resource_id: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
+      v_resource_capacity_monthly: {
+        Row: {
+          available_hours: number | null;
+          month: string | null;
+          pattern_hours: number | null;
+          resource_id: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
+      v_resource_capacity_weekly: {
+        Row: {
+          available_hours: number | null;
+          pattern_hours: number | null;
+          resource_id: string | null;
+          week_start: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
+      v_reviews_due: {
+        Row: {
+          entity_id: string | null;
+          entity_table: string | null;
+          label: string;
+          last_reviewed_at: string | null;
+          last_reviewed_by: string | null;
+          next_review_at: string;
+          record_name: string | null;
+          state: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "data_reviews_last_reviewed_by_fkey";
+            columns: ["last_reviewed_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
     };
     Functions: {
@@ -522,10 +2430,86 @@ export type Database = {
           verified_totp_factors: number;
         }[];
       };
+      ai_budget_status: { Args: Record<PropertyKey, never>; Returns: Record<string, unknown> };
+      ai_delete_key: { Args: { p_provider: string; p_user: string }; Returns: boolean };
+      ai_get_key: { Args: { p_provider: string }; Returns: string };
+      ai_key_status: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          is_set: boolean;
+          last4: string;
+          provider: string;
+          set_at: string;
+          set_by_name: string;
+        }[];
+      };
+      ai_store_key: {
+        Args: { p_provider: string; p_secret: string; p_user: string };
+        Returns: string;
+      };
+      apply_import_batch: { Args: { p_batch_id: string }; Returns: Json };
+      confirm_data_review: {
+        Args: { p_entity_id: string; p_entity_table: string };
+        Returns: string;
+      };
+      dry_run_import_batch: { Args: { p_batch_id: string }; Returns: Json };
+      duplicate_catalog_package: {
+        Args: { p_code?: string; p_id: string; p_name: string };
+        Returns: string;
+      };
+      fill_sk_holidays: { Args: { p_year: number }; Returns: number };
+      match_catalog_item: {
+        Args: { p_ean: string; p_name: string; p_supplier_code: string; p_supplier_id: string };
+        Returns: {
+          item_id: string;
+          name: string;
+          reason: string;
+          score: number;
+        }[];
+      };
       next_document_number: {
         Args: { p_doc_type: Database["public"]["Enums"]["doc_type"]; p_year?: number };
         Returns: string;
       };
+      resource_capacity: {
+        Args: { p_from: string; p_resource_id: string; p_to: string };
+        Returns: {
+          available_hours: number;
+          day: string;
+          extra: number;
+          holiday_name: string;
+          is_absent: boolean;
+          is_day_off: boolean;
+          other_work: number;
+          pattern_hours: number;
+          resource_id: string;
+        }[];
+      };
+      revise_recurring_overhead: {
+        Args: {
+          p_amount_cents: number;
+          p_effective_from: string;
+          p_frequency?: string;
+          p_id: string;
+          p_note?: string;
+        };
+        Returns: string;
+      };
+      revise_work_pattern: {
+        Args: {
+          p_fri: number;
+          p_mon: number;
+          p_resource_id: string;
+          p_sat: number;
+          p_sun: number;
+          p_thu: number;
+          p_tue: number;
+          p_valid_from: string;
+          p_wed: number;
+        };
+        Returns: string;
+      };
+      rollback_import_batch: { Args: { p_batch_id: string }; Returns: Json };
       transition: {
         Args: { p_entity_table: string; p_id: string; p_note?: string; p_to_status: string };
         Returns: Json;

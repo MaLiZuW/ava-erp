@@ -1,10 +1,10 @@
 "use client";
 
 import { useId, useRef, useState } from "react";
-import { checkLogoFile, LOGO_ACCEPT } from "@/core/validation";
+import { checkImageFile, IMAGE_ACCEPT } from "@/core/validation";
 import { Button } from "@/ui/button";
 import { FormMessage } from "@/ui/field";
-import { Tile } from "@/ui/tile";
+import { SettingsTile } from "./settings-tile";
 import { useLogoDocument, useSignedUrl, useUploadLogo, type Company } from "../api";
 
 export function LogoTile({ company }: { company: Company | null }) {
@@ -22,7 +22,7 @@ export function LogoTile({ company }: { company: Company | null }) {
     if (!file || !company) return;
     // checked here for a quick answer; the bucket refuses wrong types/sizes on the server as well
     const head = new Uint8Array(await file.slice(0, 16).arrayBuffer());
-    const err = checkLogoFile(file, head);
+    const err = checkImageFile(file, head);
     if (err) {
       setProblem(err);
       if (input.current) input.current.value = "";
@@ -40,7 +40,7 @@ export function LogoTile({ company }: { company: Company | null }) {
   };
 
   return (
-    <Tile
+    <SettingsTile
       size="L"
       title="Logo"
       action={
@@ -79,7 +79,7 @@ export function LogoTile({ company }: { company: Company | null }) {
           id={inputId}
           ref={input}
           type="file"
-          accept={LOGO_ACCEPT}
+          accept={IMAGE_ACCEPT}
           className="sr-only"
           tabIndex={-1}
           data-testid="logo-input"
@@ -90,6 +90,6 @@ export function LogoTile({ company }: { company: Company | null }) {
         )}
         {done && <FormMessage tone="success">Logo je nahrané.</FormMessage>}
       </div>
-    </Tile>
+    </SettingsTile>
   );
 }

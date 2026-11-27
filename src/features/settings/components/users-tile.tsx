@@ -11,7 +11,7 @@ import { Button } from "@/ui/button";
 import { ConfirmDialog } from "@/ui/confirm-dialog";
 import { FormMessage } from "@/ui/field";
 import { StatusBadge, type StatusTone } from "@/ui/status-badge";
-import { Tile } from "@/ui/tile";
+import { SettingsTile } from "./settings-tile";
 import { keys } from "../api";
 
 /** Recommended: every admin has two TOTP factors (phone + backup). */
@@ -28,7 +28,7 @@ const RESET_ERRORS: Record<number, string> = {
   404: "Používateľ neexistuje.",
 };
 
-function useUsers() {
+export function useUsers() {
   return useQuery({
     queryKey: keys.users,
     queryFn: async () => {
@@ -68,7 +68,7 @@ export function UsersTile() {
   const [notice, setNotice] = useState<string | null>(null);
 
   return (
-    <Tile
+    <SettingsTile
       size="L"
       title="Používatelia a 2FA"
       action={
@@ -155,6 +155,6 @@ export function UsersTile() {
         ďalšom prihlásení si musí zaregistrovať nový telefón. Použite len pri strate alebo výmene
         telefónu – overte si to s ním osobne alebo telefonicky. Akcia sa zapíše do histórie zmien.
       </ConfirmDialog>
-    </Tile>
+    </SettingsTile>
   );
 }

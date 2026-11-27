@@ -11,6 +11,7 @@
  * The test user is created through the Auth Admin API (secret key, .env.local only), with a random
  * password and TOTP secret, and is deleted in `finally`. Leftovers (*@test.invalid) are removed first.
  */
+import { randomUUID } from "node:crypto";
 import {
   anonClient,
   createTestUser,
@@ -34,6 +35,47 @@ const TABLES = [
   "notification_recipients",
   "documents",
   "v_open_items",
+  // phase 3 – master data
+  "customers",
+  "customer_contacts",
+  "customer_machines",
+  "suppliers",
+  "supplier_contacts",
+  "units",
+  "catalog_items",
+  "package_components",
+  "labor_roles",
+  "labor_rates",
+  "resources",
+  "content_blocks",
+  "overhead_costs",
+  "income_tax_brackets",
+  "kpi_targets",
+  "resource_kinds",
+  "bookable_resources",
+  "work_patterns",
+  "calendar_exceptions",
+  "public_holidays",
+  "v_resource_capacity_monthly",
+  "recurring_overheads",
+  "v_overhead_monthly",
+  "data_review_types",
+  "data_reviews",
+  "v_reviews_due",
+  // block J – attachments (D23)
+  "attachment_categories",
+  "blocked_mime_types",
+  "attachments",
+  // block K – catalog import (D26)
+  "currencies",
+  "catalog_item_costs",
+  "import_templates",
+  "import_batches",
+  "import_batch_rows",
+  // block L – AI (D25); ai_provider_keys has no grant at all – checked separately
+  "ai_model_prices",
+  "ai_usage",
+  "v_ai_usage_summary",
 ];
 /** tables an aal2 admin must see rows in (seeded / always present) */
 const ADMIN_VISIBLE = [
@@ -149,6 +191,54 @@ async function main() {
     const n = await api2.rpc("next_document_number", { p_doc_type: "CP" });
     report(!n.ok, `aal2 admin still cannot call next_document_number directly: HTTP ${n.status}`);
 
+    // 4. Storage – content images follow the image rule (PNG/JPEG/WebP ≤ 2 MB) -----------------------
+    console.log("\n-- Storage: content images (aal2 admin) --");
+    const folder = `${new Date().getFullYear()}/content_blocks/${randomUUID()}`;
+    const png = Buffer.from(
+      "89504e470d0a1a0a0000000d4948445200000001000000010806000000" +
+        "1f15c4890000000d49444154789c6300010000050001" +
+        "0d0a2db40000000049454e44ae426082",
+      "hex",
+    );
+    const store = client.storage.from("documents");
+    const okUp = await store.upload(`${folder}/${randomUUID()}-ok.png`, png, {
+      contentType: "image/png",
+      upsert: false,
+    });
+    report(!okUp.error, `PNG content image uploads${okUp.error ? `: ${okUp.error.message}` : ""}`);
+    const svg = await store.upload(
+      `${folder}/${randomUUID()}-x.svg`,
+      Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"/>'),
+      { contentType: "image/svg+xml", upsert: false },
+    );
+    report(!!svg.error, "SVG upload is refused by the bucket");
+    const html = await store.upload(
+      `${folder}/${randomUUID()}-x.html`,
+      Buffer.from("<html><script>alert(1)</script></html>"),
+      { contentType: "text/html", upsert: false },
+    );
+    report(!!html.error, "HTML upload is refused by the bucket");
+    // block J (D23): documents up to 20 MB; PDF accepted, over 20 MB refused
+    const pdf = Buffer.concat([Buffer.from("%PDF-1.4\n"), Buffer.alloc(3 * 1024 * 1024)]);
+    const pdfUp = await store.upload(`${folder}/${randomUUID()}-list.pdf`, pdf, {
+      contentType: "application/pdf",
+      upsert: false,
+    });
+    report(!pdfUp.error, `PDF (3 MB) uploads${pdfUp.error ? `: ${pdfUp.error.message}` : ""}`);
+    if (pdfUp.data?.path) {
+      const signed = await store.createSignedUrl(pdfUp.data.path, 60, { download: true });
+      const got = signed.data ? await fetch(signed.data.signedUrl) : null;
+      report(!!got?.ok, `signed download URL works (HTTP ${got?.status ?? "–"})`);
+    }
+    const big = await store.upload(
+      `${folder}/${randomUUID()}-big.pdf`,
+      Buffer.concat([Buffer.from("%PDF-1.4\n"), Buffer.alloc(20 * 1024 * 1024 + 1)]),
+      { contentType: "application/pdf", upsert: false },
+    );
+    report(!!big.error, "upload over 20 MB is refused by the bucket");
+    const paths = [okUp.data?.path, pdfUp.data?.path].filter((p): p is string => !!p);
+    if (paths.length) await store.remove(paths);
+
     // 5. Edge Function admin-mfa-reset ----------------------------------------------------------------
     console.log("\n-- Edge Function admin-mfa-reset --");
     const fnUrl = `${env.url}/functions/v1/admin-mfa-reset`;
@@ -193,6 +283,66 @@ async function main() {
         user_id: user.id,
       });
       report(forged.status === 401, `tampered token → 401 (got ${forged.status})`);
+    }
+
+    // 4b. AI (block L): the key table and Vault are never readable; the gateway checks access -------
+    console.log("\n-- AI: key, usage, Edge Function ai-gateway --");
+    const apiAi = makeApi(env.url, env.anonKey, s2.session!.access_token);
+    const keys = await apiAi.get("ai_provider_keys");
+    report(!keys.ok, `aal2 admin cannot read ai_provider_keys: HTTP ${keys.status}`);
+    for (const fn of ["ai_get_key", "ai_store_key"]) {
+      const r = await apiAi.rpc(fn, {
+        p_provider: "gemini",
+        p_secret: "x".repeat(30),
+        p_user: user.id,
+      });
+      report(!r.ok, `aal2 admin cannot call ${fn}: HTTP ${r.status}`);
+    }
+    const usageW = await apiAi.insert("ai_usage", { feature: "test", model: "x", ok: true });
+    report(!usageW.ok, `aal2 admin cannot write ai_usage: HTTP ${usageW.status}`);
+    const keySt = await apiAi.rpc("ai_key_status", {});
+    report(
+      keySt.ok && !(await keySt.text()).includes("vault_secret"),
+      "ai_key_status gives metadata only",
+    );
+    const gw = (token: string | null, body: unknown, origin = "http://localhost:3000") =>
+      fetch(`${env.url}/functions/v1/ai-gateway`, {
+        method: "POST",
+        headers: {
+          apikey: env.anonKey,
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          "Content-Type": "application/json",
+          Origin: origin,
+        },
+        body: JSON.stringify(body),
+      });
+    const gwProbe = await gw(s2.session!.access_token, { action: "unknown" });
+    if (gwProbe.status === 404) {
+      console.log(
+        "SKIP Edge Function ai-gateway is not deployed (DEPLOYMENT.md) – gateway checks not run",
+      );
+    } else {
+      report(gwProbe.status === 400, `ai-gateway unknown action → 400 (got ${gwProbe.status})`);
+      const badKey = await gw(s2.session!.access_token, { action: "set_key", key: "short" });
+      report(
+        badKey.status === 400,
+        `ai-gateway refuses a malformed key → 400 (got ${badKey.status})`,
+      );
+      // no model / price / key on dev → a clear refusal, never a call to the provider
+      const test = await gw(s2.session!.access_token, { action: "test_connection" });
+      const code = ((await test.json()) as { error?: string }).error;
+      report(
+        test.status === 409 || test.status === 402,
+        `ai-gateway test without setup is refused (${test.status} ${code})`,
+      );
+      const anonGw = await gw(env.anonKey, { action: "test_connection" });
+      report(anonGw.status === 401, `ai-gateway with the anon key → 401 (got ${anonGw.status})`);
+      const evil = await gw(
+        s2.session!.access_token,
+        { action: "test_connection" },
+        "https://evil.example",
+      );
+      report(evil.status === 403, `ai-gateway foreign Origin → 403 (got ${evil.status})`);
     }
 
     // 4. Auth settings (public endpoint, no user is created) ----------------------------------------

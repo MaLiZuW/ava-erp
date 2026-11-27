@@ -3,10 +3,14 @@
 import { useMemo, useState } from "react";
 import { AuditTimeline, type AuditEntry } from "@/ui/audit-timeline";
 import { FormMessage } from "@/ui/field";
-import { Tile } from "@/ui/tile";
-import { cn } from "@/ui/cn";
+import { ChipGroup } from "@/ui/chips";
+import { SettingsTile } from "./settings-tile";
+import { describeAuditEntry } from "@/core/audit-describe";
+import { useAuditRefs } from "@/core/audit-refs";
 import { useAuditLog, useProfiles } from "../api";
 import { FIELD_LABELS, TABLE_LABELS } from "../schema";
+import { REPORTING_TABLES } from "../reporting";
+import { isSettingsEntry } from "../history-filters";
 
 const FILTERS: { label: string; tables: string[] }[] = [
   {
@@ -20,15 +24,17 @@ const FILTERS: { label: string; tables: string[] }[] = [
       "user_roles",
       "profiles",
       "auth.mfa_factors",
+      ...REPORTING_TABLES,
     ],
   },
   { label: "Firma", tables: ["companies", "documents"] },
   { label: "Systém a funkcie", tables: ["system_settings", "feature_flags"] },
   { label: "Notifikácie", tables: ["notification_recipients"] },
   { label: "Používatelia a 2FA", tables: ["user_roles", "profiles", "auth.mfa_factors"] },
+  { label: "Reporting", tables: [...REPORTING_TABLES] },
 ];
 
-function recordLabel(e: AuditEntry): string {
+export function recordLabel(e: AuditEntry): string {
   const table = TABLE_LABELS[e.table_name] ?? e.table_name;
   const data = (e.new_data ?? e.old_data) as Record<string, unknown> | null;
   const key =
@@ -39,33 +45,24 @@ function recordLabel(e: AuditEntry): string {
 /** Change history of the settings (who, when, what) – activity_logs, admin only (RLS). */
 export function AuditTile() {
   const [filter, setFilter] = useState(0);
-  const log = useAuditLog(FILTERS[filter].tables);
+  const log = useAuditLog(FILTERS[filter].tables, { limit: 150 });
+  const entries = useMemo(() => (log.data ?? []).filter(isSettingsEntry).slice(0, 50), [log.data]);
   const profiles = useProfiles();
+  const resolve = useAuditRefs(entries);
   const names = useMemo(
     () => new Map((profiles.data ?? []).map((p) => [p.id, p.full_name || p.email || "Používateľ"])),
     [profiles.data],
   );
 
   return (
-    <Tile size="XL" title="História zmien">
-      <div role="group" aria-label="Filter histórie" className="mb-3 flex flex-wrap gap-2">
-        {FILTERS.map((f, i) => (
-          <button
-            key={f.label}
-            type="button"
-            aria-pressed={i === filter}
-            onClick={() => setFilter(i)}
-            className={cn(
-              "h-8 rounded-full border px-3 text-[13px] font-medium transition-colors duration-150 ease-out",
-              i === filter
-                ? "bg-navy border-navy text-white"
-                : "hover:bg-canvas text-ink border-neutral-200",
-            )}
-          >
-            {f.label}
-          </button>
-        ))}
-      </div>
+    <SettingsTile size="XL" title="História zmien">
+      <ChipGroup
+        label="Filter histórie"
+        className="mb-3"
+        options={FILTERS.map((f, i) => ({ value: i, label: f.label }))}
+        value={filter}
+        onChange={setFilter}
+      />
       {log.error && <FormMessage tone="error">{log.error.message}</FormMessage>}
       {log.isPending ? (
         <div aria-hidden className="flex animate-pulse flex-col gap-2">
@@ -74,12 +71,14 @@ export function AuditTile() {
         </div>
       ) : (
         <AuditTimeline
-          entries={log.data ?? []}
+          entries={entries}
           actorName={(id) => (id ? (names.get(id) ?? "Neznámy používateľ") : "Systém")}
           fieldLabel={(t, f) => FIELD_LABELS[t]?.[f] ?? f}
           recordLabel={recordLabel}
+          resolveRef={resolve}
+          describe={(e) => describeAuditEntry(e, resolve, recordLabel)}
         />
       )}
-    </Tile>
+    </SettingsTile>
   );
 }

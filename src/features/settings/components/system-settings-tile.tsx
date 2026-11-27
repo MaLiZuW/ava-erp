@@ -4,7 +4,7 @@ import { useState } from "react";
 import { parseInactivityMinutes } from "@/core/auth/idle";
 import { Button } from "@/ui/button";
 import { describedBy, Field, FormMessage, Input } from "@/ui/field";
-import { Tile } from "@/ui/tile";
+import { SettingsTile } from "./settings-tile";
 import { useSaveSetting, useSystemSettings } from "../api";
 import { SYSTEM_SETTINGS } from "../schema";
 
@@ -43,7 +43,7 @@ export function SystemSettingsTile() {
   };
 
   return (
-    <Tile
+    <SettingsTile
       size="M"
       title="Systém"
       action={
@@ -74,6 +74,6 @@ export function SystemSettingsTile() {
           <FormMessage tone="success">Uložené. Platí od ďalšieho načítania stránky.</FormMessage>
         )}
       </form>
-    </Tile>
+    </SettingsTile>
   );
 }

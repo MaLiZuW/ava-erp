@@ -8,6 +8,7 @@ import { Button } from "@/ui/button";
 import { describedBy, Field, FormMessage, Input } from "@/ui/field";
 import {
   factorNameSchema,
+  TOTP_INPUT_MAX,
   totpCodeSchema,
   type FactorNameValues,
   type TotpCodeValues,
@@ -52,7 +53,7 @@ export function TotpCodeForm({
           id={id}
           inputMode="numeric"
           autoComplete="one-time-code"
-          maxLength={7}
+          maxLength={TOTP_INPUT_MAX}
           autoFocus={autoFocus}
           className="text-[20px] tracking-[0.3em] tabular-nums"
           invalid={!!fieldError}

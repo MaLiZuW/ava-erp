@@ -21,6 +21,18 @@ export function isValidIco(input: string): boolean {
 }
 
 /** DIČ (SK tax id): 10 digits. */
+/**
+ * EAN / GTIN (EAN-8, UPC-A = GTIN-12, EAN-13, GTIN-14): digits with a check digit (mod 10,
+ * weights 3 and 1 from the right). The same rule as private.gtin_valid in the database.
+ */
+export function isValidGtin(input: string): boolean {
+  const v = compact(input);
+  if (!/^\d+$/.test(v) || ![8, 12, 13, 14].includes(v.length)) return false;
+  let sum = 0;
+  for (let i = 1; i < v.length; i++) sum += Number(v[v.length - 1 - i]) * (i % 2 === 1 ? 3 : 1);
+  return (10 - (sum % 10)) % 10 === Number(v[v.length - 1]);
+}
+
 export function isValidDic(input: string): boolean {
   return /^\d{10}$/.test(compact(input));
 }
@@ -53,21 +65,22 @@ export function isValidSwift(input: string): boolean {
 }
 
 // ---------------------------------------------------------------------------------------------
-// Logo upload: PNG / JPEG / WebP only, max 2 MB. SVG is refused (it can carry scripts).
+// Image upload (logo, content images): PNG / JPEG / WebP only, max 2 MB. SVG is refused
+// (it can carry scripts). The documents table enforces the same rule (phase 3).
 // Checked three ways: extension, declared MIME type and the file's magic bytes.
 // The storage bucket enforces MIME type and size again on the server.
 // ---------------------------------------------------------------------------------------------
-export const LOGO_MAX_BYTES = 2 * 1024 * 1024;
+export const IMAGE_MAX_BYTES = 2 * 1024 * 1024;
 
-const LOGO_TYPES = {
+const IMAGE_TYPES = {
   "image/png": ["png"],
   "image/jpeg": ["jpg", "jpeg"],
   "image/webp": ["webp"],
 } as const;
-export type LogoMime = keyof typeof LOGO_TYPES;
-export const LOGO_ACCEPT = ".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp";
+export type ImageMime = keyof typeof IMAGE_TYPES;
+export const IMAGE_ACCEPT = ".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp";
 
-function sniffImage(bytes: Uint8Array): LogoMime | null {
+function sniffImage(bytes: Uint8Array): ImageMime | null {
   const at = (i: number, ...vals: number[]) => vals.every((v, k) => bytes[i + k] === v);
   if (at(0, 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a)) return "image/png";
   if (at(0, 0xff, 0xd8, 0xff)) return "image/jpeg";
@@ -75,17 +88,17 @@ function sniffImage(bytes: Uint8Array): LogoMime | null {
   return null;
 }
 
-/** Returns an error message, or null when the file is an allowed logo. */
-export function checkLogoFile(
+/** Returns an error message, or null when the file is an allowed image (logo, content image). */
+export function checkImageFile(
   file: { name: string; type: string; size: number },
   head: Uint8Array,
 ): string | null {
   const ext = file.name.toLowerCase().split(".").pop() ?? "";
   const mime = file.type.toLowerCase();
-  if (!(mime in LOGO_TYPES)) return "Povolené sú len obrázky PNG, JPEG alebo WebP (SVG nie).";
-  if (!(LOGO_TYPES[mime as LogoMime] as readonly string[]).includes(ext))
+  if (!(mime in IMAGE_TYPES)) return "Povolené sú len obrázky PNG, JPEG alebo WebP (SVG nie).";
+  if (!(IMAGE_TYPES[mime as ImageMime] as readonly string[]).includes(ext))
     return "Prípona súboru nezodpovedá jeho typu.";
-  if (file.size > LOGO_MAX_BYTES) return "Súbor je väčší ako 2 MB.";
+  if (file.size > IMAGE_MAX_BYTES) return "Súbor je väčší ako 2 MB.";
   if (file.size === 0) return "Súbor je prázdny.";
   if (sniffImage(head) !== mime) return "Obsah súboru nie je platný obrázok PNG, JPEG alebo WebP.";
   return null;

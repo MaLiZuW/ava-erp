@@ -1,4 +1,10 @@
-import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, Ref } from "react";
+import type {
+  InputHTMLAttributes,
+  ReactNode,
+  Ref,
+  SelectHTMLAttributes,
+  TextareaHTMLAttributes,
+} from "react";
 import { cn } from "./cn";
 
 const CONTROL =
@@ -34,6 +40,48 @@ export function Select({
       className={cn(CONTROL, invalid ? "border-danger" : "border-neutral-200", className)}
       {...props}
     />
+  );
+}
+
+export function Textarea({
+  invalid,
+  className,
+  ref,
+  ...props
+}: TextareaHTMLAttributes<HTMLTextAreaElement> & {
+  invalid?: boolean;
+  ref?: Ref<HTMLTextAreaElement>;
+}) {
+  return (
+    <textarea
+      ref={ref}
+      aria-invalid={invalid || undefined}
+      className={cn(
+        CONTROL,
+        "h-auto min-h-24 py-2 leading-6",
+        invalid ? "border-danger" : "border-neutral-200",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+/** Checkbox with its label on the right (the whole row is clickable). */
+export function Checkbox({
+  label,
+  className,
+  ref,
+  ...props
+}: Omit<InputHTMLAttributes<HTMLInputElement>, "type"> & {
+  label: ReactNode;
+  ref?: Ref<HTMLInputElement>;
+}) {
+  return (
+    <label className={cn("flex min-h-10 items-center gap-3 text-[15px]", className)}>
+      <input ref={ref} type="checkbox" className="accent-navy size-5 shrink-0" {...props} />
+      <span>{label}</span>
+    </label>
   );
 }
 

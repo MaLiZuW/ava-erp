@@ -19,6 +19,11 @@ const buttonVariants = cva(
 export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> &
   VariantProps<typeof buttonVariants>;
 
+/** Button look for links (e.g. "+ Nový zákazník" navigating to a form). */
+export function buttonClass(variant: VariantProps<typeof buttonVariants>["variant"] = "primary") {
+  return buttonVariants({ variant });
+}
+
 export function Button({ className, variant, type = "button", ...props }: ButtonProps) {
   return <button type={type} className={cn(buttonVariants({ variant }), className)} {...props} />;
 }

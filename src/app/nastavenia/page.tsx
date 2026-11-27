@@ -1,7 +1,9 @@
-"use client";
+import type { Metadata } from "next";
+import { settingsTitle } from "@/core/navigation";
+import { SettingsOverview } from "@/features/settings/sections";
 
-import { SettingsPage } from "@/features/settings/settings-page";
+export const metadata: Metadata = { title: settingsTitle("/nastavenia/") };
 
 export default function Page() {
-  return <SettingsPage />;
+  return <SettingsOverview />;
 }

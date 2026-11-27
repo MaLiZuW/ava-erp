@@ -9,7 +9,7 @@ Procesy a stavy: pozri `BUSINESS_PROCESSES.md`.
 | Pravidlo | Hodnota |
 |---|---|
 | Primárny kľúč | `id uuid primary key default gen_random_uuid()` |
-| Peniaze | `bigint` v **centoch** (`*_cents`), mena `char(3) default 'EUR'` |
+| Peniaze | `bigint` v **centoch** (`*_cents`), mena `char(3) default 'EUR'`; od fázy 3 každá suma v kmeňových dátach a nastaveniach `check (>= 0)`, percentá `>= 0` (schválené vlastníkom) |
 | Percentá | `numeric(7,4)` (napr. 25.0000 = 25 %) |
 | Množstvá | `numeric(14,4)` |
 | Čas | `timestamptz`, dátumy `date`; zobrazenie DD/MM/YYYY |
@@ -133,7 +133,7 @@ Index: (table_name, record_id), (at). Zápis iba triggerom `private.log_change()
 | id | uuid PK | |
 | entity_table | text | napr. 'jobs', 'invoices' |
 | entity_id | uuid | |
-| category | text | 'quote_pdf', 'invoice_pdf', 'visual_preview', 'signed_delivery', 'supplier_invoice_xml', 'attachment', 'email_attachment', 'logo' … |
+| category | text | 'quote_pdf', 'invoice_pdf', 'visual_preview', 'signed_delivery', 'supplier_invoice_xml', 'attachment', 'email_attachment', 'logo', 'content_image' (fáza 3) … – pre `logo` a `content_image` constraint: PNG/JPEG/WebP, najviac 2 MB |
 | storage_bucket | text | 'documents' (súkromný) |
 | storage_path | text | `RRRR/<entity_table>/<entity_id>/<uuid>-<názov>` |
 | file_name, mime_type | text | |
@@ -143,6 +143,14 @@ Index: (table_name, record_id), (at). Zápis iba triggerom `private.log_change()
 | is_locked | boolean | true pre vygenerované doklady |
 | retention_until | date | archivácia |
 Index: (entity_table, entity_id). Zamknutý dokument nejde zmazať ani prepísať.
+
+**Prílohy (D23, implementované vo F3 – blok J, migrácia `20261129120000_phase3_attachments.sql`):**
+- `documents.storage_provider text` (predvolene `supabase`, check zoznamu) – výmena úložiska bez zmeny dát; všetok prístup k súborom cez jeden adaptér (`src/core/storage/adapter.ts`).
+- `attachment_categories` (`code` PK, `label`, `allowed_mime_types text[]`, `max_bytes` ≤ 20 MB, `sort_order`, `is_active`) – **konfigurácia**: `photo` PNG/JPEG/WebP do 5 MB; `datasheet`, `certificate`, `contract`, `drawing`, `other` PDF/DOCX/XLSX/PNG/JPEG/WebP do 20 MB. Nový typ (napr. DWG) = len úprava zoznamu; trigger `sync_documents_bucket` prenesie typy do bucketu. Bez mazania (deaktivácia).
+- `blocked_mime_types` – SVG, HTML/XHTML, XML, skripty, spustiteľné súbory, dokumenty s makrami, `application/octet-stream`; **vždy zakázané** (trigger nedovolí pridať ich do kategórie). Len čítanie, mení sa migráciou.
+- Trigger `check_attachment_file` na `documents`: zakázaný typ → odmietnuté vždy; pri kategóriách príloh typ a veľkosť podľa kategórie, neaktívna kategória neprijme nový súbor, prílohy len pri `catalog_items`, `customers`, `suppliers`, `resources` (kontakty nie – D22); hlavná fotka nesmie zmeniť kategóriu.
+- Pohľad `attachments` (`security_invoker = true`): dokumenty entity s názvom kategórie a menom autora.
+- Bucket `documents`: limit 20 MB, typy = zjednotenie kategórií + obrázky loga a obsahu.
 
 ### document_templates
 `id`, `code text unique` ('quote', 'order_confirmation', 'purchase_order', 'delivery_note', 'handover_protocol', 'invoice', 'proforma', 'credit_note', 'visual_approval_request'), `name`, `version int`, `content jsonb` (texty, rozloženie), `is_active`.
@@ -196,16 +204,21 @@ Ako `customer_contacts`, FK `supplier_id`.
 | default_pricing_pct | numeric(7,4) | |
 | description | text | |
 | is_active | boolean | |
+| main_photo_document_id | uuid FK documents null | hlavná fotka pre CP a prezentáciu (F3, blok J); musí byť dokument kategórie `photo` tej istej položky (trigger), zmazanie fotky ju vynuluje. Galéria = prílohy kategórie `photo`. |
+
+`duplicate_catalog_package(id, názov, kód)` (security invoker): kópia balíčka s kusovníkom, novým názvom a kódom; prílohy sa nekopírujú (pripomienka vlastníka 17).
+
+**Kódy a nákupná cena (F3, blok K – §20):** `supplier_item_code` (unique v rámci dodávateľa, bez ohľadu na veľkosť písmen), `ean` (GTIN-8/12/13/14 s kontrolnou číslicou – `private.gtin_valid`; unique po doplnení na 14 číslic), `cost_currency` (FK `currencies`, predvolene EUR), `cost_original_amount` (centy v mene cenníka), `cost_fx_rate` (koľko jednotiek meny je 1 EUR, ako ECB/NBS) + `cost_fx_date`, `cost_includes_vat` + `cost_vat_rate_pct` (zadá používateľ), `cost_updated_at`, `cost_source` ('manual','import','rollback'), `cost_import_batch_id`. `default_cost_cents` ostáva **EUR bez DPH** a pri zadanej pôvodnej cene ho vždy vypočíta databáza (trigger `apply_purchase_price`).
 
 ### package_components (kusovník balíčka)
-`package_item_id FK catalog_items on delete cascade`, `component_item_id FK catalog_items`, `quantity numeric(14,4) > 0`; PK (package_item_id, component_item_id). Check: komponent nesmie byť ten istý balíček.
+`package_item_id FK catalog_items on delete cascade`, `component_item_id FK catalog_items`, `quantity numeric(14,4) > 0`; PK (package_item_id, component_item_id). Check: komponent nesmie byť ten istý balíček. **Jedna úroveň** (rozhodnutie vlastníka, fáza 3): rodič musí mať `item_type = 'package'`, komponent nesmie byť balíček; trigger stráži aj zmenu typu položky.
 
 ### labor_roles a labor_rates
 - `labor_roles`: `id`, `name` (napr. 'Konzultant', 'Projektový manažér', 'Event koordinátor'), `is_active`.
 - `labor_rates`: `id`, `role_id FK`, `cost_rate_cents` (kalkulačná sadzba), `bill_rate_cents`, `valid_from date`, `valid_to date null`; exclusion constraint na prekrývajúce sa obdobia rovnakej roly.
 
 ### resources
-`id`, `name`, `kind text` ('zariadenie','vozidlo','technika'), `purchase_cost_cents`, `expected_life_hours numeric`, `operating_cost_per_hour_cents`, `cost_rate_cents` (vypočítaná uložená hodnota), `bill_rate_cents`, `is_active`.
+`id`, `name`, `kind text` ('zariadenie','vozidlo','technika'), `purchase_cost_cents`, `expected_life_hours numeric` (**check > 0**), `operating_cost_per_hour_cents`, `cost_rate_cents` (generovaný stĺpec: `round(purchase ÷ hodiny) + prevádzka/h`, centy, polovica nahor), `bill_rate_cents`, `is_active`.
 
 ## 5. Predaj
 
@@ -345,6 +358,7 @@ Check: `approved` vyžaduje `decided_at`, `decided_by_name` a aspoň jeden dôka
 
 ### project_tasks
 `id`, `job_id FK on delete cascade`, `parent_task_id FK self`, `name`, `description`, `start_date`, `end_date` (check end ≥ start), `is_milestone`, `progress_pct int 0–100`, `status task_status`, `assignee_user_id FK profiles null`, `assignee_supplier_id FK suppliers null`, `planned_hours`, `sort_order`, `billing_milestone boolean` (fakturačný míľnik).
+> Poznámka (D24): `assignee_user_id` a `assignee_supplier_id` nahradí tabuľka `task_assignments` (§19, F5a) – úloha môže mať viac zdrojov s hodinami a typom rezervácie. Pribudne aj časový baseline `baseline_start`, `baseline_end`.
 
 ### task_dependencies
 `predecessor_id FK project_tasks on delete cascade`, `successor_id FK … cascade`, `lag_days int default 0`; PK (predecessor_id, successor_id); check predecessor ≠ successor; ochrana proti cyklu (trigger).
@@ -562,13 +576,29 @@ Pohľady s `security_invoker = true`, aby rešpektovali RLS.
 ## 18. Doplnok 26. 11. 2026 – reporting, hodnotenie partnerov, dokumenty
 
 ### overhead_costs (réžia)
-`id`, `month date` (1. deň mesiaca), `division_id FK null` (null = spoločná), `category text`, `amount_cents bigint`, `note`. Unique (month, division_id, category).
+`id`, `month date` (1. deň mesiaca), `division_id FK null` (null = spoločná), `category text`, `amount_cents bigint`, `note`. Unique **nulls not distinct** (month, division_id, category) – inak by sa dala vložiť duplicitná spoločná réžia. Od bloku I len **jednorazové** položky a korekcie; pravidelné náklady sú v `recurring_overheads` (§18.1).
+
+### 18.1 Opakovaná réžia a periodické overovanie dát (F3, blok I)
+
+Migrácia `20261129110000_phase3_recurring_overhead_reviews.sql`:
+
+| Tabuľka / funkcia | Obsah |
+|---|---|
+| `recurring_overheads` | `category`, `division_id null` (spoločná), `amount_cents ≥ 0`, `frequency` ('monthly','quarterly','yearly'), `valid_from` (1. deň mesiaca), `valid_to null` (posledný deň mesiaca), `note`. Exclusion `(lower(category), coalesce(division_id, nil), daterange)` – ten istý náklad nikdy dvakrát v rovnakom období. Trigger `guard_recurring_overhead`: verzia použitá v minulom mesiaci nemení sumu, frekvenciu, kategóriu, divíziu ani `valid_from`. Bez mazania (verzie). |
+| `revise_recurring_overhead(id, suma, od, poznámka, frekvencia)` | nová verzia od 1. dňa mesiaca, predchádzajúca sa uzavrie deň predtým. |
+| `private.overhead_month_share(suma, frekvencia, valid_from, mesiac)` | podiel v mesiaci: štvrťročná ÷ 3, ročná ÷ 12, zvyšok centov prvým mesiacom obdobia (súčet za obdobie sedí na cent). |
+| `v_overhead_monthly` | mesiac × divízia × kategória (−36 až +12 mesiacov): `source` 'recurring' / 'one_off', `amount_cents` (podiel), `original_amount_cents`, `frequency`, `recurring_id`, `overhead_cost_id`; `security_invoker`. |
+| `data_review_types` | `entity_table` PK, `label`, `interval_months` (predvolene 12), `is_active`. Naplnené: `recurring_overheads`, `labor_rates`, `resources`, `income_tax_brackets`, `work_patterns`, `companies`. |
+| `data_reviews` | `entity_table FK`, `entity_id`, `interval_months`, `last_reviewed_at`, `last_reviewed_by FK profiles`, `next_review_at`; unique `(entity_table, entity_id)`. Trigger `track_data_review` na 6 tabuľkách: vloženie → termín dnes + interval; skutočná úprava → potvrdené; zmazanie → odstráni. Bez mazania z aplikácie. |
+| `confirm_data_review(tabuľka, id)` | „Potvrdiť bez zmeny“ – kto, kedy, nový termín; zápis v `activity_logs`. |
+| `v_reviews_due` | len aktuálne platné záznamy s názvom, stav `overdue` (po termíne) / `due_soon` (do 30 dní) / `ok`; počíta sa pri čítaní, bez cron úlohy. |
+| `notification_recipients` | check `event_types <@ array['data_review_due']` – len známe typy udalostí; odosielanie vo fáze 8. |
 
 ### income_tax_brackets (sadzby dane z príjmov PO)
-`id`, `valid_from date`, `valid_to date null`, `revenue_from_cents bigint`, `revenue_to_cents bigint null`, `rate_pct numeric(7,4)`, `source_note text`. Hodnoty sa zadávajú migráciou/nastavením podľa aktuálneho zákona a overujú s účtovníkom – nikdy v kóde.
+`id`, `valid_from date`, `valid_to date null`, `revenue_from_cents bigint`, `revenue_to_cents bigint null`, `rate_pct numeric(7,4)`, `source_note text`. Hodnoty sa zadávajú migráciou/nastavením podľa aktuálneho zákona a overujú s účtovníkom – nikdy v kóde. **Pravidlo (schválené vlastníkom 26. 11. 2026):** pásma platné v rovnakom období sa neprekrývajú – exclusion constraint `daterange(valid_from, valid_to, '[]') &&` × `int8range(revenue_from_cents, revenue_to_cents, '[)') &&`.
 
-### capacity_plans (dostupné hodiny pre utilizáciu)
-`id`, `user_id FK profiles`, `month date`, `available_hours numeric(6,2)`. Unique (user_id, month).
+### ~~capacity_plans~~ (zrušená vo fáze 3, blok H)
+Ručne zadávané hodiny za mesiac nahradil výpočet z kalendára: týždenný vzor + výnimky + dni pracovného pokoja (§19, časť „Implementované vo F3“). Migrácia `20261129100000_phase3_capacity_calendar.sql` tabuľku zrušila so súhlasom vlastníka (1 testovací riadok na dev).
 
 ### nonconformities (nezhody a reklamácie)
 `id`, `number` (NZ-RRRR-NNNN), `party_type text` ('customer','supplier','internal'), `customer_id FK null`, `supplier_id FK null`, `job_id FK null`, `purchase_order_id FK null`, `reported_at`, `description`, `severity text` ('low','medium','high'), `cost_cents bigint`, `action_taken text`, `status text` ('open','resolved'), `resolved_at`.
@@ -577,10 +607,10 @@ Pohľady s `security_invoker = true`, aby rešpektovali RLS.
 `id`, `party_type text` ('customer','supplier'), `customer_id FK null`, `supplier_id FK null`, `job_id FK null`, `rated_at`, `rated_by FK profiles`, `scores jsonb` (napr. `{"quality":4,"on_time":5,"price":3,"communication":4}` – kritériá podľa typu partnera), `note`. Check: práve jeden z customer_id/supplier_id.
 
 ### kpi_targets
-`kpi_key text`, `division_id FK null`, `target_value numeric`, `warning_value numeric`, `direction text` ('higher_better','lower_better'), `valid_from date`. PK (kpi_key, division_id, valid_from).
+`id uuid PK`, `kpi_key text`, `division_id FK null` (null = Spolu), `target_value numeric`, `warning_value numeric`, `direction text` ('higher_better','lower_better'), `valid_from date`. Unique **nulls not distinct** (kpi_key, division_id, valid_from). (Upresnené vo fáze 3: stĺpec s NULL nemôže byť v primárnom kľúči.) **Pravidlo (schválené vlastníkom 26. 11. 2026):** hranica upozornenia leží na horšej strane cieľa – `higher_better` → `warning_value <= target_value`, `lower_better` → `warning_value >= target_value` (check).
 
 ### content_blocks (knižnica obsahu pre prezentácie)
-`id`, `key text` (napr. 'about_company', 'service_ENG', 'service_PROMO'), `division_id FK null`, `job_type job_type null`, `title`, `body text` (markdown), `image_document_ids uuid[]`, `language char(2) default 'sk'`, `is_active`, `version int`.
+`id`, `key text` (napr. 'about_company', 'service_ENG', 'service_PROMO'), `division_id FK null`, `job_type job_type null`, `title`, `body text` (markdown), `image_document_ids uuid[]` (len dokumenty kategórie `content_image`), `language char(2) default 'sk'`, `is_active`, `version int` (zvyšuje trigger pri zmene textu alebo obrázkov). Unique (key, language).
 
 ### references (referencie / case studies)
 `id`, `job_id FK`, `customer_id FK`, `title`, `challenge`, `solution`, `result`, `image_document_ids uuid[]`, `customer_consent boolean not null default false`, `consent_document_id FK documents null`, `is_publishable boolean generated always as (customer_consent) stored`.
@@ -599,3 +629,95 @@ Pohľady s `security_invoker = true`, aby rešpektovali RLS.
 | `v_receivables_aging` | vekové pásma pohľadávok |
 
 `doc_type` enum rozšíriť o `NZ` (nezhoda).
+
+## 19. Doplnok – plánovanie zdrojov (F5a)
+
+### 19.1 Implementované vo F3 (blok H, kalendár presunutý z F5a so súhlasom vlastníka)
+
+Migrácia `20261129100000_phase3_capacity_calendar.sql`:
+
+| Tabuľka / funkcia | Obsah |
+|---|---|
+| `resource_kinds` | `code` PK, `name`, `has_capacity`, `cost_source` ('labor_rate','purchase_order','equipment_rate','none'), `is_active`. Aktívny len `user`; `supplier`, `equipment`, `external_person`, `ai_agent` pripravené, neaktívne (trigger nedovolí použiť neaktívny typ). |
+| `bookable_resources` | `kind`, presne jeden z `profile_id` (cascade) / `supplier_id` / `equipment_id` podľa typu, pri `external_person`/`ai_agent` bez odkazu s `name`; `division_id`, `is_active`. Každý profil dostane zdroj typu `user` automaticky (trigger). |
+| `work_patterns` | jeden riadok = týždeň: `mon`…`sun` numeric(4,2) 0–24, `valid_from`, `valid_to`; exclusion – platnosti jedného zdroja sa neprekrývajú. `revise_work_pattern()` = nová verzia od dátumu, predchádzajúca sa uzavrie deň predtým. |
+| `calendar_exceptions` | `date_from`–`date_to`, `kind`: `vacation` a `unavailable` = celý deň 0 h (bez hodín), `other_work` odpočíta, `extra` pridá `hours` (0 < h ≤ 24); `note` ≤ 200 – len všeobecné dôvody, žiadne zdravotné údaje. |
+| `public_holidays` | `date` PK, `name`, `is_day_off`, `source`. `fill_sk_holidays(rok)` podľa zákona č. 241/1993 Z. z. v znení účinnom od 29. 10. 2026 (Slov-Lex) a novely č. 261/2025 Z. z. – overené vlastníkom 27. 11. 2026 (O7; text zdroja v stĺpci `source`); rok ≥ 2025; Veľká noc výpočtom (`private.sk_easter_sunday`). Štátne sviatky, ktoré nie sú dňom pracovného pokoja (`is_day_off = false`): 1. 9., 28. 10., 17. 11.; 8. 5. a 15. 9. len v roku 2026. Naplnené 2025–2030 (migrácia `20261129150000` doplnila 28. 10.). Ručná oprava riadku má prednosť (fill nič neprepíše). |
+| `resource_capacity(zdroj, od, do)` | deň: vzor (0 v deň pracovného pokoja alebo pri neprítomnosti) − iná práca + extra, nikdy pod 0; max. 400 dní na volanie. |
+| pohľady | `v_bookable_resources` (zobrazovaný názov), `v_resource_capacity_daily` (±12 mesiacov), `v_resource_capacity_weekly`, `v_resource_capacity_monthly` – všetky `security_invoker`. |
+
+### 19.2 Zvyšok – NÁVRH pre F5a
+
+> **NÁVRH – implementácia vo fáze 5a, zatiaľ neimplementované** (tabuľky nižšie okrem tých z 19.1). Podklad: rozhodnutie D24 a `docs/analyzy/ANALYZA-RIADENIE-PROJEKTOV-A-ZDROJOV.md` (kap. 5). Konvencie §0 a RLS §14 platia rovnako (audit, `require_aal2`, admin politiky, pgTAP).
+
+„Zdroj“ = človek (konateľ), dodávateľ alebo technika. Typ zdroja je **konfigurácia**, preto sa neskôr dá pridať externá osoba alebo AI agent / automatizovaná služba bez zmeny jadra.
+
+| Tabuľka | Účel | Kľúčové stĺpce a pravidlá |
+|---|---|---|
+| `resource_kinds` | konfigurácia typov zdrojov | `code` (`user`, `supplier`, `equipment` – aktívne; `external_person`, `ai_agent` – pripravené, neaktívne), `name`, `has_capacity boolean` (dodávateľ nie – plánuje sa termínmi), `cost_source` (odkiaľ sa berie náklad: sadzba roly, OD, sadzba techniky), `is_active` |
+| `bookable_resources` | register plánovateľných zdrojov | `kind FK resource_kinds`, odkaz **presne na jeden** z `profile_id` / `supplier_id` / `equipment_id` (`resources`) podľa typu (check), `default_role_id FK labor_roles null`, `division_id null`, `is_active` |
+| `work_patterns` | týždenný vzor kapacity | `resource_id`, `weekday 1–7`, `hours numeric(4,2) ≥ 0`, `valid_from`, `valid_to null`; bez prekrytia platností (exclusion) |
+| `calendar_exceptions` | výnimka na konkrétny deň / obdobie | `resource_id`, `date_from`, `date_to`, `hours` (0 = nedostupný, viac = extra hodiny), `reason` ('vacation','unavailable','other'), `note` |
+| `public_holidays` | SK štátne sviatky a dni pracovného pokoja | `date PK`, `name`; referenčné dáta, ročne doplniť |
+| `resource_requirements` | požiadavka zákazky podľa roly (z labor riadkov prijatej CP, F4) | `job_id`, `role_id`, `period_from`, `period_to`, `hours`, `source_quote_item_id null`, stav obsadená / neobsadená (odvodený z `task_assignments`) |
+| `task_assignments` | úloha × zdroj | `task_id FK project_tasks`, `resource_id FK bookable_resources`, `date_from`, `date_to`, `planned_hours`, `booking_type` ('tentative' z CP, 'firm' zo zákazky); nahrádza `project_tasks.assignee_*` |
+| `equipment_bookings` | rezervácia techniky | `resource_id` (typ `equipment`), `job_id`, `task_id null`, `starts_at`, `ends_at`, `booking_type`; **exclusion constraint** na prekrytie času rovnakej techniky |
+| `project_templates`, `template_tasks`, `template_dependencies` | šablóny podľa typu zákazky | termín úlohy = posun v dňoch od kotvy (štart zákazky / dátum eventu / termín dodania), **aj záporný** (spätné plánovanie); závislosti koniec–začiatok |
+| `event_schedule_items` | scenár dňa eventu (run-of-show, len EVENT) | `job_id`, `starts_at`, `ends_at`, `activity`, `location`, `responsible_resource_id null`, `equipment_resource_id null`, `note`, `sort_order`; PDF pre tím a dodávateľov |
+
+Zmeny existujúcich tabuliek:
+
+| Tabuľka | Zmena |
+|---|---|
+| `project_tasks` (§7) | + `baseline_start`, `baseline_end` (časový baseline pri spustení zákazky); `assignee_*` nahradí `task_assignments` |
+| `purchase_orders` (§8) | + `confirmed_date` (potvrdený termín dodávateľa), `delivered_date` (skutočný) – Gantt a KPI dodržania termínov |
+| `time_entries` (§7) | bez zmeny – hodiny za deň, bez stopiek |
+| `capacity_plans` (§18) | zrušená vo F3 – kapacita sa počíta zo vzoru + výnimiek + sviatkov (19.1) |
+
+Pohľady (`security_invoker = true`):
+
+| View | Obsah |
+|---|---|
+| `v_resource_capacity_daily` | zdroj × deň: dostupné hodiny (vzor − sviatky ± výnimky) |
+| `v_resource_load` | zdroj × týždeň: kapacita, pevné a predbežné rezervácie, % vyťaženia |
+| `v_job_schedule_variance` | zákazka: baseline vs. aktuálny plán (posun termínov) |
+| `v_job_forecast` | prognóza nákladov do konca (EAC) |
+
+Pravidlá v DB: konflikt techniky = **chyba** (exclusion); preťaženie človeka = **upozornenie** (nie chyba); dodávateľ nemá kapacitu, plánuje sa termínmi; zmeny úloh uzavretej zákazky sú zakázané.
+
+Názvy a typy stĺpcov sú orientačné (rozpracovanie analýzy); záväzne sa potvrdia v pláne fázy 5a.
+
+## 20. Import katalógu a meny (F3, blok K – D26)
+
+Migrácie `20261129130000_phase3_catalog_import.sql`, `20261129131000_phase3_import_item_types.sql`. Podklad: `docs/analyzy/ANALYZA-AI-IMPORT-KATALOGU.md` (schválené 26. 11. 2026).
+
+| Tabuľka / funkcia | Obsah |
+|---|---|
+| `currencies` | `code` PK (EUR, CZK, PLN), `name`, `sort_order`, `is_active` – konfigurácia, ďalšia mena = riadok. |
+| `catalog_item_costs` | história nákupných cien (append-only): `item_id`, `cost_cents` (EUR bez DPH), mena, pôvodná suma, kurz a dátum, s/bez DPH a sadzba, `source`, `import_batch_id`, kto a kedy. Zápis triggerom `record_purchase_price` pri každej zmene ceny. |
+| `import_templates` | šablóna mapovania stĺpcov: `name` (unique), `supplier_id null`, `mapping jsonb`, `options jsonb` (mena, DPH, kódovanie, oddeľovač, hlavička). |
+| `import_batches` | dávka: `supplier_id`, `file_name`, `status` ('draft','dry_run','applied','rolled_back'), `options` (mena, s/bez DPH + sadzba, kurz + dátum), `summary`, kto a kedy použil / vrátil. Použitá dávka sa nemaže. |
+| `import_batch_rows` | riadky dávky: `row_no`, `raw`, `parsed` (názov, kód dodávateľa, EAN, cena v centoch meny, jednotka, typ, popis), `errors`, `match` (kandidáti), `decision` (create / skip / update + `chosen_item_id`), `action` (create, update_cost, skip, choose, error), `result_item_id`, `previous` (cena pred importom). Bez záznamu do histórie zmien po riadkoch; riadky použitej dávky sa nemenia. |
+| `match_catalog_item(dodávateľ, kód, EAN, názov)` | spoločné párovanie (aj pre AI vo F3.5): dodávateľ + kód → EAN → podobnosť názvu (trigram, prah `system_settings.catalog_match_name_threshold`, predvolene 0,5). |
+| `dry_run_import_batch(id)` | skúšobný beh: kontrola riadkov (rovnaká ako v prehliadači), párovanie, akcia; v katalógu nič nezmení. Jedna zhoda podľa kódu/EAN alebo rovnaký názov = aktualizácia ceny; podobný názov alebo viac kandidátov = rozhodne používateľ. |
+| `apply_import_batch(id)` | potvrdenie: nové položky (dodávateľ dávky, typ, jednotka, kódy, cena) a nové ceny existujúcich položiek; prázdny kód/EAN položky sa doplní, existujúci sa nemení. Len bez nerozhodnutých riadkov. |
+| `rollback_import_batch(id)` | „Vrátiť dávku“ (security definer, admin + aal2): zmaže založené položky a vráti predchádzajúce ceny; odmietne, ak sa cena medzitým zmenila alebo je položka použitá (`private.catalog_item_in_use` – zatiaľ balíček, vo F4 doplniť CP). |
+
+Prepočet ceny: EUR bez DPH = pôvodná ÷ (1 + DPH) ÷ kurz, zaokrúhlené na centy (polovica nahor), len celými číslami (`private.cost_to_eur_cents`, rovnaký výpočet v `src/core/calc/purchase-price.ts`). Vystavené CP sa nemenia – CP si ukladajú vlastnú cenu (F4).
+
+## 21. Nastavenia → AI (F3, blok L – D25)
+
+Migrácia `20261129140000_phase3_ai_settings.sql`. Edge Function `supabase/functions/ai-gateway` (adaptér poskytovateľa, poistka, zápis spotreby).
+
+| Tabuľka / funkcia | Obsah |
+|---|---|
+| `system_settings` | `ai_provider` ('gemini'), `ai_models` (model podľa účelu: `catalog_assist`, `email_triage` – vyberá vlastník), `ai_budget_limit_eur` (5,00), `ai_budget_cutoff_eur` (4,50); trigger `check_ai_settings` kontroluje tvar a že hranica vypnutia ≤ rozpočet. |
+| `feature_flags` | `ai_catalog_assist`, `ai_email_triage` (vypnuté); `ai_legal_summary` ostáva. |
+| `ai_model_prices` | `model` PK, `input_eur_per_mtok`, `output_eur_per_mtok` (EUR za 1 milión tokenov), `valid_from`, `note` – zadáva vlastník. |
+| `ai_provider_keys` | `provider` PK, `vault_secret_id`, `last4`, `set_at`, `set_by` – **žiadny prístup pre aplikáciu**; samotný kľúč len vo Vault. |
+| `ai_key_status()` | pre UI (admin, aal2): nastavený / posledné 4 znaky / kedy / kto. |
+| `ai_store_key`, `ai_delete_key`, `ai_get_key` | len service role (brána); zápis do Vault a do histórie zmien bez kľúča. |
+| `ai_usage` | `at`, `feature`, `model`, `input_tokens`, `output_tokens`, `cost_eur numeric(12,6)`, `user_id`, `ok`, `error_code` – zapisuje len brána, číta admin. |
+| `ai_budget_status()` | minuté / rozpočet / hranica / % / stav `ok`, `warn50`, `warn90`, `blocked` (admin aal2 alebo service role). |
+| `v_ai_usage_summary` | spolu, podľa funkcie, podľa mesiaca (`security_invoker`). |
+| `notification_recipients` | typy udalostí rozšírené o `ai_budget_50`, `ai_budget_90` (odosielanie vo fáze 8). |

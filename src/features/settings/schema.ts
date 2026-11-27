@@ -1,39 +1,25 @@
 import { z } from "zod";
 import {
-  compact,
-  formatIban,
-  isValidDic,
-  isValidIban,
-  isValidIco,
-  isValidSwift,
-} from "@/core/validation";
+  countryField,
+  dicField,
+  emailField,
+  icoField,
+  optChecked,
+  optText,
+  phoneField,
+  webField,
+  zipField,
+} from "@/core/form-fields";
+import { compact, formatIban, isValidIban, isValidSwift } from "@/core/validation";
 import { IDLE_MAX_MINUTES, IDLE_MIN_MINUTES } from "@/core/auth/idle";
-
-/** Optional text: trimmed, empty → null. */
-const optText = (max: number) =>
-  z
-    .string()
-    .trim()
-    .max(max, `Najviac ${max} znakov.`)
-    .transform((v) => (v === "" ? null : v));
-
-const optChecked = (
-  check: (v: string) => boolean,
-  message: string,
-  normalize: (v: string) => string,
-) =>
-  z
-    .string()
-    .trim()
-    .refine((v) => v === "" || check(v), message)
-    .transform((v) => (v === "" ? null : normalize(v)));
+import { REPORTING_FIELD_LABELS } from "./reporting";
 
 /** Company form (companies, 1 row). vat_payer / ic_dph: the company is NOT a VAT payer (D2). */
 export const companySchema = z.object({
   legal_name: z.string().trim().min(1, "Zadajte obchodné meno.").max(200),
   brand_name: z.string().trim().min(1, "Zadajte značku.").max(200),
-  ico: optChecked(isValidIco, "IČO nie je platné (8 číslic s kontrolnou číslicou).", compact),
-  dic: optChecked(isValidDic, "DIČ má 10 číslic.", compact),
+  ico: icoField(),
+  dic: dicField(),
   // optional and normally empty – the company is not a VAT payer
   ic_dph: optChecked(
     (v) => /^SK\d{10}$/.test(compact(v).toUpperCase()),
@@ -42,40 +28,17 @@ export const companySchema = z.object({
   ),
   street: optText(200),
   city: optText(100),
-  zip: optChecked(
-    (v) => /^\d{3}\s?\d{2}$/.test(v),
-    "PSČ má 5 číslic (napr. 811 01).",
-    (v) => {
-      const c = compact(v);
-      return `${c.slice(0, 3)} ${c.slice(3)}`;
-    },
-  ),
-  country: z
-    .string()
-    .trim()
-    .toUpperCase()
-    .regex(/^[A-Z]{2}$/, "Kód krajiny má 2 písmená (SK)."),
+  zip: zipField(true),
+  country: countryField(),
   registry_entry: optText(300),
   iban: optChecked(isValidIban, "IBAN nie je platný.", formatIban),
   bank_name: optText(100),
   swift: optChecked(isValidSwift, "SWIFT/BIC má 8 alebo 11 znakov.", (v) =>
     compact(v).toUpperCase(),
   ),
-  email: optChecked(
-    (v) => z.email().safeParse(v).success,
-    "Zadajte platný e-mail.",
-    (v) => v,
-  ),
-  phone: optChecked(
-    (v) => /^\+?[0-9 ()/-]{6,20}$/.test(v),
-    "Zadajte platné telefónne číslo.",
-    (v) => v,
-  ),
-  web: optChecked(
-    (v) => /^(https?:\/\/)?[a-z0-9.-]+\.[a-z]{2,}(\/\S*)?$/i.test(v),
-    "Zadajte platnú adresu webu.",
-    (v) => v,
-  ),
+  email: emailField(),
+  phone: phoneField(),
+  web: webField(),
 });
 export type CompanyInput = z.input<typeof companySchema>;
 export type CompanyOutput = z.output<typeof companySchema>;
@@ -145,18 +108,22 @@ export const FIELD_LABELS: Record<string, Record<string, string>> = {
   notification_recipients: { email: "E-mail", event_types: "Udalosti", is_active: "Aktívny" },
   documents: {
     file_name: "Súbor",
-    category: "Kategória",
+    category: "Druh",
     mime_type: "Typ",
-    size_bytes: "Veľkosť (B)",
-    is_locked: "Uzamknutý",
-    storage_path: "Umiestnenie",
-    entity_table: "Patrí k",
-    entity_id: "ID záznamu",
-    sha256: "Kontrolný súčet",
+    size_bytes: "Veľkosť",
   },
   user_roles: { user_id: "Používateľ", role: "Rola" },
   profiles: { full_name: "Meno", email: "E-mail", phone: "Telefón", is_active: "Aktívny" },
   "auth.mfa_factors": { target_user: "Používateľ", factors_removed: "Odstránené faktory" },
+  ...REPORTING_FIELD_LABELS,
+  ai_provider_keys: { provider: "Poskytovateľ", last4: "Posledné 4 znaky" },
+  ai_model_prices: {
+    model: "Model",
+    input_eur_per_mtok: "Vstup €/1M tokenov",
+    output_eur_per_mtok: "Výstup €/1M tokenov",
+    valid_from: "Platí od",
+    note: "Poznámka",
+  },
 };
 
 export const TABLE_LABELS: Record<string, string> = {
@@ -168,4 +135,13 @@ export const TABLE_LABELS: Record<string, string> = {
   user_roles: "Roly",
   profiles: "Profily",
   "auth.mfa_factors": "2FA",
+  overhead_costs: "Réžia – jednorazová",
+  recurring_overheads: "Réžia – opakovaná",
+  data_reviews: "Overenie dát",
+  ai_provider_keys: "AI kľúč",
+  ai_model_prices: "AI – cena modelu",
+  income_tax_brackets: "Daň z príjmov",
+  work_patterns: "Kapacity – vzor",
+  calendar_exceptions: "Kapacity – výnimka",
+  kpi_targets: "Ciele KPI",
 };

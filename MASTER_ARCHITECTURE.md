@@ -51,6 +51,34 @@ TypeScript 5.9 a ESLint 9 sú zámerne nižšie než najnovšie (TS 7, ESLint 10
 - **Brána aplikácie:** `src/app/app-gate.tsx` – stránky `/prihlasenie/*` bez rozloženia, všetko ostatné len cez `RequireAal2` + `IdleLogout` + `AppShell`. Statický export ostáva (žiadny middleware) – ochranu dát robí RLS.
 - **Roly v UI:** `NavItem.requiredRole`, `visibleNavItems()`, `RequireRole`; databáza to vynucuje politikami.
 - **Moduly:** prvé `src/features/*` – `settings` (api.ts s TanStack Query, schema.ts so zod, components/) a `dashboard`. Spoločné validátory v `src/core/validation.ts`, chyby DB → slovenské hlásenia v `src/core/supabase/errors.ts`.
-- **Dokumenty a súbory:** tabuľka `documents` + súkromný bucket `documents` (jadro príloh pre ďalšie fázy). Prepis objektu je zakázaný vždy; zamknutý dokument sa nedá zmeniť ani zmazať (DB aj storage politika).
+- **Dokumenty a súbory:** tabuľka `documents` + súkromný bucket `documents`; prílohy (D23) cez jednu dlaždicu `AttachmentsTile` a frontu `useAttachmentQueue` (`src/core/attachments`), všetok prístup k súborom cez adaptér `src/core/storage/adapter.ts`, kategórie a povolené typy v DB (`attachment_categories`, `blocked_mime_types`). Prepis objektu je zakázaný vždy; zamknutý dokument sa nedá zmeniť ani zmazať (DB aj storage politika).
 - **Edge Function `admin-mfa-reset`:** logika v `handler.ts` so vstrekovanými závislosťami (testovaná vo Vitest), `index.ts` ju napája na Deno a Supabase. Prvý kód so `service_role` – výhradne na serveri.
 - **`v_open_items`:** zmluva pre dashboard (zatiaľ nuly), `security_invoker`, s aal1 nevráti nič.
+
+## Rozhodnutia fázy 3 (kmeňové dáta a knižnica obsahu)
+
+- **Moduly:** `features/parties` (zákazník aj dodávateľ – rovnaký tvar, parameter `kind`), `features/catalog`, `features/content`; reporting je súčasť `features/settings` (`reporting.ts`, `reporting-api.ts`). Moduly sa navzájom neimportujú – spoločné veci sú v `core/` (`form-fields`, `shared-queries`, `record-history`, `documents`, `calc/`) a `ui/` (`DataTable`, `ChipGroup`, vstupy pre sumy, percentá a dátumy).
+- **Detail cez query parameter** (`/zakaznici/detail/?id=…`, `?id=new` = nový záznam), záložky katalógu `?tab=`. `findNavItem` priradí podstránku k sekcii menu.
+- **Štandard tabuľky:** `private.setup_admin_table()` v migrácii; kmeňové dáta bez mazania (`is_active`).
+- **Pravidlá v databáze:** kusovník jednej úrovne (triggery), neprekrývajúce sa platnosti sadzieb a daňových pásiem (exclusion, `btree_gist`), sadzba zdroja ako generovaný stĺpec (rovnaký vzorec v TS celočíselne), verzia bloku obsahu triggerom, `unique nulls not distinct` tam, kde NULL znamená „celá firma“.
+- **Peniaze vo formulároch:** text „1 234,56“ → zod `moneyField` → centy; percentá `numeric(7,4)`; dátumy DD/MM/YYYY → ISO.
+- **Čísla vo formulároch:** množstvá, hodiny, percentá a dni cez `NumberStepper` (`src/ui/number-stepper.tsx`; −/+, ↑/↓, Shift ×10, krok podľa jednotky `stepForUnit`, min/max). Hodnota ostáva text, zod ju parsuje ako predtým; vo formulároch cez `Controller`. Peňažné polia (`MoneyInput`) majú len šípky (± 1 €).
+- **Názvoslovie (D24):** tabuľka `resources` sa v UI volá „Technika a vybavenie“; slovo „zdroj“ je vyhradené pre plánovanie zdrojov vo fáze 5a (ľudia, dodávatelia, technika – DATABASE_SCHEMA §19).
+- **Typy z DB:** `npm run db:types` (generuje a formátuje).
+
+## Doplnky fázy 3 – pripomienky vlastníka (bloky G, H, krok 1)
+
+- **Výber dátumu:** `react-day-picker` 10 (MIT, udržiavaná; slovenská lokalizácia, pondelok prvý, klávesnica). Jeden komponent `DateInput` (`src/ui/date-input.tsx`) pre všetky dátumové polia: písanie DD/MM/YYYY ostáva, ikona otvorí kalendár („Dnes“, víkendy a dni pracovného pokoja textom aj ikonou, výber mesiaca a roka, `minDate`/`maxDate`). Dni pracovného pokoja dodáva `HolidaysProvider` (`src/core/holidays.tsx`) cez React context – UI vrstva sama nečíta z DB.
+- **NumberStepper:** pole sa nikdy nezúži pod najdlhšiu očakávanú hodnotu + jednotku (`fieldMinWidth`, min. 6 znakov); inline bunky ukladajú raz po 800 ms pauze alebo pri opustení poľa / Enter.
+- **História zmien:** jeden prekladač odkazov `src/core/audit-refs.ts` (UUID → názov, „(zmazaný záznam)“) a slovenský formát hodnôt v `AuditTimeline`; vždy posledná sekcia stránky.
+- **Kapacity (D24, blok H):** zdroje + týždenný vzor + výnimky + `public_holidays`; výpočet v DB (`resource_capacity()`), kalendár v Nastaveniach.
+
+## Doplnky fázy 3 – bloky I–L a rozhodnutia D25–D28
+
+- **Režim nastavení:** `ShellContext` (`src/ui/shell-context.tsx`) – modul môže nahradiť ľavé menu a nastaviť pripnutú hlavičku stránky s jedným tlačidlom (`HeaderAction`); zoznam stránok nastavení je v `navigation.ts` (`SETTINGS_GROUPS`).
+- **Overenie dát (blok I):** jeden mechanizmus pre všetky tabuľky – `data_reviews` + trigger + `v_reviews_due`; v UI `src/core/data-review.tsx` (`ReviewControl`, `ReviewsList`).
+- **Prílohy (D23, blok J):** `src/core/storage/adapter.ts` je jediné miesto, ktoré volá úložisko; `src/core/attachments` (dlaždica + fronta) používajú všetky moduly.
+- **Nákupná cena a import (D26, blok K):** databáza počíta EUR bez DPH (`apply_purchase_price`), TS má rovnaký celočíselný výpočet; import beží v dávkach s funkciami v DB (skúšobný beh, potvrdenie, vrátenie); čítanie XLSX `read-excel-file` (MIT) v prehliadači.
+- **AI (D25, blok L):** jediný vstup k poskytovateľovi je Edge Function `ai-gateway` (adaptér `AiProvider`, implementácia Gemini); kľúč vo Vault, spotreba v `ai_usage`, poistka v DB; v UI `useAiAvailability` (`src/core/ai.ts`).
+- **O2C tabuľa (D28, F4):** jeden komponent `BoardView` v `src/ui` na dnd-kit; presun vždy cez `transition()`.
+- **E-mail (D27, F4/F4.5):** len čítanie (IMAP v Edge Function), prílohy cez adaptér úložiska, AI triáž cez `ai-gateway`.

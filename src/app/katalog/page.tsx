@@ -1,5 +1,12 @@
-import { ComingSoon } from "@/ui/coming-soon";
+"use client";
+
+import { Suspense } from "react";
+import { CatalogPage } from "@/features/catalog/catalog-page";
 
 export default function Page() {
-  return <ComingSoon module="Katalóg" />;
+  return (
+    <Suspense>
+      <CatalogPage />
+    </Suspense>
+  );
 }

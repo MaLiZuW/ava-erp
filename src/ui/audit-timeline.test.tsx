@@ -68,3 +68,35 @@ describe("AuditTimeline", () => {
     expect(screen.getByText("Zatiaľ bez zmien.")).toBeVisible();
   });
 });
+
+describe("Slovak format of history values (owner's point 11)", () => {
+  it("money, percentages, decimals, dates, booleans and lists", () => {
+    expect(displayValue(123456, "default_cost_cents")).toBe("1\u00a0234,56\u00a0€");
+    expect(displayValue(12.5, "default_pricing_pct")).toBe("12,5 %");
+    expect(displayValue(3.5, "quantity")).toBe("3,5");
+    expect(displayValue("2026-01-31", "valid_from")).toBe("31/01/2026");
+    expect(displayValue("2026-11-27T08:05:00+00:00", "at")).toBe("27/11/2026 09:05");
+    expect(displayValue(false, "is_active")).toBe("nie");
+    expect(displayValue(["potlač", "catering"], "categories")).toBe("potlač, catering");
+    expect(displayValue([], "categories")).toBe("—");
+  });
+
+  it("uses the resolver for references (names instead of UUIDs)", () => {
+    const resolve = (field: string, value: unknown) =>
+      field === "component_item_id" && value === "11111111-1111-1111-1111-111111111111"
+        ? "Hrnček"
+        : undefined;
+    const changes = auditChanges(
+      {
+        action: "insert",
+        old_data: null,
+        new_data: { component_item_id: "11111111-1111-1111-1111-111111111111", quantity: 2 },
+      },
+      resolve,
+    );
+    expect(changes).toEqual([
+      { field: "component_item_id", from: "", to: "Hrnček" },
+      { field: "quantity", from: "", to: "2" },
+    ]);
+  });
+});

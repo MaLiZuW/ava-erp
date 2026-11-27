@@ -2,7 +2,7 @@
 
 import { FormMessage } from "@/ui/field";
 import { StatusBadge } from "@/ui/status-badge";
-import { Tile } from "@/ui/tile";
+import { SettingsTile } from "./settings-tile";
 import { useFeatureFlags, useToggleFlag } from "../api";
 
 /** Slovak names of the known flags (the note column stays technical). */
@@ -18,7 +18,7 @@ export function FeatureFlagsTile() {
   const toggle = useToggleFlag();
 
   return (
-    <Tile size="L" title="Funkcie">
+    <SettingsTile size="L" title="Funkcie">
       <ul className="flex flex-col">
         {(flags.data ?? []).map((f) => {
           const id = `flag-${f.key}`;
@@ -52,6 +52,6 @@ export function FeatureFlagsTile() {
         })}
       </ul>
       {toggle.error && <FormMessage tone="error">{toggle.error.message}</FormMessage>}
-    </Tile>
+    </SettingsTile>
   );
 }

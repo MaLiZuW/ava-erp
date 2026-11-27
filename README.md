@@ -31,7 +31,7 @@ Konfigurácia: skopíruj `.env.example` do `.env.local` a doplň hodnoty (súbor
 
 ```
 src/app/        stránky (tenké)         src/core/      jadro: Supabase klient, auth/aal2 guard, formáty, validátory, navigácia
-src/ui/         dlaždice a komponenty   src/features/  moduly (settings, dashboard; ďalšie od fázy 3)
+src/ui/         dlaždice a komponenty   src/features/  moduly (settings, dashboard, parties, catalog, content)
 supabase/       migrations/ tests/ functions/ seed.sql
 public/         .htaccess, brand/       docs/       záväzné podklady
 ```

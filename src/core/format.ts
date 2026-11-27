@@ -63,3 +63,44 @@ export function parseMoneyToCents(input: string): number | null {
   const cents = Number(w) * 100 + Number(f.padEnd(2, "0"));
   return negative ? -cents : cents;
 }
+
+/** Cents → value for an input field: "1 234,56" (plain spaces, no € sign). */
+export function formatMoneyInput(cents: number | null | undefined): string {
+  if (cents == null) return "";
+  return formatMoney(cents).replace(/ /g, " ").replace(/ €$/, "").replace("−", "-");
+}
+
+/** Percentage stored as numeric(7,4) → "25" / "12,5" (comma decimals, no trailing zeros). */
+export function formatPercent(value: number | string | null | undefined): string {
+  if (value == null || value === "") return "";
+  const n = typeof value === "string" ? Number(value) : value;
+  if (!Number.isFinite(n)) return "";
+  return String(Math.round(n * 10_000) / 10_000).replace(".", ",");
+}
+
+/** "12,5" / "12.5" / "12,5 %" → 12.5 (max. 4 decimals, as numeric(7,4)); null if invalid. */
+export function parsePercent(input: string): number | null {
+  const s = input.replace(/[\s%]/g, "").replace(",", ".");
+  if (!/^-?\d{1,3}(\.\d{1,4})?$/.test(s)) return null;
+  return Number(s);
+}
+
+/** "DD/MM/YYYY" (also D.M.YYYY) → "YYYY-MM-DD"; null if not a real calendar date. */
+export function parseDate(input: string): string | null {
+  const m = /^(\d{1,2})[./](\d{1,2})[./](\d{4})$/.exec(input.trim());
+  if (!m) return null;
+  const [d, mo, y] = [Number(m[1]), Number(m[2]), Number(m[3])];
+  const date = new Date(Date.UTC(y, mo - 1, d));
+  if (date.getUTCFullYear() !== y || date.getUTCMonth() !== mo - 1 || date.getUTCDate() !== d) {
+    return null;
+  }
+  return `${y}-${pad2(mo)}-${pad2(d)}`;
+}
+
+/** Decimal number with comma ("1,5") → 1.5; null if invalid. `decimals` = max. digits after the comma. */
+export function parseDecimal(input: string, decimals: number): number | null {
+  const s = input.replace(/\s/g, "").replace(",", ".");
+  const re = new RegExp(`^\\d+(\\.\\d{1,${decimals}})?$`);
+  if (!re.test(s)) return null;
+  return Number(s);
+}
