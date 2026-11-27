@@ -135,15 +135,15 @@ Ak by funkcia vracala 401 aj pre prihláseného admina (projekt s novými JWT k�
 
 Kľúč **nikdy** nevkladajte do chatu, e-mailu, `.env.local` ani do repozitára. Zadáva sa len v aplikácii: **Nastavenia → AI → API kľúč**. Uloží sa do trezoru Supabase (Vault) a už sa nikdy nezobrazí (len posledné 4 znaky).
 
-1. **Google AI Studio** (aistudio.google.com) → *Get API key* → vytvorte kľúč pre nový Google Cloud projekt (napr. „ava-erp“).
+1. **Google AI Studio** (aistudio.google.com) → _Get API key_ → vytvorte kľúč pre nový Google Cloud projekt (napr. „ava-erp“).
 2. **Fakturácia:** v Google Cloud konzole projektu zapnite fakturáciu (Billing). Pre EHP platia pri Gemini API pravidlá „Paid Services“ o použití dát; aktívna fakturácia s limitom je odporúčaná (analýza AI, kap. 5).
-3. **Rozpočet (1. vrstva poistky):** Billing → *Budgets & alerts* → rozpočet **5 €** s upozorneniami na **50 %, 90 % a 100 %**. Upozorňuje, ale samo neblokuje.
-4. **Kvóta (2. vrstva):** APIs & Services → Generative Language API → *Quotas* → obmedzte počet požiadaviek za deň (napr. **200**).
+3. **Rozpočet (1. vrstva poistky):** Billing → _Budgets & alerts_ → rozpočet **5 €** s upozorneniami na **50 %, 90 % a 100 %**. Upozorňuje, ale samo neblokuje.
+4. **Kvóta (2. vrstva):** APIs & Services → Generative Language API → _Quotas_ → obmedzte počet požiadaviek za deň (napr. **200**).
 5. Ak AI Studio ponúka **predplatený kredit**, nabite 5 € – po minutí sa volania zastavia.
 6. V aplikácii **Nastavenia → AI**:
    - **Poskytovateľ a modely:** zadajte názov modelu pre účel (Asistent katalógu, Triáž e-mailov) presne podľa Google AI Studio;
    - **Ceny modelov:** cena vstupu a výstupu v **EUR za 1 milión tokenov** podľa cenníka Gemini API (bez ceny sa AI nevolá – poistka by nevedela počítať);
-   - **API kľúč:** vložte kľúč → *Uložiť kľúč* → *Otestovať spojenie* (minimálna požiadavka, cena sa zapíše do spotreby);
+   - **API kľúč:** vložte kľúč → _Uložiť kľúč_ → _Otestovať spojenie_ (minimálna požiadavka, cena sa zapíše do spotreby);
    - **Rozpočet a poistka (3. vrstva):** 5,00 € a vypnutie pri 4,50 € (dá sa zmeniť).
 7. Funkcie (asistent katalógu, triáž e-mailov) zapnite až s fázami F3.5 a F4.5.
 
