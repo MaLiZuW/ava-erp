@@ -66,6 +66,12 @@ const TABLES = [
   "attachment_categories",
   "blocked_mime_types",
   "attachments",
+  // block K – catalog import (D26)
+  "currencies",
+  "catalog_item_costs",
+  "import_templates",
+  "import_batches",
+  "import_batch_rows",
 ];
 /** tables an aal2 admin must see rows in (seeded / always present) */
 const ADMIN_VISIBLE = [

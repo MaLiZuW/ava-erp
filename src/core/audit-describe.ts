@@ -62,6 +62,16 @@ export function humanFieldValue(field: string, value: unknown): string | undefin
   if (field === "mime_type" && typeof value === "string") return MIME_LABELS[value] ?? "súbor";
   if (field === "category" && typeof value === "string" && CATEGORY_LABELS[value])
     return CATEGORY_LABELS[value];
+  // price as on the price list – in its own currency (cost_currency), so without "€"
+  if (field === "cost_original_amount" && typeof value === "number")
+    return (value / 100).toLocaleString("sk-SK", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  if (field === "cost_source" && typeof value === "string")
+    return (
+      { manual: "ručne", import: "import cenníka", rollback: "vrátenie dávky" }[value] ?? value
+    );
   return undefined;
 }
 

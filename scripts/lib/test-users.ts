@@ -147,6 +147,12 @@ export async function purgeE2eMasterData(env: TestEnv): Promise<void> {
   await db.connect();
   try {
     const like = `${E2E_NAME_PREFIX}%`;
+    // import batches and templates of test users (block K); an applied batch is otherwise
+    // never deleted – this owner session of the cleanup is allowed to (ava.import_apply)
+    await db.query("set ava.import_apply = 'on'");
+    const testUsers = `select id from auth.users where email like '%@${TEST_EMAIL_DOMAIN}'`;
+    await db.query(`delete from public.import_batches where created_by in (${testUsers})`);
+    await db.query(`delete from public.import_templates where created_by in (${testUsers})`);
     // attachments of e2e records (D23): the stored objects first, then the rows
     const docs = await db.query<{ id: string; storage_path: string }>(
       `select d.id, d.storage_path from public.documents d

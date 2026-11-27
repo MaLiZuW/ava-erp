@@ -5,14 +5,13 @@ import { useMemo, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { useAttachmentQueue } from "@/core/attachments/api";
 import { AttachmentsTile, NewRecordAttachments } from "@/core/attachments/attachments-tile";
-import { formatMoney, formatMoneyInput, formatPercent } from "@/core/format";
+import { formatDate, formatMoney, formatMoneyInput, formatPercent } from "@/core/format";
 import { useDocuments, useSignedUrl } from "@/core/storage/documents";
 import { Button } from "@/ui/button";
 import { ChipGroup } from "@/ui/chips";
 import { DataTable, type Column } from "@/ui/data-table";
 import { EmptyState } from "@/ui/empty-state";
 import { describedBy, Field, FormMessage, Input, Select, Textarea } from "@/ui/field";
-import { MoneyInput } from "@/ui/inputs";
 import { NumberStepper } from "@/ui/number-stepper";
 import { StatusBadge } from "@/ui/status-badge";
 import { Tile } from "@/ui/tile";
@@ -35,9 +34,10 @@ import {
   type ItemOutput,
   type ItemType,
 } from "../schema";
+import { PurchasePriceFields } from "./purchase-price-fields";
 
 const HINT_CODE = "Nepovinné, napr. PRM-HRNCEK.";
-const HINT_COST = "Posledná známa cena bez DPH.";
+const HINT_EAN = "Nepovinné; 8, 12, 13 alebo 14 číslic.";
 
 const toInput = (i: CatalogItem | null): ItemInput => ({
   code: i?.code ?? "",
@@ -45,7 +45,14 @@ const toInput = (i: CatalogItem | null): ItemInput => ({
   item_type: i?.item_type ?? "goods",
   division_id: i?.division_id ?? "",
   unit_code: i?.unit_code ?? "ks",
-  default_cost_cents: formatMoneyInput(i?.default_cost_cents ?? 0),
+  cost_original_amount: formatMoneyInput(i?.cost_original_amount ?? i?.default_cost_cents ?? 0),
+  cost_currency: i?.cost_currency ?? "EUR",
+  cost_includes_vat: i?.cost_includes_vat ?? false,
+  cost_vat_rate_pct: formatPercent(i?.cost_vat_rate_pct),
+  cost_fx_rate: i?.cost_fx_rate == null ? "" : String(i.cost_fx_rate).replace(".", ","),
+  cost_fx_date: i?.cost_fx_date ? formatDate(i.cost_fx_date) : "",
+  supplier_item_code: i?.supplier_item_code ?? "",
+  ean: i?.ean ?? "",
   default_supplier_id: i?.default_supplier_id ?? "",
   default_pricing_mode: i?.default_pricing_mode ?? "none",
   default_pricing_pct: formatPercent(i?.default_pricing_pct),
@@ -233,21 +240,35 @@ export function ItemForm({
                 </Select>
               </Field>
               <Field
-                id={id("default_cost_cents")}
-                label="Nákupná cena / jednotka"
-                hint={HINT_COST}
-                error={err("default_cost_cents")}
+                id={id("supplier_item_code")}
+                label="Kód dodávateľa"
+                error={err("supplier_item_code")}
               >
-                <MoneyInput
-                  id={id("default_cost_cents")}
-                  invalid={!!err("default_cost_cents")}
-                  aria-describedby={describedBy(id("default_cost_cents"), {
-                    hint: HINT_COST,
-                    error: err("default_cost_cents"),
+                <Input
+                  id={id("supplier_item_code")}
+                  invalid={!!err("supplier_item_code")}
+                  aria-describedby={describedBy(id("supplier_item_code"), {
+                    error: err("supplier_item_code"),
                   })}
-                  {...register("default_cost_cents")}
+                  {...register("supplier_item_code")}
                 />
               </Field>
+              <Field id={id("ean")} label="EAN / GTIN" hint={HINT_EAN} error={err("ean")}>
+                <Input
+                  id={id("ean")}
+                  inputMode="numeric"
+                  invalid={!!err("ean")}
+                  aria-describedby={describedBy(id("ean"), { hint: HINT_EAN, error: err("ean") })}
+                  {...register("ean")}
+                />
+              </Field>
+              <PurchasePriceFields
+                id={id}
+                register={register}
+                control={control}
+                errors={errors}
+                item={item}
+              />
               <Field id={id("default_supplier_id")} label="Predvolený dodávateľ">
                 <Select
                   id={id("default_supplier_id")}

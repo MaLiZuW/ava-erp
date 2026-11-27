@@ -208,6 +208,8 @@ Ako `customer_contacts`, FK `supplier_id`.
 
 `duplicate_catalog_package(id, názov, kód)` (security invoker): kópia balíčka s kusovníkom, novým názvom a kódom; prílohy sa nekopírujú (pripomienka vlastníka 17).
 
+**Kódy a nákupná cena (F3, blok K – §20):** `supplier_item_code` (unique v rámci dodávateľa, bez ohľadu na veľkosť písmen), `ean` (GTIN-8/12/13/14 s kontrolnou číslicou – `private.gtin_valid`; unique po doplnení na 14 číslic), `cost_currency` (FK `currencies`, predvolene EUR), `cost_original_amount` (centy v mene cenníka), `cost_fx_rate` (koľko jednotiek meny je 1 EUR, ako ECB/NBS) + `cost_fx_date`, `cost_includes_vat` + `cost_vat_rate_pct` (zadá používateľ), `cost_updated_at`, `cost_source` ('manual','import','rollback'), `cost_import_batch_id`. `default_cost_cents` ostáva **EUR bez DPH** a pri zadanej pôvodnej cene ho vždy vypočíta databáza (trigger `apply_purchase_price`).
+
 ### package_components (kusovník balíčka)
 `package_item_id FK catalog_items on delete cascade`, `component_item_id FK catalog_items`, `quantity numeric(14,4) > 0`; PK (package_item_id, component_item_id). Check: komponent nesmie byť ten istý balíček. **Jedna úroveň** (rozhodnutie vlastníka, fáza 3): rodič musí mať `item_type = 'package'`, komponent nesmie byť balíček; trigger stráži aj zmenu typu položky.
 
@@ -684,3 +686,21 @@ Pohľady (`security_invoker = true`):
 Pravidlá v DB: konflikt techniky = **chyba** (exclusion); preťaženie človeka = **upozornenie** (nie chyba); dodávateľ nemá kapacitu, plánuje sa termínmi; zmeny úloh uzavretej zákazky sú zakázané.
 
 Názvy a typy stĺpcov sú orientačné (rozpracovanie analýzy); záväzne sa potvrdia v pláne fázy 5a.
+
+## 20. Import katalógu a meny (F3, blok K – D26)
+
+Migrácie `20261129130000_phase3_catalog_import.sql`, `20261129131000_phase3_import_item_types.sql`. Podklad: `docs/analyzy/ANALYZA-AI-IMPORT-KATALOGU.md` (schválené 26. 11. 2026).
+
+| Tabuľka / funkcia | Obsah |
+|---|---|
+| `currencies` | `code` PK (EUR, CZK, PLN), `name`, `sort_order`, `is_active` – konfigurácia, ďalšia mena = riadok. |
+| `catalog_item_costs` | história nákupných cien (append-only): `item_id`, `cost_cents` (EUR bez DPH), mena, pôvodná suma, kurz a dátum, s/bez DPH a sadzba, `source`, `import_batch_id`, kto a kedy. Zápis triggerom `record_purchase_price` pri každej zmene ceny. |
+| `import_templates` | šablóna mapovania stĺpcov: `name` (unique), `supplier_id null`, `mapping jsonb`, `options jsonb` (mena, DPH, kódovanie, oddeľovač, hlavička). |
+| `import_batches` | dávka: `supplier_id`, `file_name`, `status` ('draft','dry_run','applied','rolled_back'), `options` (mena, s/bez DPH + sadzba, kurz + dátum), `summary`, kto a kedy použil / vrátil. Použitá dávka sa nemaže. |
+| `import_batch_rows` | riadky dávky: `row_no`, `raw`, `parsed` (názov, kód dodávateľa, EAN, cena v centoch meny, jednotka, typ, popis), `errors`, `match` (kandidáti), `decision` (create / skip / update + `chosen_item_id`), `action` (create, update_cost, skip, choose, error), `result_item_id`, `previous` (cena pred importom). Bez záznamu do histórie zmien po riadkoch; riadky použitej dávky sa nemenia. |
+| `match_catalog_item(dodávateľ, kód, EAN, názov)` | spoločné párovanie (aj pre AI vo F3.5): dodávateľ + kód → EAN → podobnosť názvu (trigram, prah `system_settings.catalog_match_name_threshold`, predvolene 0,5). |
+| `dry_run_import_batch(id)` | skúšobný beh: kontrola riadkov (rovnaká ako v prehliadači), párovanie, akcia; v katalógu nič nezmení. Jedna zhoda podľa kódu/EAN alebo rovnaký názov = aktualizácia ceny; podobný názov alebo viac kandidátov = rozhodne používateľ. |
+| `apply_import_batch(id)` | potvrdenie: nové položky (dodávateľ dávky, typ, jednotka, kódy, cena) a nové ceny existujúcich položiek; prázdny kód/EAN položky sa doplní, existujúci sa nemení. Len bez nerozhodnutých riadkov. |
+| `rollback_import_batch(id)` | „Vrátiť dávku“ (security definer, admin + aal2): zmaže založené položky a vráti predchádzajúce ceny; odmietne, ak sa cena medzitým zmenila alebo je položka použitá (`private.catalog_item_in_use` – zatiaľ balíček, vo F4 doplniť CP). |
+
+Prepočet ceny: EUR bez DPH = pôvodná ÷ (1 + DPH) ÷ kurz, zaokrúhlené na centy (polovica nahor), len celými číslami (`private.cost_to_eur_cents`, rovnaký výpočet v `src/core/calc/purchase-price.ts`). Vystavené CP sa nemenia – CP si ukladajú vlastnú cenu (F4).

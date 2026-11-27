@@ -21,6 +21,18 @@ export function isValidIco(input: string): boolean {
 }
 
 /** DIČ (SK tax id): 10 digits. */
+/**
+ * EAN / GTIN (EAN-8, UPC-A = GTIN-12, EAN-13, GTIN-14): digits with a check digit (mod 10,
+ * weights 3 and 1 from the right). The same rule as private.gtin_valid in the database.
+ */
+export function isValidGtin(input: string): boolean {
+  const v = compact(input);
+  if (!/^\d+$/.test(v) || ![8, 12, 13, 14].includes(v.length)) return false;
+  let sum = 0;
+  for (let i = 1; i < v.length; i++) sum += Number(v[v.length - 1 - i]) * (i % 2 === 1 ? 3 : 1);
+  return (10 - (sum % 10)) % 10 === Number(v[v.length - 1]);
+}
+
 export function isValidDic(input: string): boolean {
   return /^\d{10}$/.test(compact(input));
 }

@@ -114,8 +114,7 @@ export const CONTACT_PRIVACY_NOTE =
   "Meno, e-mail a telefón kontaktnej osoby sú osobné údaje. Spracúvame ich na účely plnenia zmluvy. Podrobnosti doplníme vo fáze 8.";
 
 /** Foreign supplier warning (BUSINESS_PROCESSES.md 4.9; open question O4). */
-export const FOREIGN_SUPPLIER_WARNING =
-  "Možná registračná povinnosť DPH (§ 7, § 7a) – overiť s účtovníkom.";
+export { FOREIGN_SUPPLIER_WARNING } from "@/core/foreign-supplier-notice";
 
 export const PARTY_FIELD_LABELS: Record<string, string> = {
   kind: "Typ",

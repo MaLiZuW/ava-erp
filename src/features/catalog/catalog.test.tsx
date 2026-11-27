@@ -32,7 +32,14 @@ const item: ItemInput = {
   item_type: "goods",
   division_id: "",
   unit_code: "ks",
-  default_cost_cents: "2,50",
+  cost_original_amount: "2,50",
+  cost_currency: "EUR",
+  cost_includes_vat: false,
+  cost_vat_rate_pct: "",
+  cost_fx_rate: "",
+  cost_fx_date: "",
+  supplier_item_code: "",
+  ean: "",
   default_supplier_id: "",
   default_pricing_mode: "none",
   default_pricing_pct: "",
@@ -42,7 +49,9 @@ const item: ItemInput = {
 describe("itemSchema", () => {
   it("stores the cost in cents and empty selects as null", () => {
     const v = itemSchema.parse(item);
-    expect(v.default_cost_cents).toBe(250);
+    expect(v.cost_original_amount).toBe(250);
+    expect(v.ean).toBeNull();
+    expect(v.supplier_item_code).toBeNull();
     expect(v.division_id).toBeNull();
     expect(v.default_supplier_id).toBeNull();
     expect(v.code).toBeNull();
@@ -65,8 +74,32 @@ describe("itemSchema", () => {
     ).toBe(true);
   });
 
+  it("EAN / GTIN: 8, 12, 13, 14 digits with a valid check digit (spaces removed)", () => {
+    expect(itemSchema.parse({ ...item, ean: "4006381 333931" }).ean).toBe("4006381333931");
+    expect(itemSchema.parse({ ...item, ean: "96385074" }).ean).toBe("96385074");
+    expect(itemSchema.safeParse({ ...item, ean: "4006381333932" }).success).toBe(false);
+    expect(itemSchema.safeParse({ ...item, ean: "123" }).success).toBe(false);
+  });
+
+  it("price in a foreign currency needs a rate and its date; with VAT needs the rate", () => {
+    expect(itemSchema.safeParse({ ...item, cost_currency: "CZK" }).success).toBe(false);
+    const czk = itemSchema.parse({
+      ...item,
+      cost_currency: "CZK",
+      cost_fx_rate: "25,125",
+      cost_fx_date: "27/11/2026",
+    });
+    expect(czk.cost_fx_rate).toBe(25.125);
+    expect(czk.cost_fx_date).toBe("2026-11-27");
+    expect(itemSchema.safeParse({ ...item, cost_includes_vat: true }).success).toBe(false);
+    expect(
+      itemSchema.parse({ ...item, cost_includes_vat: true, cost_vat_rate_pct: "21" })
+        .cost_vat_rate_pct,
+    ).toBe(21);
+  });
+
   it("refuses a negative cost and an invalid code", () => {
-    expect(itemSchema.safeParse({ ...item, default_cost_cents: "-1" }).success).toBe(false);
+    expect(itemSchema.safeParse({ ...item, cost_original_amount: "-1" }).success).toBe(false);
     expect(itemSchema.safeParse({ ...item, code: "kód s medzerou" }).success).toBe(false);
   });
 });

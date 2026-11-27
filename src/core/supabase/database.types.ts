@@ -262,9 +262,95 @@ export type Database = {
           },
         ];
       };
+      catalog_item_costs: {
+        Row: {
+          cost_cents: number;
+          created_at: string;
+          created_by: string | null;
+          currency: string;
+          fx_date: string | null;
+          fx_rate: number | null;
+          id: string;
+          import_batch_id: string | null;
+          includes_vat: boolean;
+          item_id: string;
+          original_amount: number | null;
+          source: string;
+          updated_at: string;
+          updated_by: string | null;
+          vat_rate_pct: number | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          cost_cents: number;
+          created_at?: string;
+          created_by?: string | null;
+          currency: string;
+          fx_date?: string | null;
+          fx_rate?: number | null;
+          id?: string;
+          import_batch_id?: string | null;
+          includes_vat: boolean;
+          item_id: string;
+          original_amount?: number | null;
+          source: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          vat_rate_pct?: number | null;
+        };
+        Update: {
+          cost_cents?: number;
+          created_at?: string;
+          created_by?: string | null;
+          currency?: string;
+          fx_date?: string | null;
+          fx_rate?: number | null;
+          id?: string;
+          import_batch_id?: string | null;
+          includes_vat?: boolean;
+          item_id?: string;
+          original_amount?: number | null;
+          source?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          vat_rate_pct?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "catalog_item_costs_currency_fkey";
+            columns: ["currency"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "catalog_item_costs_import_batch_id_fkey";
+            columns: ["import_batch_id"];
+            isOneToOne: false;
+            referencedRelation: "import_batches";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "catalog_item_costs_item_id_fkey";
+            columns: ["item_id"];
+            isOneToOne: false;
+            referencedRelation: "catalog_items";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       catalog_items: {
         Row: {
           code: string | null;
+          cost_currency: string;
+          cost_fx_date: string | null;
+          cost_fx_rate: number | null;
+          cost_import_batch_id: string | null;
+          cost_includes_vat: boolean;
+          cost_original_amount: number | null;
+          cost_source: string;
+          cost_updated_at: string | null;
+          cost_vat_rate_pct: number | null;
           created_at: string;
           created_by: string | null;
           default_cost_cents: number;
@@ -273,11 +359,13 @@ export type Database = {
           default_supplier_id: string | null;
           description: string | null;
           division_id: string | null;
+          ean: string | null;
           id: string;
           is_active: boolean;
           item_type: Database["public"]["Enums"]["item_type"];
           main_photo_document_id: string | null;
           name: string;
+          supplier_item_code: string | null;
           unit_code: string;
           updated_at: string;
           updated_by: string | null;
@@ -285,6 +373,15 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           code?: string | null;
+          cost_currency?: string;
+          cost_fx_date?: string | null;
+          cost_fx_rate?: number | null;
+          cost_import_batch_id?: string | null;
+          cost_includes_vat?: boolean;
+          cost_original_amount?: number | null;
+          cost_source?: string;
+          cost_updated_at?: string | null;
+          cost_vat_rate_pct?: number | null;
           created_at?: string;
           created_by?: string | null;
           default_cost_cents?: number;
@@ -293,17 +390,28 @@ export type Database = {
           default_supplier_id?: string | null;
           description?: string | null;
           division_id?: string | null;
+          ean?: string | null;
           id?: string;
           is_active?: boolean;
           item_type: Database["public"]["Enums"]["item_type"];
           main_photo_document_id?: string | null;
           name: string;
+          supplier_item_code?: string | null;
           unit_code: string;
           updated_at?: string;
           updated_by?: string | null;
         };
         Update: {
           code?: string | null;
+          cost_currency?: string;
+          cost_fx_date?: string | null;
+          cost_fx_rate?: number | null;
+          cost_import_batch_id?: string | null;
+          cost_includes_vat?: boolean;
+          cost_original_amount?: number | null;
+          cost_source?: string;
+          cost_updated_at?: string | null;
+          cost_vat_rate_pct?: number | null;
           created_at?: string;
           created_by?: string | null;
           default_cost_cents?: number;
@@ -312,16 +420,32 @@ export type Database = {
           default_supplier_id?: string | null;
           description?: string | null;
           division_id?: string | null;
+          ean?: string | null;
           id?: string;
           is_active?: boolean;
           item_type?: Database["public"]["Enums"]["item_type"];
           main_photo_document_id?: string | null;
           name?: string;
+          supplier_item_code?: string | null;
           unit_code?: string;
           updated_at?: string;
           updated_by?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "catalog_items_cost_currency_fkey";
+            columns: ["cost_currency"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "catalog_items_cost_import_batch_id_fkey";
+            columns: ["cost_import_batch_id"];
+            isOneToOne: false;
+            referencedRelation: "import_batches";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "catalog_items_default_supplier_id_fkey";
             columns: ["default_supplier_id"];
@@ -512,6 +636,40 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      currencies: {
+        Row: {
+          code: string;
+          created_at: string;
+          created_by: string | null;
+          is_active: boolean;
+          name: string;
+          sort_order: number;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          code: string;
+          created_at?: string;
+          created_by?: string | null;
+          is_active?: boolean;
+          name: string;
+          sort_order?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          code?: string;
+          created_at?: string;
+          created_by?: string | null;
+          is_active?: boolean;
+          name?: string;
+          sort_order?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [];
       };
       customer_contacts: {
         Row: {
@@ -917,6 +1075,191 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [];
+      };
+      import_batch_rows: {
+        Row: {
+          action: string | null;
+          batch_id: string;
+          chosen_item_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          decision: string | null;
+          errors: NonNullable<Json>;
+          id: string;
+          match: NonNullable<Json>;
+          parsed: NonNullable<Json>;
+          previous: Json | null;
+          raw: NonNullable<Json>;
+          result_item_id: string | null;
+          row_no: number;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          action?: string | null;
+          batch_id: string;
+          chosen_item_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          decision?: string | null;
+          errors?: NonNullable<Json>;
+          id?: string;
+          match?: NonNullable<Json>;
+          parsed?: NonNullable<Json>;
+          previous?: Json | null;
+          raw?: NonNullable<Json>;
+          result_item_id?: string | null;
+          row_no: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          action?: string | null;
+          batch_id?: string;
+          chosen_item_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          decision?: string | null;
+          errors?: NonNullable<Json>;
+          id?: string;
+          match?: NonNullable<Json>;
+          parsed?: NonNullable<Json>;
+          previous?: Json | null;
+          raw?: NonNullable<Json>;
+          result_item_id?: string | null;
+          row_no?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "import_batch_rows_batch_id_fkey";
+            columns: ["batch_id"];
+            isOneToOne: false;
+            referencedRelation: "import_batches";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "import_batch_rows_chosen_item_id_fkey";
+            columns: ["chosen_item_id"];
+            isOneToOne: false;
+            referencedRelation: "catalog_items";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "import_batch_rows_result_item_id_fkey";
+            columns: ["result_item_id"];
+            isOneToOne: false;
+            referencedRelation: "catalog_items";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      import_batches: {
+        Row: {
+          applied_at: string | null;
+          applied_by: string | null;
+          created_at: string;
+          created_by: string | null;
+          file_name: string;
+          id: string;
+          options: NonNullable<Json>;
+          rolled_back_at: string | null;
+          rolled_back_by: string | null;
+          status: string;
+          summary: NonNullable<Json>;
+          supplier_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          applied_at?: string | null;
+          applied_by?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          file_name: string;
+          id?: string;
+          options?: NonNullable<Json>;
+          rolled_back_at?: string | null;
+          rolled_back_by?: string | null;
+          status?: string;
+          summary?: NonNullable<Json>;
+          supplier_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          applied_at?: string | null;
+          applied_by?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          file_name?: string;
+          id?: string;
+          options?: NonNullable<Json>;
+          rolled_back_at?: string | null;
+          rolled_back_by?: string | null;
+          status?: string;
+          summary?: NonNullable<Json>;
+          supplier_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "import_batches_supplier_id_fkey";
+            columns: ["supplier_id"];
+            isOneToOne: false;
+            referencedRelation: "suppliers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      import_templates: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          mapping: NonNullable<Json>;
+          name: string;
+          options: NonNullable<Json>;
+          supplier_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          mapping: NonNullable<Json>;
+          name: string;
+          options?: NonNullable<Json>;
+          supplier_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          mapping?: NonNullable<Json>;
+          name?: string;
+          options?: NonNullable<Json>;
+          supplier_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "import_templates_supplier_id_fkey";
+            columns: ["supplier_id"];
+            isOneToOne: false;
+            referencedRelation: "suppliers";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       income_tax_brackets: {
         Row: {
@@ -1973,15 +2316,26 @@ export type Database = {
           verified_totp_factors: number;
         }[];
       };
+      apply_import_batch: { Args: { p_batch_id: string }; Returns: Json };
       confirm_data_review: {
         Args: { p_entity_id: string; p_entity_table: string };
         Returns: string;
       };
+      dry_run_import_batch: { Args: { p_batch_id: string }; Returns: Json };
       duplicate_catalog_package: {
         Args: { p_code?: string; p_id: string; p_name: string };
         Returns: string;
       };
       fill_sk_holidays: { Args: { p_year: number }; Returns: number };
+      match_catalog_item: {
+        Args: { p_ean: string; p_name: string; p_supplier_code: string; p_supplier_id: string };
+        Returns: {
+          item_id: string;
+          name: string;
+          reason: string;
+          score: number;
+        }[];
+      };
       next_document_number: {
         Args: { p_doc_type: Database["public"]["Enums"]["doc_type"]; p_year?: number };
         Returns: string;
@@ -2024,6 +2378,7 @@ export type Database = {
         };
         Returns: string;
       };
+      rollback_import_batch: { Args: { p_batch_id: string }; Returns: Json };
       transition: {
         Args: { p_entity_table: string; p_id: string; p_note?: string; p_to_status: string };
         Returns: Json;

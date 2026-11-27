@@ -31,6 +31,13 @@ Formát: [Keep a Changelog](https://keepachangelog.com/sk/1.1.0/).
   - `documents.storage_provider` a **jeden adaptér úložiska** `src/core/storage/adapter.ts`; `core/documents.ts` presunuté do `core/storage/documents.ts`; kontrola súborov podľa obsahu (`file-check.ts`), zmenšenie fotiek na WebP max. 2000 px (`resize-image.ts`);
   - dlaždica **Prílohy** (`core/attachments`): zoznam, galéria s náhľadom, PDF v novej karte, stiahnutie, zmena kategórie, zmazanie s potvrdením (zamknuté nikdy), pretiahnutie myšou, Ctrl+V, na mobile fotoaparát; pri novom zázname sa súbory nahrajú až po uložení (priebeh po súboroch, „Nahrať znova“);
   - použitá pri položke katalógu (**hlavná fotka** + galéria, miniatúry v zozname a pri výbere komponentu), zákazníkovi, dodávateľovi a technike; história zmien ukazuje názvy súborov.
+- **Blok K – import katalógu XLSX / CSV (D26)** (migrácie `20261129130000_phase3_catalog_import.sql`, `20261129131000_phase3_import_item_types.sql`, pgTAP `13_catalog_import`):
+  - Katalóg → **Import**: sprievodca v 5 krokoch – súbor (XLSX alebo CSV, kódovanie UTF-8 / Windows-1250 automaticky, oddeľovač ; , tab, dodávateľ s upozornením § 7/7a pri zahraničnom, mena, s/bez DPH + sadzba, kurz + dátum), mapovanie stĺpcov (odhad z hlavičky, šablóny dodávateľa), náhľad s chybami po riadkoch, skúšobný beh s párovaním a rozhodnutím pri „Vybrať“, potvrdenie; zoznam dávok s „Vrátiť dávku“;
+  - meny EUR/CZK/PLN ako konfigurácia, nákupná cena v mene cenníka s/bez DPH – katalóg drží EUR bez DPH (výpočet v DB aj v `core/calc/purchase-price.ts` rovnako), história nákupných cien s dátumom a zdrojom;
+  - spoločné párovanie `match_catalog_item` (kód dodávateľa → EAN → podobnosť názvu) pre import aj budúceho AI asistenta;
+  - formulár položky: mena, cena s DPH + sadzba, kurz a dátum, živý prepočet na EUR bez DPH, kód dodávateľa, EAN, odkiaľ a kedy je cena;
+  - **EAN / GTIN**: 8, 12, 13 alebo 14 číslic s kontrolnou číslicou – kontrola v DB (`private.gtin_valid`) aj vo formulári (zod), jedinečný aj pri zápise s úvodnými nulami;
+  - knižnica `read-excel-file` (MIT, čítanie XLSX v prehliadači); fiktívne testovacie cenníky `e2e/fixtures/` zo skriptu `scripts/make-import-fixtures.ts` (`write-excel-file`, len vývoj).
 - **Bod 17 – balíčky:** „+ Nový balíček“ v záložke Balíčky (typ a jednotka predvyplnené, s fotkou; po uložení sa otvorí v kusovníku), „Duplikovať balíček“ (kópia s kusovníkom, nový názov a kód – `duplicate_catalog_package`), prázdny stav s tlačidlom, „Balíček“ v „+ Nové“ a `Ctrl+K`; výber komponentu s vyhľadávaním a miniatúrami.
 
 ### Pridané – doplnenie pred zlúčením

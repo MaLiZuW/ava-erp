@@ -1,6 +1,8 @@
 import { z } from "zod";
+import { parseRateMicro } from "@/core/calc/purchase-price";
 import {
   dateField,
+  gtinField,
   moneyField,
   optDateField,
   optMoneyField,
@@ -34,6 +36,7 @@ export const CATALOG_TABS = [
   { value: "jednotky", label: "Jednotky" },
   { value: "sadzby", label: "Roly a sadzby" },
   { value: "technika", label: "Technika a vybavenie" },
+  { value: "import", label: "Import" },
 ] as const;
 export type CatalogTab = (typeof CATALOG_TABS)[number]["value"];
 
@@ -52,13 +55,45 @@ export const itemSchema = z
     item_type: z.enum(["goods", "external_service", "labor", "resource", "package", "other"]),
     division_id: z.string().transform((v) => (v === "" ? null : v)),
     unit_code: z.string().min(1, "Vyberte jednotku."),
-    default_cost_cents: moneyField("Zadajte nákupnú cenu v eurách (0 alebo viac)."),
+    // purchase price as on the supplier's price list; the DB computes EUR without VAT (D26)
+    cost_original_amount: moneyField("Zadajte nákupnú cenu (0 alebo viac)."),
+    cost_currency: z.string().regex(/^[A-Z]{3}$/, "Vyberte menu."),
+    cost_includes_vat: z.boolean(),
+    cost_vat_rate_pct: optPercentField(100),
+    cost_fx_rate: z.string().transform((v, ctx) => {
+      if (v.trim() === "") return null;
+      const micro = parseRateMicro(v);
+      if (micro == null) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Kurz: kladné číslo, najviac 6 desatinných miest.",
+        });
+        return z.NEVER;
+      }
+      return Number(micro) / 1_000_000;
+    }),
+    cost_fx_date: optDateField(),
+    supplier_item_code: optText(60),
+    ean: gtinField(),
     default_supplier_id: z.string().transform((v) => (v === "" ? null : v)),
     default_pricing_mode: z.enum(["none", "margin", "markup"]),
     default_pricing_pct: optPercentField(),
     description: optText(4000),
   })
   .superRefine((v, ctx) => {
+    if (v.cost_includes_vat && v.cost_vat_rate_pct == null) {
+      ctx.addIssue({ code: "custom", path: ["cost_vat_rate_pct"], message: "Zadajte sadzbu DPH." });
+    }
+    if (v.cost_currency !== "EUR" && v.cost_fx_rate == null) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["cost_fx_rate"],
+        message: `Zadajte kurz (koľko ${v.cost_currency} je 1 EUR).`,
+      });
+    }
+    if (v.cost_currency !== "EUR" && v.cost_fx_date == null) {
+      ctx.addIssue({ code: "custom", path: ["cost_fx_date"], message: "Zadajte dátum kurzu." });
+    }
     if (v.default_pricing_mode !== "none" && v.default_pricing_pct == null) {
       ctx.addIssue({
         code: "custom",
@@ -157,6 +192,16 @@ export const CATALOG_FIELD_LABELS: Record<string, Record<string, string>> = {
     description: "Popis",
     is_active: "Aktívna",
     main_photo_document_id: "Hlavná fotka",
+    supplier_item_code: "Kód dodávateľa",
+    ean: "EAN / GTIN",
+    cost_currency: "Mena nákupu",
+    cost_original_amount: "Cena v cenníku",
+    cost_fx_rate: "Kurz",
+    cost_fx_date: "Dátum kurzu",
+    cost_includes_vat: "Cena s DPH",
+    cost_vat_rate_pct: "Sadzba DPH %",
+    cost_source: "Zdroj ceny",
+    cost_import_batch_id: "Dávka importu",
   },
   documents: {
     file_name: "Súbor",
@@ -198,4 +243,6 @@ export const CATALOG_TABLE_LABELS: Record<string, string> = {
   labor_rates: "Sadzba",
   resources: "Technika",
   documents: "Príloha",
+  import_batches: "Dávka importu",
+  import_templates: "Šablóna importu",
 };

@@ -1,3 +1,4 @@
+import { join } from "node:path";
 import { expect, test } from "@playwright/test";
 import {
   createTestUser,
@@ -473,5 +474,69 @@ test.describe.serial("master data", () => {
     for (const [day] of sample) await cal.getByLabel(`Hodiny – ${day}`, { exact: true }).fill("8");
     await pattern.getByRole("button", { name: "Uložiť vzor" }).click();
     await expect(pattern.getByText("Zadajte dátum „platí od“ v tvare DD/MM/YYYY.")).toBeVisible();
+
+    // --- block K: import of a price list (CSV Windows-1250, ";", CZK with VAT 21 %) ----------------
+    await page.goto("/katalog/?tab=import");
+    const imp = page.getByRole("region", { name: "Import cenníka (XLSX / CSV)" });
+    await imp
+      .getByLabel("Súbor cenníka")
+      .setInputFiles(join(__dirname, "fixtures", "cennik-fiktivny-cp1250.csv"));
+    await imp.getByLabel("Mena cien v súbore").selectOption("CZK");
+    await imp.getByLabel("Ceny sú s DPH").check();
+    await imp.getByLabel("Sadzba DPH %").fill("21");
+    await imp.getByLabel("Kurz (CZK za 1 EUR)").fill("25");
+    await imp.getByLabel("Dátum kurzu", { exact: true }).fill("27/11/2026");
+    await imp.getByRole("button", { name: "Načítať súbor" }).click();
+    // mapping guessed from the header; the encoding was recognised
+    await expect(imp.getByText(/Windows-1250/)).toBeVisible();
+    await expect(imp.getByLabel("Názov *")).toHaveValue("1");
+    await expect(imp.getByLabel("Cena *")).toHaveValue("4");
+    await imp.getByRole("button", { name: "Zobraziť náhľad" }).click();
+    await expect(imp.getByTestId("import-preview-count")).toHaveText(/3 riadkov · 1 s chybou/);
+    await expect(imp.getByText("E2E Importovaná taška žltá; veľká")).toBeVisible();
+    await imp.getByRole("button", { name: "Skúšobný beh" }).click();
+    const dry = imp.getByTestId("dry-run-summary");
+    await expect(dry).toContainText("Nová položka: 2", { timeout: 20_000 });
+    await expect(dry).toContainText("Chyba: 1");
+    await imp.getByRole("button", { name: "Potvrdiť import" }).click();
+    await page.getByRole("alertdialog").getByRole("button", { name: "Importovať" }).click();
+    await expect(imp.getByTestId("import-done")).toContainText("2 nových položiek", {
+      timeout: 20_000,
+    });
+
+    // the item has the EUR price without VAT, the original price, EAN and the supplier code
+    await page.goto("/katalog/?tab=polozky");
+    await page.getByRole("button", { name: "E2E Importovaný kufrík čierny", exact: true }).click();
+    const kufrik = page.getByRole("region", { name: "Položka – E2E Importovaný kufrík čierny" });
+    await expect(kufrik.getByTestId("cost-eur-preview")).toHaveText(/40,00/); // 1 210 CZK / 1,21 / 25
+    await expect(kufrik.getByLabel("EAN / GTIN", { exact: true })).toHaveValue("4006381333931");
+    await expect(kufrik.getByLabel("Kód dodávateľa", { exact: true })).toHaveValue("E2E-K01");
+    await expect(kufrik.getByTestId("cost-origin")).toContainText("import cenníka");
+    await kufrik.getByRole("button", { name: "Zrušiť" }).click();
+
+    // EAN with a wrong check digit is refused in the form (GTIN check, same as the database)
+    await page.getByRole("button", { name: "+ Nová položka" }).click();
+    const nf = page.getByRole("region", { name: "Nová položka katalógu" });
+    await nf.getByLabel("Názov", { exact: true }).fill(`${E2E_NAME_PREFIX}EAN test`);
+    await nf.getByLabel("EAN / GTIN", { exact: true }).fill("4006381333932");
+    await nf.getByRole("button", { name: "Uložiť" }).click();
+    await expect(nf.getByText(/EAN\/GTIN nie je platný/)).toBeVisible();
+    await nf.getByRole("button", { name: "Zrušiť" }).click();
+
+    // "Vrátiť dávku" removes the created items
+    await page.goto("/katalog/?tab=import");
+    const batch = page
+      .getByTestId("import-batch")
+      .filter({ hasText: "cennik-fiktivny-cp1250.csv" });
+    await batch.first().getByRole("button", { name: "Vrátiť dávku" }).click();
+    await page.getByRole("alertdialog").getByRole("button", { name: "Vrátiť dávku" }).click();
+    await expect(batch.first()).toContainText("Vrátená", { timeout: 15_000 });
+    await page.goto("/katalog/?tab=polozky");
+    await expect(page.getByRole("button", { name: "E2E Importovaný kufrík čierny" })).toHaveCount(
+      0,
+      {
+        timeout: 15_000,
+      },
+    );
   });
 });

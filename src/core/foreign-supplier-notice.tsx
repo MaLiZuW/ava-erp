@@ -1,7 +1,10 @@
 import { TriangleAlert } from "lucide-react";
-import { FOREIGN_SUPPLIER_WARNING } from "../schema";
 
-/** Shown for every supplier outside Slovakia – in the form and on the detail (O4, verify with the accountant). */
+/** O4: purchases from abroad – possible VAT registration duty; verify with the accountant. */
+export const FOREIGN_SUPPLIER_WARNING =
+  "Možná registračná povinnosť DPH (§ 7, § 7a) – overiť s účtovníkom.";
+
+/** Shown for every supplier outside Slovakia – supplier form and detail, catalog import. */
 export function ForeignSupplierNotice() {
   return (
     <p

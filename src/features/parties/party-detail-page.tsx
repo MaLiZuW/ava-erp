@@ -17,7 +17,7 @@ import { StatusBadge } from "@/ui/status-badge";
 import { BentoGrid, Tile } from "@/ui/tile";
 import { useContacts, useParty, useSetPartyActive, type Party } from "./api";
 import { ContactsTile } from "./components/contacts-tile";
-import { ForeignSupplierNotice } from "./components/foreign-supplier-notice";
+import { ForeignSupplierNotice } from "@/core/foreign-supplier-notice";
 import { MachinesTile } from "./components/machines-tile";
 import { PartyForm } from "./components/party-form";
 import {

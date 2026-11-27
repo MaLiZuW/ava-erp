@@ -27,6 +27,7 @@ const NAME_COLUMNS: Record<string, string[]> = {
   resources: ["name"],
   companies: ["legal_name"],
   recurring_overheads: ["category"],
+  import_batches: ["file_name"],
   content_blocks: ["title"],
   customer_contacts: ["full_name"],
   supplier_contacts: ["full_name"],
@@ -49,6 +50,8 @@ export const REF_FIELDS: Record<string, string> = {
   equipment_id: "resources",
   profile_id: "profiles",
   resource_id: "v_bookable_resources",
+  cost_import_batch_id: "import_batches",
+  import_batch_id: "import_batches",
 };
 
 /** entity_id is resolved by the entity_table of the same row (documents, data reviews …). */

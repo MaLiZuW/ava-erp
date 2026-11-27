@@ -1,0 +1,2 @@
+# test files of the catalog import: exact bytes (Windows-1250, CRLF)
+e2e/fixtures/** binary

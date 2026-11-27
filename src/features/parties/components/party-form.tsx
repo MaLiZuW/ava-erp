@@ -14,7 +14,7 @@ import {
   type PartyKind,
   type PartyOutput,
 } from "../schema";
-import { ForeignSupplierNotice } from "./foreign-supplier-notice";
+import { ForeignSupplierNotice } from "@/core/foreign-supplier-notice";
 
 function toInput(p: Party | null): PartyInput {
   const v = (x: string | null | undefined) => x ?? "";

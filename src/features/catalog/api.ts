@@ -24,12 +24,14 @@ const PACKAGE_MESSAGES: DbMessages = {
   "23505": "Táto položka už v balíčku je. Zmeňte jej množstvo.",
 };
 const ITEM_MESSAGES: DbMessages = {
-  "23505": "Položka s týmto kódom už existuje.",
+  "23505": "Položka s týmto interným kódom, kódom dodávateľa alebo EAN už existuje.",
+  "23514":
+    "Nákupná cena nie je úplná (kurz a dátum pri cudzej mene, sadzba DPH pri cene s DPH) alebo EAN nie je platný.",
 };
 const ITEM_TYPE_MESSAGES: DbMessages = {
   "23514":
-    "Typ nemožno zmeniť: balíček má komponenty, alebo je položka súčasťou balíčka. Najprv upravte kusovník.",
-  "23505": "Položka s týmto kódom už existuje.",
+    "Položku nemožno uložiť: typ nemožno zmeniť, kým má balíček komponenty alebo je položka súčasťou balíčka; alebo nákupná cena nie je úplná.",
+  "23505": "Položka s týmto interným kódom, kódom dodávateľa alebo EAN už existuje.",
 };
 
 function invalidateCatalog(qc: ReturnType<typeof useQueryClient>, ...tables: string[]) {
@@ -50,6 +52,23 @@ export function useSupplierOptions() {
         .select("id, name")
         .eq("is_active", true)
         .order("name");
+      if (error) throwDb(error);
+      return data ?? [];
+    },
+  });
+}
+
+/** Currencies of purchase prices (configuration: EUR, CZK, PLN – D26). */
+export function useCurrencies() {
+  return useQuery({
+    queryKey: ["currencies"],
+    staleTime: 10 * 60_000,
+    queryFn: async () => {
+      const { data, error } = await sb()
+        .from("currencies")
+        .select("code, name")
+        .eq("is_active", true)
+        .order("sort_order");
       if (error) throwDb(error);
       return data ?? [];
     },

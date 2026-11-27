@@ -7,6 +7,7 @@ import type { AuditEntry, RefResolver } from "@/ui/audit-timeline";
 import { ChipGroup } from "@/ui/chips";
 import { BentoGrid } from "@/ui/tile";
 import { ItemsTab } from "./components/items-tab";
+import { ImportTab } from "./import/import-tab";
 import { PackagesTab } from "./components/packages-tab";
 import { RatesTab } from "./components/rates-tab";
 import { ResourcesTab } from "./components/resources-tab";
@@ -24,6 +25,7 @@ const TAB_TABLES: Record<CatalogTab, string[]> = {
   jednotky: ["units"],
   sadzby: ["labor_roles", "labor_rates"],
   technika: ["resources", "documents"],
+  import: ["import_batches", "import_templates"],
 };
 
 /** documents of the tab only (attachments of items / equipment, not the logo or content images) */
@@ -52,7 +54,13 @@ function recordLabel(e: AuditEntry, resolve: RefResolver): string {
     return `Kusovník: ${pkg} ← ${part}`;
   }
   const name =
-    typeof data?.name === "string" ? data.name : typeof data?.code === "string" ? data.code : null;
+    typeof data?.name === "string"
+      ? data.name
+      : typeof data?.file_name === "string"
+        ? data.file_name
+        : typeof data?.code === "string"
+          ? data.code
+          : null;
   const table = CATALOG_TABLE_LABELS[e.table_name] ?? e.table_name;
   return name ? `${table}: ${name}` : table;
 }
@@ -81,6 +89,7 @@ function Catalog() {
         {tab === "balicky" && <PackagesTab key={params.get("nova") ?? ""} openNew={openNew} />}
         {tab === "jednotky" && <UnitsTab />}
         {tab === "sadzby" && <RatesTab />}
+        {tab === "import" && <ImportTab />}
         {tab === "technika" && <ResourcesTab key={params.get("nova") ?? ""} openNew={openNew} />}
       </BentoGrid>
       {/* change history is always the last section of the page (DESIGN_SYSTEM §1) */}

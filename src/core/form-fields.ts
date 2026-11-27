@@ -4,7 +4,7 @@
  */
 import { z } from "zod";
 import { parseDate, parseDecimal, parseMoneyToCents, parsePercent } from "./format";
-import { compact, isValidDic, isValidIco } from "./validation";
+import { compact, isValidDic, isValidGtin, isValidIco } from "./validation";
 
 /** Optional text: trimmed, empty → null. */
 export const optText = (max: number) =>
@@ -25,6 +25,13 @@ export const optChecked = (
     .trim()
     .refine((v) => v === "" || check(v), message)
     .transform((v) => (v === "" ? null : normalize(v)));
+
+export const gtinField = () =>
+  optChecked(
+    isValidGtin,
+    "EAN/GTIN nie je platný: 8, 12, 13 alebo 14 číslic so správnou kontrolnou číslicou.",
+    compact,
+  );
 
 export const icoField = () =>
   optChecked(isValidIco, "IČO nie je platné (8 číslic s kontrolnou číslicou).", compact);
