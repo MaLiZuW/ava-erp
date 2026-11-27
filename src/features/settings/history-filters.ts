@@ -33,4 +33,10 @@ export const HISTORY_FILTERS: Record<string, (e: AuditEntry) => boolean> = {
     isLogoDocument(e) ||
     (e.table_name === "companies" && changedFields(e).includes("logo_document_id")),
   "/nastavenia/firma/": (e) => e.table_name === "companies" && !onlyLogoChange(e),
+  // AI page: its tables and only the AI keys of the shared settings and flags
+  "/nastavenia/ai/": (e) => {
+    if (e.table_name === "ai_provider_keys" || e.table_name === "ai_model_prices") return true;
+    const key = ((e.new_data ?? e.old_data) as { key?: string } | null)?.key ?? "";
+    return key.startsWith("ai_");
+  },
 };

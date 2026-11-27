@@ -38,6 +38,13 @@ Formát: [Keep a Changelog](https://keepachangelog.com/sk/1.1.0/).
   - formulár položky: mena, cena s DPH + sadzba, kurz a dátum, živý prepočet na EUR bez DPH, kód dodávateľa, EAN, odkiaľ a kedy je cena;
   - **EAN / GTIN**: 8, 12, 13 alebo 14 číslic s kontrolnou číslicou – kontrola v DB (`private.gtin_valid`) aj vo formulári (zod), jedinečný aj pri zápise s úvodnými nulami;
   - knižnica `read-excel-file` (MIT, čítanie XLSX v prehliadači); fiktívne testovacie cenníky `e2e/fixtures/` zo skriptu `scripts/make-import-fixtures.ts` (`write-excel-file`, len vývoj).
+- **Blok L – Nastavenia → AI (D25)** (migrácia `20261129140000_phase3_ai_settings.sql`, pgTAP `14_ai`, Edge Function `ai-gateway`):
+  - poskytovateľ Gemini za adaptérom (`provider.ts`), model podľa účelu (vyberá vlastník), ceny modelov, príznaky `ai_catalog_assist` a `ai_email_triage` (vypnuté);
+  - API kľúč len na zápis do **Vault** cez bránu, stav „nastavený · …1234 · dátum“, výmena, odstránenie, „Otestovať spojenie“;
+  - spotreba `ai_usage` (zapisuje len brána), prehľad spolu / podľa funkcie / podľa mesiaca, poistka 5,00 € / vypnutie pri 4,50 €, upozornenia 50 % a 90 % (typy notifikácií `ai_budget_50`, `ai_budget_90`), `useAiAvailability` na zašednutie AI tlačidiel;
+  - obsah ide do AI ako dáta oddelené od pokynov (prompt injection); kľúč v hlavičke, nikdy v URL ani v logoch;
+  - DEPLOYMENT.md, časť G – postup pre Google AI Studio (kľúč, fakturácia, rozpočet 5 €, kvóta);
+  - lokálne testy PGlite majú náhradu Vaultu (len na kontrolu prístupov).
 - **Bod 17 – balíčky:** „+ Nový balíček“ v záložke Balíčky (typ a jednotka predvyplnené, s fotkou; po uložení sa otvorí v kusovníku), „Duplikovať balíček“ (kópia s kusovníkom, nový názov a kód – `duplicate_catalog_package`), prázdny stav s tlačidlom, „Balíček“ v „+ Nové“ a `Ctrl+K`; výber komponentu s vyhľadávaním a miniatúrami.
 
 ### Pridané – doplnenie pred zlúčením

@@ -10,6 +10,14 @@ import { FormMessage } from "@/ui/field";
 import { StatusBadge, type StatusTone } from "@/ui/status-badge";
 import { BentoGrid, Tile } from "@/ui/tile";
 import { useCompany } from "./api";
+import {
+  AiBudgetTile,
+  AiFeaturesTile,
+  AiKeyTile,
+  AiModelsTile,
+  AiNotice,
+  AiUsageTile,
+} from "./components/ai/ai-tiles";
 import { AuditTile } from "./components/audit-tile";
 import { CompanyTile } from "./components/company-tile";
 import { FeatureFlagsTile } from "./components/feature-flags-tile";
@@ -123,20 +131,16 @@ export const HistorySection = () => (
   </Grid>
 );
 
-function Prepared({ title, text }: { title: string; text: string }) {
-  return (
-    <Grid>
-      <Tile size="L" title={title}>
-        <EmptyState title="Pripravujeme" description={text} />
-      </Tile>
-    </Grid>
-  );
-}
+/** Nastavenia → AI (block L, D25): key, models and prices, functions, budget, usage. */
 export const AiSection = () => (
-  <Prepared
-    title="AI"
-    text="Poskytovateľ, API kľúč (len na zápis), funkcie a rozpočet s poistkou – pribudne v bloku L."
-  />
+  <Grid>
+    <AiNotice />
+    <AiKeyTile />
+    <AiModelsTile />
+    <AiFeaturesTile />
+    <AiBudgetTile />
+    <AiUsageTile />
+  </Grid>
 );
 const REVIEW_FILTERS = [
   { value: "due", label: "Na overenie" },
@@ -191,7 +195,7 @@ export function DataSection() {
 /** /nastavenia/ – tiles of the sections in the order of the menu, with their state (point 21). */
 export function SettingsOverview() {
   const status = useSettingsStatus();
-  const prepared = new Set(["ai"]);
+  const prepared = new Set<string>();
   return (
     <BentoGrid className="md:auto-rows-[minmax(160px,auto)]">
       {SETTINGS_GROUPS.map((g) => {

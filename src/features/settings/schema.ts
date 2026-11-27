@@ -116,6 +116,14 @@ export const FIELD_LABELS: Record<string, Record<string, string>> = {
   profiles: { full_name: "Meno", email: "E-mail", phone: "Telefón", is_active: "Aktívny" },
   "auth.mfa_factors": { target_user: "Používateľ", factors_removed: "Odstránené faktory" },
   ...REPORTING_FIELD_LABELS,
+  ai_provider_keys: { provider: "Poskytovateľ", last4: "Posledné 4 znaky" },
+  ai_model_prices: {
+    model: "Model",
+    input_eur_per_mtok: "Vstup €/1M tokenov",
+    output_eur_per_mtok: "Výstup €/1M tokenov",
+    valid_from: "Platí od",
+    note: "Poznámka",
+  },
 };
 
 export const TABLE_LABELS: Record<string, string> = {
@@ -130,6 +138,8 @@ export const TABLE_LABELS: Record<string, string> = {
   overhead_costs: "Réžia – jednorazová",
   recurring_overheads: "Réžia – opakovaná",
   data_reviews: "Overenie dát",
+  ai_provider_keys: "AI kľúč",
+  ai_model_prices: "AI – cena modelu",
   income_tax_brackets: "Daň z príjmov",
   work_patterns: "Kapacity – vzor",
   calendar_exceptions: "Kapacity – výnimka",

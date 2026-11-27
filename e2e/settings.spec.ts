@@ -4,6 +4,7 @@ import {
   deleteTestUser,
   loadTestEnv,
   purgeTestUsers,
+  setAiUsageFixture,
   type TestEnv,
   type TestUser,
 } from "../scripts/lib/test-users";
@@ -37,6 +38,7 @@ test.describe.serial("settings mode", () => {
     user = await createTestUser(env!, "e2e-set", { admin: true });
   });
   test.afterAll(async () => {
+    await setAiUsageFixture(env!, 0);
     await deleteTestUser(env!, user);
   });
 
@@ -142,5 +144,29 @@ test.describe.serial("settings mode", () => {
     await shot(page, "settings-capacity-375");
     await back.click();
     await expect(page).toHaveURL(/\/nastavenia\/$/);
+
+    // --- Nastavenia → AI (block L): no key → test greyed out; budget reached → AI off ---------------
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/nastavenia/ai/");
+    const main = page.locator("main");
+    await expect(main.getByRole("note")).toContainText("Nenahrávajte do AI osobné údaje");
+    const keyStatus = main.getByTestId("ai-key-status");
+    await expect(keyStatus).toContainText(/Kľúč (nie je )?nastavený/, { timeout: 15_000 });
+    if ((await keyStatus.textContent())?.includes("nie je")) {
+      await expect(main.getByRole("button", { name: "Otestovať spojenie" })).toBeDisabled();
+      // the key field is write-only (password type, nothing prefilled)
+      await expect(main.getByLabel("API kľúč (Google AI Studio)")).toHaveAttribute(
+        "type",
+        "password",
+      );
+    }
+    await expect(main.getByRole("button", { name: "Zapnúť – Asistent katalógu" })).toBeVisible();
+    await setAiUsageFixture(env!, 4.6);
+    await page.reload();
+    await expect(main.getByTestId("ai-budget")).toContainText("AI vypnutá – rozpočet vyčerpaný", {
+      timeout: 15_000,
+    });
+    await expect(main.getByTestId("ai-budget")).toContainText("ručná práca funguje ďalej");
+    await setAiUsageFixture(env!, 0);
   });
 });

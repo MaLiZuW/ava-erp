@@ -704,3 +704,20 @@ Migrácie `20261129130000_phase3_catalog_import.sql`, `20261129131000_phase3_imp
 | `rollback_import_batch(id)` | „Vrátiť dávku“ (security definer, admin + aal2): zmaže založené položky a vráti predchádzajúce ceny; odmietne, ak sa cena medzitým zmenila alebo je položka použitá (`private.catalog_item_in_use` – zatiaľ balíček, vo F4 doplniť CP). |
 
 Prepočet ceny: EUR bez DPH = pôvodná ÷ (1 + DPH) ÷ kurz, zaokrúhlené na centy (polovica nahor), len celými číslami (`private.cost_to_eur_cents`, rovnaký výpočet v `src/core/calc/purchase-price.ts`). Vystavené CP sa nemenia – CP si ukladajú vlastnú cenu (F4).
+
+## 21. Nastavenia → AI (F3, blok L – D25)
+
+Migrácia `20261129140000_phase3_ai_settings.sql`. Edge Function `supabase/functions/ai-gateway` (adaptér poskytovateľa, poistka, zápis spotreby).
+
+| Tabuľka / funkcia | Obsah |
+|---|---|
+| `system_settings` | `ai_provider` ('gemini'), `ai_models` (model podľa účelu: `catalog_assist`, `email_triage` – vyberá vlastník), `ai_budget_limit_eur` (5,00), `ai_budget_cutoff_eur` (4,50); trigger `check_ai_settings` kontroluje tvar a že hranica vypnutia ≤ rozpočet. |
+| `feature_flags` | `ai_catalog_assist`, `ai_email_triage` (vypnuté); `ai_legal_summary` ostáva. |
+| `ai_model_prices` | `model` PK, `input_eur_per_mtok`, `output_eur_per_mtok` (EUR za 1 milión tokenov), `valid_from`, `note` – zadáva vlastník. |
+| `ai_provider_keys` | `provider` PK, `vault_secret_id`, `last4`, `set_at`, `set_by` – **žiadny prístup pre aplikáciu**; samotný kľúč len vo Vault. |
+| `ai_key_status()` | pre UI (admin, aal2): nastavený / posledné 4 znaky / kedy / kto. |
+| `ai_store_key`, `ai_delete_key`, `ai_get_key` | len service role (brána); zápis do Vault a do histórie zmien bez kľúča. |
+| `ai_usage` | `at`, `feature`, `model`, `input_tokens`, `output_tokens`, `cost_eur numeric(12,6)`, `user_id`, `ok`, `error_code` – zapisuje len brána, číta admin. |
+| `ai_budget_status()` | minuté / rozpočet / hranica / % / stav `ok`, `warn50`, `warn90`, `blocked` (admin aal2 alebo service role). |
+| `v_ai_usage_summary` | spolu, podľa funkcie, podľa mesiaca (`security_invoker`). |
+| `notification_recipients` | typy udalostí rozšírené o `ai_budget_50`, `ai_budget_90` (odosielanie vo fáze 8). |

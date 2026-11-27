@@ -1,5 +1,6 @@
 "use client";
 
+import { useAiBudget, useAiKeyStatus } from "@/core/ai";
 import { dueOnly, useReviewsDue } from "@/core/data-review";
 import type { StatusTone } from "@/ui/status-badge";
 import { useCompany } from "./api";
@@ -15,7 +16,7 @@ export interface PageStatus {
 
 /**
  * What needs attention in the settings – one source for the markers in the settings menu and
- * the state badges on the overview (owner's points 20, 21). Block L adds "AI kľúč nenastavený".
+ * the state badges on the overview (owner's points 20, 21).
  */
 /** `loaded`: false until the data behind the markers is known (no premature "V poriadku"). */
 export function useSettingsStatus(): Record<string, PageStatus> & { loaded?: boolean } {
@@ -23,6 +24,8 @@ export function useSettingsStatus(): Record<string, PageStatus> & { loaded?: boo
   const users = useUsers();
   const tax = useTaxBrackets();
   const reviews = useReviewsDue();
+  const aiKey = useAiKeyStatus();
+  const aiBudget = useAiBudget();
   const out: Record<string, PageStatus> & { loaded?: boolean } = {};
   const c = company.data;
   if (company.data !== undefined) {
@@ -57,6 +60,10 @@ export function useSettingsStatus(): Record<string, PageStatus> & { loaded?: boo
         short: String(due.length),
       };
   }
+  if (aiBudget.data?.state === "blocked")
+    out["/nastavenia/ai/"] = { text: "AI vypnutá – rozpočet vyčerpaný", tone: "danger", short: "" };
+  else if (aiKey.data && !aiKey.data.is_set)
+    out["/nastavenia/ai/"] = { text: "Kľúč nenastavený", tone: "neutral", short: "" };
   Object.defineProperty(out, "loaded", {
     value:
       company.data !== undefined &&

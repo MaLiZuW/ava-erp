@@ -67,6 +67,7 @@ Presunuté z brány fázy 1 do fázy 2 a so súhlasom vlastníka (27. 11. 2026) 
 - [ ] Trigger `lock_issued` a `status_transitions` naplniť podľa `BUSINESS_PROCESSES.md` kap. 4 (s prvými dokladmi).
 - [ ] **Fáza 8 – odosielanie notifikácií:** e-mail príjemcom s udalosťou `data_review_due` (dáta po termíne overenia a do 30 dní, zdroj `v_reviews_due`). Typ udalosti a voľba pri príjemcovi sú hotové (blok I); ďalšie typy pridávať do `core/notification-events.ts` + check `notification_recipients_known_events`.
 - [ ] Fáza 8 (D23): sledovanie obsadenia úložiska (Free 1 GB), antivírusová kontrola nahraných súborov.
+- [ ] AI (D25): vlastník – kľúč, fakturácia, rozpočet a kvóta v Google Cloud podľa DEPLOYMENT.md G, potom „Otestovať spojenie“; fáza 8 – e-maily pri 50 / 90 % rozpočtu (`ai_budget_50`, `ai_budget_90`); F3.5 a F4.5 – akcie brány pre asistenta katalógu a triáž e-mailov (`runGenerate`, štruktúrovaný JSON so schémou); `ai-gateway` nasadiť aj na produkčný projekt.
 - [ ] Import katalógu (D26): automatický kurz z ECB/NBS (zatiaľ zadáva používateľ), import PDF cenníkov a AI asistent katalógu – F3.5; vo F4 doplniť do `private.catalog_item_in_use` použitie položky v CP (blokuje „Vrátiť dávku“); správa mien v Nastaveniach (zatiaľ SQL).
 - [ ] Správa kategórií príloh v Nastaveniach (zatiaľ len migráciou / SQL) – keď bude treba nový typ (napr. DWG/DXF/STEP).
 - [ ] Na produkčnom projekte Pro: serverový limit nečinnosti relácie (Auth → Sessions) a overenie, či reset 2FA ukončí relácie cieľa.
@@ -79,6 +80,7 @@ Presunuté z brány fázy 1 do fázy 2 a so súhlasom vlastníka (27. 11. 2026) 
 - [x] Knižnica obsahu, réžia, dane z príjmov (bez hodnôt), kapacity, ciele KPI.
 - [x] D22 zapísané v `docs/DECISIONS.md`.
 - [x] Blok I: opakovaná réžia s verziami a periodické overovanie dát (Dáta → Na overenie, dlaždica na prehľade).
+- [x] Blok L: Nastavenia → AI (Gemini za adaptérom, kľúč vo Vault, modely a ceny, funkcie, rozpočet s poistkou, prehľad spotreby); Edge Function `ai-gateway` nasadená na dev.
 - [x] Blok K: import katalógu XLSX/CSV, meny a DPH pri nákupnej cene, história cien, EAN/GTIN s kontrolnou číslicou.
 - [x] Blok J: prílohy podľa D23 (položka katalógu s hlavnou fotkou a galériou, zákazník, dodávateľ, technika); bod 17 – nový a duplikovaný balíček.
 

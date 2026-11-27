@@ -165,14 +165,14 @@ export const SETTINGS_GROUPS: readonly SettingsGroup[] = [
   {
     key: "ai",
     label: "AI",
-    description: "Poskytovateľ, kľúč, funkcie a rozpočet (pripravujeme – blok L).",
+    description: "Poskytovateľ, API kľúč, modely, funkcie a rozpočet s poistkou.",
     pages: [
       {
         href: "/nastavenia/ai/",
         label: "AI",
         description: "Poskytovateľ, API kľúč, funkcie a rozpočet s poistkou.",
-        keywords: ["Gemini", "API kľúč", "rozpočet", "umelá inteligencia"],
-        historyTables: [],
+        keywords: ["Gemini", "API kľúč", "rozpočet", "umelá inteligencia", "model", "poistka"],
+        historyTables: ["ai_provider_keys", "ai_model_prices", "system_settings", "feature_flags"],
       },
     ],
   },

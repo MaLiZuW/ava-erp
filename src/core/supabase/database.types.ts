@@ -66,6 +66,108 @@ export type Database = {
         };
         Relationships: [];
       };
+      ai_model_prices: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          input_eur_per_mtok: number;
+          model: string;
+          note: string | null;
+          output_eur_per_mtok: number;
+          updated_at: string;
+          updated_by: string | null;
+          valid_from: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          input_eur_per_mtok: number;
+          model: string;
+          note?: string | null;
+          output_eur_per_mtok: number;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from?: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          input_eur_per_mtok?: number;
+          model?: string;
+          note?: string | null;
+          output_eur_per_mtok?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from?: string;
+        };
+        Relationships: [];
+      };
+      ai_provider_keys: {
+        Row: {
+          last4: string;
+          provider: string;
+          set_at: string;
+          set_by: string | null;
+          vault_secret_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          last4: string;
+          provider: string;
+          set_at?: string;
+          set_by?: string | null;
+          vault_secret_id: string;
+        };
+        Update: {
+          last4?: string;
+          provider?: string;
+          set_at?: string;
+          set_by?: string | null;
+          vault_secret_id?: string;
+        };
+        Relationships: [];
+      };
+      ai_usage: {
+        Row: {
+          at: string;
+          cost_eur: number;
+          error_code: string | null;
+          feature: string;
+          id: string;
+          input_tokens: number;
+          model: string;
+          ok: boolean;
+          output_tokens: number;
+          user_id: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          at?: string;
+          cost_eur?: number;
+          error_code?: string | null;
+          feature: string;
+          id?: string;
+          input_tokens?: number;
+          model: string;
+          ok: boolean;
+          output_tokens?: number;
+          user_id?: string | null;
+        };
+        Update: {
+          at?: string;
+          cost_eur?: number;
+          error_code?: string | null;
+          feature?: string;
+          id?: string;
+          input_tokens?: number;
+          model?: string;
+          ok?: boolean;
+          output_tokens?: number;
+          user_id?: string | null;
+        };
+        Relationships: [];
+      };
       attachment_categories: {
         Row: {
           allowed_mime_types: string[];
@@ -2168,6 +2270,18 @@ export type Database = {
         ComputedFields: never;
         Relationships: [];
       };
+      v_ai_usage_summary: {
+        Row: {
+          calls: number | null;
+          cost_eur: number | null;
+          input_tokens: number | null;
+          key: string | null;
+          output_tokens: number | null;
+          scope: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
       v_bookable_resources: {
         Row: {
           display_name: string | null;
@@ -2315,6 +2429,23 @@ export type Database = {
           user_id: string;
           verified_totp_factors: number;
         }[];
+      };
+      ai_budget_status: { Args: Record<PropertyKey, never>; Returns: Record<string, unknown> };
+      ai_delete_key: { Args: { p_provider: string; p_user: string }; Returns: boolean };
+      ai_get_key: { Args: { p_provider: string }; Returns: string };
+      ai_key_status: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          is_set: boolean;
+          last4: string;
+          provider: string;
+          set_at: string;
+          set_by_name: string;
+        }[];
+      };
+      ai_store_key: {
+        Args: { p_provider: string; p_secret: string; p_user: string };
+        Returns: string;
       };
       apply_import_batch: { Args: { p_batch_id: string }; Returns: Json };
       confirm_data_review: {

@@ -72,6 +72,10 @@ const TABLES = [
   "import_templates",
   "import_batches",
   "import_batch_rows",
+  // block L – AI (D25); ai_provider_keys has no grant at all – checked separately
+  "ai_model_prices",
+  "ai_usage",
+  "v_ai_usage_summary",
 ];
 /** tables an aal2 admin must see rows in (seeded / always present) */
 const ADMIN_VISIBLE = [
@@ -279,6 +283,66 @@ async function main() {
         user_id: user.id,
       });
       report(forged.status === 401, `tampered token → 401 (got ${forged.status})`);
+    }
+
+    // 4b. AI (block L): the key table and Vault are never readable; the gateway checks access -------
+    console.log("\n-- AI: key, usage, Edge Function ai-gateway --");
+    const apiAi = makeApi(env.url, env.anonKey, s2.session!.access_token);
+    const keys = await apiAi.get("ai_provider_keys");
+    report(!keys.ok, `aal2 admin cannot read ai_provider_keys: HTTP ${keys.status}`);
+    for (const fn of ["ai_get_key", "ai_store_key"]) {
+      const r = await apiAi.rpc(fn, {
+        p_provider: "gemini",
+        p_secret: "x".repeat(30),
+        p_user: user.id,
+      });
+      report(!r.ok, `aal2 admin cannot call ${fn}: HTTP ${r.status}`);
+    }
+    const usageW = await apiAi.insert("ai_usage", { feature: "test", model: "x", ok: true });
+    report(!usageW.ok, `aal2 admin cannot write ai_usage: HTTP ${usageW.status}`);
+    const keySt = await apiAi.rpc("ai_key_status", {});
+    report(
+      keySt.ok && !(await keySt.text()).includes("vault_secret"),
+      "ai_key_status gives metadata only",
+    );
+    const gw = (token: string | null, body: unknown, origin = "http://localhost:3000") =>
+      fetch(`${env.url}/functions/v1/ai-gateway`, {
+        method: "POST",
+        headers: {
+          apikey: env.anonKey,
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          "Content-Type": "application/json",
+          Origin: origin,
+        },
+        body: JSON.stringify(body),
+      });
+    const gwProbe = await gw(s2.session!.access_token, { action: "unknown" });
+    if (gwProbe.status === 404) {
+      console.log(
+        "SKIP Edge Function ai-gateway is not deployed (DEPLOYMENT.md) – gateway checks not run",
+      );
+    } else {
+      report(gwProbe.status === 400, `ai-gateway unknown action → 400 (got ${gwProbe.status})`);
+      const badKey = await gw(s2.session!.access_token, { action: "set_key", key: "short" });
+      report(
+        badKey.status === 400,
+        `ai-gateway refuses a malformed key → 400 (got ${badKey.status})`,
+      );
+      // no model / price / key on dev → a clear refusal, never a call to the provider
+      const test = await gw(s2.session!.access_token, { action: "test_connection" });
+      const code = ((await test.json()) as { error?: string }).error;
+      report(
+        test.status === 409 || test.status === 402,
+        `ai-gateway test without setup is refused (${test.status} ${code})`,
+      );
+      const anonGw = await gw(env.anonKey, { action: "test_connection" });
+      report(anonGw.status === 401, `ai-gateway with the anon key → 401 (got ${anonGw.status})`);
+      const evil = await gw(
+        s2.session!.access_token,
+        { action: "test_connection" },
+        "https://evil.example",
+      );
+      report(evil.status === 403, `ai-gateway foreign Origin → 403 (got ${evil.status})`);
     }
 
     // 4. Auth settings (public endpoint, no user is created) ----------------------------------------

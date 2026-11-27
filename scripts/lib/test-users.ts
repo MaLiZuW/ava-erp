@@ -194,6 +194,22 @@ export async function purgeE2eMasterData(env: TestEnv): Promise<void> {
   }
 }
 
+/** AI usage of the e2e fixture (feature "test_fixture"): `eur` > 0 adds it, 0 removes it. */
+export async function setAiUsageFixture(env: TestEnv, eur: number): Promise<void> {
+  const db = new Client({ connectionString: env.dbUrl });
+  await db.connect();
+  try {
+    await db.query("delete from public.ai_usage where feature = 'test_fixture'");
+    if (eur > 0)
+      await db.query(
+        "insert into public.ai_usage (feature, model, cost_eur, ok) values ('test_fixture', 'e2e-fixture', $1, true)",
+        [eur],
+      );
+  } finally {
+    await db.end();
+  }
+}
+
 /** Moves the review of the e2e recurring overhead into the past (to test "Po termíne"). */
 export async function makeE2eOverheadReviewOverdue(env: TestEnv): Promise<void> {
   const db = new Client({ connectionString: env.dbUrl });
