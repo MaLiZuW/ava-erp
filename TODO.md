@@ -62,7 +62,7 @@ Presunuté z brány fázy 1 do fázy 2 a so súhlasom vlastníka (27. 11. 2026) 
 - [ ] Prepínač divízie (Všetko / AVENG / Agentúra) v hornej lište – `DESIGN_SYSTEM.md` §5; presunuté do fázy 4 (zmysel má až s dopytmi a zákazkami).
 - [ ] GDPR: informačná povinnosť ku kontaktom zákazníkov a dodávateľov (presné znenie, doba uchovania, práva dotknutých osôb) – fáza 8; vo formulári kontaktu je zatiaľ krátky text (D22).
 - [ ] História zmien kusovníka a jednotiek nie je viazaná na konkrétny záznam (tabuľky nemajú stĺpec `id`); v Katalógu sa zobrazuje história celej časti. Ak to bude prekážať, doplniť `id` alebo rozšíriť `log_change`.
-- [ ] **Po zlúčení fázy 3:** samostatný malý PR – `.gitattributes` (`* text=auto eol=lf`) a jednorazové preformátovanie (Prettier hlási ~20 starších súborov kvôli koncom riadkov CRLF/LF po `core.autocrlf`). Teraz sa nič neformátuje.
+- [x] Konce riadkov: `.gitattributes` (`* text=auto eol=lf`, binárne súbory) – LF v repozitári aj v pracovnej kópii na Windows; jednorazovo naformátované 3 súbory; `supabase/config.jsonc` vylúčený z Prettieru (PR `chore-line-endings`).
 - [ ] Politiky pre role `manager`, `accountant`, `external` (s modulmi, ktoré ich potrebujú).
 - [ ] Trigger `lock_issued` a `status_transitions` naplniť podľa `BUSINESS_PROCESSES.md` kap. 4 (s prvými dokladmi).
 - [ ] **Fáza 8 – odosielanie notifikácií:** e-mail príjemcom s udalosťou `data_review_due` (dáta po termíne overenia a do 30 dní, zdroj `v_reviews_due`). Typ udalosti a voľba pri príjemcovi sú hotové (blok I); ďalšie typy pridávať do `core/notification-events.ts` + check `notification_recipients_known_events`.
